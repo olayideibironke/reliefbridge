@@ -1,26 +1,159 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Government / FEMA-inspired palette (USWDS-aligned) */
+  --color-navy: #112E51;
+  --color-navy-dark: #0B1F37;
+  --color-navy-light: #1A4480;
+  --color-blue: #005EA2;
+  --color-blue-vivid: #0076D6;
+  --color-blue-soft: #E1F1FF;
+  --color-blue-pale: #F0F6FB;
+
+  --color-gold: #FFBE2E;
+  --color-gold-dark: #C2850C;
+
+  --color-red: #B50909;
+  --color-red-soft: #FBEAEA;
+
+  --color-green: #008844;
+  --color-green-soft: #E7F4E4;
+
+  --color-ink: #1B1B1B;          /* base-darkest */
+  --color-ink-2: #3D4551;        /* base-darker */
+  --color-ink-3: #565C65;        /* base-dark */
+  --color-ink-4: #71767A;        /* base */
+  --color-line: #DFE1E2;         /* base-lighter */
+  --color-line-soft: #ECECEC;
+  --color-surface: #FFFFFF;
+  --color-surface-2: #F8F8F8;    /* base-lightest tinted */
+  --color-surface-3: #F0F0F0;
+
+  /* Typography */
+  --font-sans: var(--font-public-sans), "Source Sans Pro", -apple-system, "Segoe UI", system-ui, sans-serif;
+  --font-serif: var(--font-merriweather), Georgia, "Times New Roman", serif;
+
+  /* Shadows */
+  --shadow-card: 0 1px 2px rgba(27, 27, 27, 0.04), 0 6px 18px -10px rgba(27, 27, 27, 0.10);
+  --shadow-lift: 0 2px 4px rgba(27, 27, 27, 0.06), 0 24px 48px -24px rgba(27, 27, 27, 0.20);
+
+  /* Radius — gov-style, restrained */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.5;
+  letter-spacing: 0;
+  min-height: 100vh;
+}
+
+a {
+  color: var(--color-blue);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+  color: inherit;
+}
+
+/* USWDS-style yellow focus ring */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid var(--color-gold);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+::selection {
+  background: var(--color-blue-soft);
+  color: var(--color-ink);
+}
+
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-surface-2);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-line);
+  border-radius: 0;
+  border: 3px solid var(--color-surface-2);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-ink-4);
+}
+
+.rb-numerals {
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "tnum" on, "lnum" on;
+}
+
+/* Decorative gold rule used as a USWDS-style section accent */
+.rb-rule-gold::before {
+  content: "";
+  display: block;
+  width: 40px;
+  height: 4px;
+  background: var(--color-gold);
+  margin-bottom: 16px;
+}
+
+/* Faint dotted background used for navy hero accent */
+.rb-dotgrid {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 18px 18px;
+}
+
+/* Underline animation for primary nav */
+.rb-nav-link {
+  position: relative;
+}
+.rb-nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 3px;
+  background: var(--color-gold);
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 160ms ease;
+}
+.rb-nav-link:hover::after,
+.rb-nav-link[data-active="true"]::after {
+  transform: scaleX(1);
 }
