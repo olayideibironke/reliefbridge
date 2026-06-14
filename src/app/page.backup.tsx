@@ -216,7 +216,7 @@ function Masthead() {
 
         <div className="flex items-center gap-3">
           <a
-            href="/login"
+            href="#"
             className="hidden text-[14px] font-semibold text-ink-2 hover:text-blue hover:no-underline md:inline"
           >
             Sign in
@@ -239,25 +239,26 @@ function Masthead() {
 
 function PrimaryNav() {
   const items = [
-  { label: "Disasters & Recovery", href: "#platform" },
-  { label: "Case Management", href: "/app/cases" },
-  { label: "Referral Exchange", href: "/app/referrals" },
-  { label: "Partner Organizations", href: "/app/partners" },
-  { label: "Reports", href: "/app/reports" },
-];
+    "Disasters & Recovery",
+    "Case Management",
+    "Referral Exchange",
+    "Partner Organizations",
+    "Reports",
+  ];
 
   return (
     <nav className="border-b-4 border-gold bg-navy text-white">
       <Container className="flex h-12 items-stretch">
         <ul className="flex items-stretch gap-1">
           {items.map((item, i) => (
-            <li key={item.label} className="flex items-stretch">
+            <li key={item} className="flex items-stretch">
               <a
-                href={item.href}
+                href="#"
                 data-active={i === 0 ? "true" : "false"}
                 className="rb-nav-link inline-flex items-center px-4 text-[14px] font-semibold tracking-tight text-white/90 hover:text-white hover:no-underline"
               >
-                {item.label}</a>
+                {item}
+              </a>
             </li>
           ))}
         </ul>
@@ -853,6 +854,3 @@ export default function Page() {
     </>
   );
 }
-
-
-

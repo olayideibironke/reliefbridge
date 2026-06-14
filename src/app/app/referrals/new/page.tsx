@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { requireProfile } from "@/lib/session";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -6,6 +7,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { LinkButton } from "@/components/ui/Button";
 import { Icons } from "@/components/ui/Icons";
 import { fullName } from "@/lib/format";
+
 import { ReferralForm } from "./ReferralForm";
 
 export const metadata: Metadata = {
@@ -32,8 +34,11 @@ export default async function NewReferralPage({
       : Promise.resolve({ data: [] }),
     supabase
       .from("organizations")
-      .select("id, name, type, state")
-      .neq("id", orgId ?? "00000000-0000-0000-0000-000000000000")
+      .select("id, name, organization_type, state")
+      .neq(
+        "id",
+        orgId ?? "00000000-0000-0000-0000-000000000000",
+      )
       .order("name", { ascending: true }),
   ]);
 
@@ -42,19 +47,24 @@ export default async function NewReferralPage({
     first_name: string;
     last_name: string;
     state: string | null;
-  }>).map((s) => ({
-    id: s.id,
-    label: `${fullName(s.first_name, s.last_name)}${s.state ? ` · ${s.state}` : ""}`,
+  }>).map((survivor) => ({
+    id: survivor.id,
+    label: `${fullName(
+      survivor.first_name,
+      survivor.last_name,
+    )}${survivor.state ? ` · ${survivor.state}` : ""}`,
   }));
 
   const partnerOptions = ((partners ?? []) as Array<{
     id: string;
     name: string;
-    type: string;
+    organization_type: string;
     state: string | null;
-  }>).map((p) => ({
-    id: p.id,
-    label: `${p.name} · ${p.type}${p.state ? ` · ${p.state}` : ""}`,
+  }>).map((partner) => ({
+    id: partner.id,
+    label: `${partner.name} · ${partner.organization_type}${
+      partner.state ? ` · ${partner.state}` : ""
+    }`,
   }));
 
   return (
@@ -69,6 +79,7 @@ export default async function NewReferralPage({
           { label: "Send referral" },
         ]}
       />
+
       <div className="px-6 py-8 md:px-10">
         {survivorOptions.length === 0 ? (
           <EmptyState

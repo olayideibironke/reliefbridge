@@ -1,55 +1,96 @@
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
+
 import { createSupabaseServerClient } from "@/lib/supabase-server";
-import { ensureOrgForCurrentUser } from "@/lib/auth-helpers";
+import { requireProfile } from "@/lib/session";
 import { Sidebar } from "@/components/app/Sidebar";
 import { TopBar } from "@/components/app/TopBar";
 import { MobileHeader } from "@/components/app/MobileHeader";
-import { LABELS } from "@/lib/constants";
-import { fullName } from "@/lib/format";
-import type { Profile, Organization } from "@/lib/types";
+import type { Profile } from "@/lib/types";
 
-export default async function AppLayout({ children }: { children: ReactNode }) {
+type ProfileWithFullName = Profile & {
+  full_name?: string | null;
+};
+
+function formatRole(role: string | null | undefined) {
+  if (!role) {
+    return "Case Manager";
+  }
+
+  return role
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (character) => character.toUpperCase());
+}
+
+export default async function AppLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
   const supabase = await createSupabaseServerClient();
-  const { data: userRes } = await supabase.auth.getUser();
-  if (!userRes.user) {
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
     redirect("/login");
   }
 
-  await ensureOrgForCurrentUser();
+  const profile = (await requireProfile()) as ProfileWithFullName;
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", userRes.user.id)
-    .maybeSingle();
+  let orgName = "ReliefBridge Workspace";
 
-  if (!profile) {
-    redirect("/login");
-  }
-
-  let org: Organization | null = null;
   if (profile.organization_id) {
-    const { data: orgRow } = await supabase
+    const { data: organization } = await supabase
       .from("organizations")
-      .select("*")
+      .select("name")
       .eq("id", profile.organization_id)
       .maybeSingle();
-    org = (orgRow as Organization | null) ?? null;
+
+    if (organization?.name) {
+      orgName = organization.name;
+    }
   }
 
-  const profileTyped = profile as Profile;
-  const displayName = fullName(profileTyped.first_name, profileTyped.last_name);
-  const displayRole = LABELS.role[profileTyped.role] ?? "Member";
-  const orgName = org?.name ?? "Set up your organization";
+  const profileFullName =
+    typeof profile.full_name === "string"
+      ? profile.full_name.trim()
+      : "";
+
+  const profileFirstAndLastName = [
+    profile.first_name,
+    profile.last_name,
+  ]
+    .filter(
+      (value): value is string =>
+        typeof value === "string" && value.trim().length > 0,
+    )
+    .join(" ")
+    .trim();
+
+  const metadataName =
+    typeof user.user_metadata?.full_name === "string"
+      ? user.user_metadata.full_name.trim()
+      : "";
+
+  const name =
+    profileFullName ||
+    profileFirstAndLastName ||
+    metadataName ||
+    user.email ||
+    "ReliefBridge User";
+
+  const email = user.email ?? "";
+  const role = formatRole(profile.role);
 
   return (
     <div className="flex min-h-screen bg-surface-2">
       <Sidebar
         user={{
-          name: displayName === "Unnamed" ? userRes.user.email ?? "Account" : displayName,
-          email: userRes.user.email ?? "",
-          role: displayRole,
+          name,
+          email,
+          role,
         }}
         orgName={orgName}
       />

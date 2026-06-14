@@ -8,9 +8,20 @@ import { Icons } from "@/components/ui/Icons";
 import { Badge } from "@/components/ui/Badge";
 import { Input, Select } from "@/components/ui/Field";
 import { ORG_TYPES, US_STATES } from "@/lib/constants";
-import type { Organization, OrgType } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
+
+type PartnerOrg = {
+  id: string;
+  name: string;
+  organization_type: string | null;
+  city: string | null;
+  state: string | null;
+  email: string | null;
+  phone: string | null;
+  status: string | null;
+  created_at?: string | null;
+};
 
 export default async function PartnersPage({
   searchParams,
@@ -19,22 +30,32 @@ export default async function PartnersPage({
 }) {
   const profile = await requireProfile();
   const sp = await searchParams;
+
   const q = sp.q?.trim() ?? "";
-  const type = ORG_TYPES.includes(sp.type as OrgType) ? (sp.type as OrgType) : "";
+  const type = sp.type?.trim() ?? "";
   const state = sp.state && US_STATES.includes(sp.state) ? sp.state : "";
 
   const supabase = await createSupabaseServerClient();
+
   let query = supabase
     .from("organizations")
-    .select("id, name, type, city, state, website, email, phone, description")
+    .select("id, name, organization_type, city, state, email, phone, status, created_at")
     .order("name", { ascending: true });
 
-  if (q) query = query.ilike("name", `%${q}%`);
-  if (type) query = query.eq("type", type);
-  if (state) query = query.eq("state", state);
+  if (q) {
+    query = query.ilike("name", `%${q}%`);
+  }
+
+  if (type) {
+    query = query.eq("organization_type", type);
+  }
+
+  if (state) {
+    query = query.eq("state", state);
+  }
 
   const { data } = await query;
-  const orgs = (data ?? []) as Organization[];
+  const orgs = (data ?? []) as PartnerOrg[];
 
   return (
     <>
@@ -59,6 +80,7 @@ export default async function PartnersPage({
                 placeholder="Organization name"
                 defaultValue={q}
               />
+
               <Select label="Type" name="type" defaultValue={type}>
                 <option value="">All types</option>
                 {ORG_TYPES.map((t) => (
@@ -67,6 +89,7 @@ export default async function PartnersPage({
                   </option>
                 ))}
               </Select>
+
               <Select label="State" name="state" defaultValue={state}>
                 <option value="">All states</option>
                 {US_STATES.map((s) => (
@@ -75,17 +98,19 @@ export default async function PartnersPage({
                   </option>
                 ))}
               </Select>
+
               <div className="flex gap-2">
                 <button
                   type="submit"
-                  className="inline-flex h-11 items-center gap-2 rounded-sm bg-blue px-4 text-[13.5px] font-semibold text-white hover:bg-navy-light"
+                  className="inline-flex h-11 items-center gap-2 rounded-sm bg-blue px-4 text-[13.5px] font-bold text-white hover:bg-navy-light"
                 >
                   <Icons.Filter className="h-4 w-4" />
                   Filter
                 </button>
+
                 <Link
                   href="/app/partners"
-                  className="inline-flex h-11 items-center rounded-sm border border-line bg-surface px-3 text-[13.5px] font-semibold text-ink-2 hover:border-blue hover:text-blue hover:no-underline"
+                  className="inline-flex h-11 items-center rounded-sm border border-line bg-white px-3 text-[13.5px] font-bold text-navy hover:border-blue hover:text-blue hover:no-underline"
                 >
                   Reset
                 </Link>
@@ -108,33 +133,38 @@ export default async function PartnersPage({
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {orgs.map((org) => {
               const isMe = org.id === profile.organization_id;
+              const orgType = org.organization_type ?? "Organization";
+
               return (
                 <Link
                   key={org.id}
                   href={`/app/partners/${org.id}`}
-                  className="group rounded-md border border-line bg-surface p-5 transition hover:border-blue hover:no-underline hover:shadow-md"
+                  className="group rounded-md border border-line bg-white p-5 transition hover:border-blue hover:no-underline hover:shadow-md"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <span className="grid h-11 w-11 shrink-0 place-items-center rounded-sm bg-blue-soft text-navy">
                       <Icons.Building className="h-5 w-5" />
                     </span>
+
                     {isMe ? (
                       <Badge tone="navy">Your organization</Badge>
                     ) : (
-                      <Badge tone="blue">{org.type}</Badge>
+                      <Badge tone="blue">{orgType}</Badge>
                     )}
                   </div>
+
                   <div className="mt-4 text-[16px] font-bold tracking-tight text-navy group-hover:text-blue">
                     {org.name}
                   </div>
+
                   <div className="mt-1 text-[12.5px] text-ink-3">
                     {[org.city, org.state].filter(Boolean).join(", ") || "—"}
                   </div>
-                  {org.description && (
-                    <p className="mt-3 line-clamp-3 text-[13.5px] leading-5 text-ink-2">
-                      {org.description}
-                    </p>
-                  )}
+
+                  <div className="mt-3 space-y-1 text-[13px] leading-5 text-ink-2">
+                    {org.email && <div>{org.email}</div>}
+                    {org.phone && <div>{org.phone}</div>}
+                  </div>
                 </Link>
               );
             })}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+
 import { Select, Textarea } from "@/components/ui/Field";
 import { SubmitButton } from "@/components/ui/SubmitButton";
 import { Alert } from "@/components/ui/Alert";
@@ -23,31 +24,49 @@ export function ReferralStatusControl({
   side: "sender" | "receiver";
 }) {
   const boundAction = updateReferralStatusAction.bind(null, id);
-  const [state, action] = useActionState<FormState, FormData>(boundAction, initialFormState);
-  // Senders can withdraw (Pending only) or mark Completed; receivers can Accept/Decline/Progress/Complete
+
+  const [state, action] = useActionState<FormState, FormData>(
+    boundAction,
+    initialFormState,
+  );
+
   const allowed: ReferralStatus[] =
     side === "receiver"
       ? ["Pending", "Accepted", "In Progress", "Completed", "Declined"]
       : ["Pending", "Completed", "Declined"];
+
   return (
     <form action={action}>
       <Card>
         <CardBody className="space-y-3">
           {state.message && (
-            <Alert tone={state.ok ? "success" : "error"}>{state.message}</Alert>
+            <Alert tone={state.ok ? "success" : "error"}>
+              {state.message}
+            </Alert>
           )}
+
           <Select
-            label={side === "receiver" ? "Update status (you received this)" : "Update status"}
+            key={`${id}-${current}`}
+            label={
+              side === "receiver"
+                ? "Update status (you received this)"
+                : "Update status"
+            }
             name="status"
             defaultValue={current}
           >
-            {REFERRAL_STATUSES.map((s) => (
-              <option key={s} value={s} disabled={!allowed.includes(s)}>
-                {s}
+            {REFERRAL_STATUSES.map((status) => (
+              <option
+                key={status}
+                value={status}
+                disabled={!allowed.includes(status)}
+              >
+                {status}
               </option>
             ))}
           </Select>
         </CardBody>
+
         <CardFooter>
           <SubmitButton size="sm">Save status</SubmitButton>
         </CardFooter>
@@ -64,14 +83,22 @@ export function ReferralNotesEdit({
   notes: string | null;
 }) {
   const boundAction = updateReferralNotesAction.bind(null, id);
-  const [state, action] = useActionState<FormState, FormData>(boundAction, initialFormState);
+
+  const [state, action] = useActionState<FormState, FormData>(
+    boundAction,
+    initialFormState,
+  );
+
   return (
     <form action={action}>
       <Card>
         <CardBody className="space-y-3">
           {state.message && (
-            <Alert tone={state.ok ? "success" : "error"}>{state.message}</Alert>
+            <Alert tone={state.ok ? "success" : "error"}>
+              {state.message}
+            </Alert>
           )}
+
           <Textarea
             label="Notes for partner"
             name="notes"
@@ -80,6 +107,7 @@ export function ReferralNotesEdit({
             placeholder="Notes the partner will see with this referral."
           />
         </CardBody>
+
         <CardFooter>
           <SubmitButton size="sm">Update notes</SubmitButton>
         </CardFooter>

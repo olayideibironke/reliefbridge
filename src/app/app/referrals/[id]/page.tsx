@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { requireProfile } from "@/lib/session";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card, CardHeader, CardBody } from "@/components/ui/Card";
 import { ReferralStatusBadge } from "@/components/ui/Badge";
 import { fullName, formatDateTime } from "@/lib/format";
-import type { Organization, Referral, Survivor } from "@/lib/types";
+import type { Referral, Survivor } from "@/lib/types";
+
 import {
   ReferralStatusControl,
   ReferralNotesEdit,
@@ -14,10 +16,15 @@ import {
 
 export const dynamic = "force-dynamic";
 
+type RelatedOrganization = {
+  id: string;
+  name: string;
+};
+
 type Row = Referral & {
   survivors: Pick<Survivor, "id" | "first_name" | "last_name"> | null;
-  sender: Pick<Organization, "id" | "name" | "type"> | null;
-  receiver: Pick<Organization, "id" | "name" | "type"> | null;
+  sender: RelatedOrganization | null;
+  receiver: RelatedOrganization | null;
 };
 
 export default async function ReferralDetailPage({
@@ -29,15 +36,23 @@ export default async function ReferralDetailPage({
   const profile = await requireProfile();
   const supabase = await createSupabaseServerClient();
 
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("referrals")
     .select(
-      "*, survivors:survivors!referrals_survivor_id_fkey ( id, first_name, last_name ), sender:organizations!referrals_sending_org_fkey ( id, name, type ), receiver:organizations!referrals_receiving_org_fkey ( id, name, type )"
+      "*, survivors:survivors!referrals_survivor_id_fkey ( id, first_name, last_name ), sender:organizations!referrals_sending_org_fkey ( id, name ), receiver:organizations!referrals_receiving_org_fkey ( id, name )",
     )
     .eq("id", id)
     .maybeSingle();
-  if (!data) notFound();
-  const r = (data as unknown) as Row;
+
+  if (error) {
+    throw new Error(`Could not load referral: ${error.message}`);
+  }
+
+  if (!data) {
+    notFound();
+  }
+
+  const r = data as unknown as Row;
 
   const isSender = profile.organization_id === r.sending_org;
   const isReceiver = profile.organization_id === r.receiving_org;
@@ -49,7 +64,10 @@ export default async function ReferralDetailPage({
         title={`${r.category} referral`}
         subtitle={
           r.survivors
-            ? `For ${fullName(r.survivors.first_name, r.survivors.last_name)}`
+            ? `For ${fullName(
+                r.survivors.first_name,
+                r.survivors.last_name,
+              )}`
             : "Referral"
         }
         breadcrumbs={[
@@ -64,6 +82,7 @@ export default async function ReferralDetailPage({
         <div className="space-y-6 lg:col-span-2">
           <Card>
             <CardHeader title="Referral details" />
+
             <CardBody>
               <dl className="grid grid-cols-2 gap-x-6 gap-y-4 text-[13.5px]">
                 <Field
@@ -74,25 +93,61 @@ export default async function ReferralDetailPage({
                         href={`/app/survivors/${r.survivors.id}`}
                         className="font-semibold text-navy hover:text-blue hover:no-underline"
                       >
-                        {fullName(r.survivors.first_name, r.survivors.last_name)}
+                        {fullName(
+                          r.survivors.first_name,
+                          r.survivors.last_name,
+                        )}
                       </Link>
                     ) : (
                       "—"
                     )
                   }
                 />
-                <Field label="Category" node={<span className="font-semibold text-navy">{r.category}</span>} />
-                <Field label="Sending organization" value={r.sender?.name ?? "—"} />
-                <Field label="Receiving organization" value={r.receiver?.name ?? "—"} />
-                <Field label="Created" value={formatDateTime(r.created_at)} />
-                {r.responded_at && <Field label="Responded" value={formatDateTime(r.responded_at)} />}
-                {r.completed_at && <Field label="Completed" value={formatDateTime(r.completed_at)} />}
+
+                <Field
+                  label="Category"
+                  node={
+                    <span className="font-semibold text-navy">
+                      {r.category}
+                    </span>
+                  }
+                />
+
+                <Field
+                  label="Sending organization"
+                  value={r.sender?.name ?? "—"}
+                />
+
+                <Field
+                  label="Receiving organization"
+                  value={r.receiver?.name ?? "—"}
+                />
+
+                <Field
+                  label="Created"
+                  value={formatDateTime(r.created_at)}
+                />
+
+                {r.responded_at && (
+                  <Field
+                    label="Responded"
+                    value={formatDateTime(r.responded_at)}
+                  />
+                )}
+
+                {r.completed_at && (
+                  <Field
+                    label="Completed"
+                    value={formatDateTime(r.completed_at)}
+                  />
+                )}
               </dl>
             </CardBody>
           </Card>
 
           <Card>
             <CardHeader title="Notes shared with partner" />
+
             <CardBody>
               {r.notes ? (
                 <div className="whitespace-pre-line rounded-sm border border-line bg-surface-2 px-4 py-3 text-[14px] leading-6 text-ink">
@@ -115,7 +170,10 @@ export default async function ReferralDetailPage({
               side={isReceiver ? "receiver" : "sender"}
             />
           )}
-          {isSender && <ReferralNotesEdit id={r.id} notes={r.notes} />}
+
+          {isSender && (
+            <ReferralNotesEdit id={r.id} notes={r.notes} />
+          )}
         </div>
       </div>
     </>
@@ -136,7 +194,10 @@ function Field({
       <dt className="text-[11.5px] font-bold uppercase tracking-[0.1em] text-ink-3">
         {label}
       </dt>
-      <dd className="mt-1 text-[14px] text-ink">{node ?? value ?? "—"}</dd>
+
+      <dd className="mt-1 text-[14px] text-ink">
+        {node ?? value ?? "—"}
+      </dd>
     </div>
   );
 }

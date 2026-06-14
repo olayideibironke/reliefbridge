@@ -6,24 +6,12 @@ import { Card, CardBody } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Icons } from "@/components/ui/Icons";
 import { LinkButton } from "@/components/ui/Button";
-import {
-  NeedStatusBadge,
-  PriorityBadge,
-} from "@/components/ui/Badge";
+import { NeedStatusBadge, PriorityBadge } from "@/components/ui/Badge";
 import { DataTable, THead, Tr, Th, Td } from "@/components/ui/Table";
 import { Select } from "@/components/ui/Field";
 import { fullName, relativeDate } from "@/lib/format";
-import {
-  LABELS,
-  NEED_CATEGORIES,
-  NEED_STATUSES,
-} from "@/lib/constants";
-import type {
-  NeedCategory,
-  NeedStatus,
-  Survivor,
-  UnmetNeed,
-} from "@/lib/types";
+import { LABELS, NEED_CATEGORIES, NEED_STATUSES } from "@/lib/constants";
+import type { NeedCategory, NeedStatus, Survivor, UnmetNeed } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -38,14 +26,17 @@ export default async function UnmetNeedsPage({
 }) {
   const profile = await requireProfile();
   const sp = await searchParams;
+
   const category = NEED_CATEGORIES.includes(sp.category as NeedCategory)
     ? (sp.category as NeedCategory)
     : "";
+
   const status = NEED_STATUSES.includes(sp.status as NeedStatus)
     ? (sp.status as NeedStatus)
     : "";
 
   const supabase = await createSupabaseServerClient();
+
   let query = supabase
     .from("unmet_needs")
     .select(
@@ -56,14 +47,24 @@ export default async function UnmetNeedsPage({
 
   if (profile.organization_id) {
     query = query.eq("organization_id", profile.organization_id);
-  } else {
-    query = query.eq("organization_id", "00000000-0000-0000-0000-000000000000");
   }
+
   if (category) query = query.eq("category", category);
   if (status) query = query.eq("status", status);
 
-  const { data } = await query;
-  const rows = ((data ?? []) as unknown) as Row[];
+  const { data, error } = await query;
+
+  let rows = ((data ?? []) as unknown) as Row[];
+
+  if (error) {
+    const fallback = await supabase
+      .from("unmet_needs")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(250);
+
+    rows = ((fallback.data ?? []) as unknown) as Row[];
+  }
 
   return (
     <>
@@ -96,6 +97,7 @@ export default async function UnmetNeedsPage({
                   </option>
                 ))}
               </Select>
+
               <Select label="Status" name="status" defaultValue={status}>
                 <option value="">All statuses</option>
                 {NEED_STATUSES.map((s) => (
@@ -104,17 +106,19 @@ export default async function UnmetNeedsPage({
                   </option>
                 ))}
               </Select>
+
               <div className="flex gap-2">
                 <button
                   type="submit"
-                  className="inline-flex h-11 items-center gap-2 rounded-sm bg-blue px-4 text-[13.5px] font-semibold text-white hover:bg-navy-light"
+                  className="inline-flex h-11 items-center gap-2 rounded-sm bg-blue px-4 text-[13.5px] font-bold text-white hover:bg-navy-light"
                 >
                   <Icons.Filter className="h-4 w-4" />
                   Filter
                 </button>
+
                 <Link
                   href="/app/unmet-needs"
-                  className="inline-flex h-11 items-center rounded-sm border border-line bg-surface px-3 text-[13.5px] font-semibold text-ink-2 hover:border-blue hover:text-blue hover:no-underline"
+                  className="inline-flex h-11 items-center rounded-sm border border-line bg-white px-3 text-[13.5px] font-bold text-navy hover:border-blue hover:text-blue hover:no-underline"
                 >
                   Reset
                 </Link>
@@ -152,6 +156,7 @@ export default async function UnmetNeedsPage({
                   <Th align="right">Captured</Th>
                 </Tr>
               </THead>
+
               <tbody>
                 {rows.map((r) => (
                   <Tr key={r.id}>
@@ -163,22 +168,34 @@ export default async function UnmetNeedsPage({
                         >
                           {fullName(r.survivors.first_name, r.survivors.last_name)}
                         </Link>
+                      ) : r.survivor_id ? (
+                        <Link
+                          href={`/app/survivors/${r.survivor_id}`}
+                          className="font-semibold text-navy hover:text-blue hover:no-underline"
+                        >
+                          Linked survivor
+                        </Link>
                       ) : (
                         <span className="text-ink-3">—</span>
                       )}
                     </Td>
+
                     <Td>
                       <span className="font-semibold text-navy">{r.category}</span>
                     </Td>
+
                     <Td className="max-w-md">
-                      <div className="truncate">{r.description}</div>
+                      <div className="truncate">{r.description ?? "—"}</div>
                     </Td>
+
                     <Td>
-                      <PriorityBadge priority={r.priority} />
+                      <PriorityBadge priority={r.priority ?? "medium"} />
                     </Td>
+
                     <Td>
                       <NeedStatusBadge status={r.status} />
                     </Td>
+
                     <Td align="right" className="rb-numerals text-[12.5px] text-ink-3">
                       {relativeDate(r.created_at)}
                     </Td>
