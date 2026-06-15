@@ -36,60 +36,27 @@ async function fileExists(filePath) {
   }
 }
 
-async function createLogoBuffers() {
-  const trimmedLogo = await sharp(sourceLogoPath)
-    .trim()
-    .png()
-    .toBuffer();
-
-  const metadata = await sharp(trimmedLogo).metadata();
-
-  if (!metadata.width || !metadata.height) {
-    throw new Error(
-      "Could not determine the ReliefBridge logo dimensions.",
-    );
-  }
-
-  let emblem = trimmedLogo;
-
-  /*
-   * If the source is a horizontal logo lockup, use its left square
-   * section for the favicon and Apple icon. The complete logo remains
-   * available for the social-sharing image.
-   */
-  if (metadata.width / metadata.height > 1.45) {
-    const squareSize = Math.min(
-      metadata.height,
-      metadata.width,
-    );
-
-    emblem = await sharp(trimmedLogo)
-      .extract({
-        left: 0,
-        top: 0,
-        width: squareSize,
-        height: metadata.height,
-      })
-      .trim()
-      .png()
-      .toBuffer();
-  }
-
-  return {
-    completeLogo: trimmedLogo,
-    emblem,
-  };
-}
-
 function squareBackgroundSvg(size, cornerRadius) {
   return Buffer.from(`
-    <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
+    <svg
+      width="${size}"
+      height="${size}"
+      viewBox="0 0 ${size} ${size}"
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <defs>
-        <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#082A4A"/>
-          <stop offset="100%" stop-color="#0B4F82"/>
+        <linearGradient
+          id="background"
+          x1="0"
+          y1="0"
+          x2="1"
+          y2="1"
+        >
+          <stop offset="0%" stop-color="#062747"/>
+          <stop offset="100%" stop-color="#0B5688"/>
         </linearGradient>
       </defs>
+
       <rect
         width="${size}"
         height="${size}"
@@ -98,6 +65,51 @@ function squareBackgroundSvg(size, cornerRadius) {
       />
     </svg>
   `);
+}
+
+async function loadShieldEmblem() {
+  const source = sharp(sourceLogoPath).ensureAlpha();
+  const metadata = await source.metadata();
+
+  if (!metadata.width || !metadata.height) {
+    throw new Error(
+      "Could not determine the ReliefBridge logo dimensions.",
+    );
+  }
+
+  /*
+   * The source file is a horizontal ReliefBridge lockup.
+   * This proportional crop isolates the shield emblem and
+   * removes the wordmark and unwanted edge blocks.
+   */
+  const left = Math.round(metadata.width * 0.11);
+  const top = Math.round(metadata.height * 0.05);
+  const width = Math.round(metadata.width * 0.3);
+  const height = Math.round(metadata.height * 0.9);
+
+  const safeWidth = Math.min(
+    width,
+    metadata.width - left,
+  );
+
+  const safeHeight = Math.min(
+    height,
+    metadata.height - top,
+  );
+
+  return sharp(sourceLogoPath)
+    .ensureAlpha()
+    .extract({
+      left,
+      top,
+      width: safeWidth,
+      height: safeHeight,
+    })
+    .trim({
+      threshold: 12,
+    })
+    .png()
+    .toBuffer();
 }
 
 async function createSquareIcon({
@@ -119,28 +131,8 @@ async function createSquareIcon({
     .png()
     .toBuffer();
 
-  await sharp({
-    create: {
-      width: size,
-      height: size,
-      channels: 4,
-      background: {
-        r: 0,
-        g: 0,
-        b: 0,
-        alpha: 0,
-      },
-    },
-  })
+  await sharp(squareBackgroundSvg(size, cornerRadius))
     .composite([
-      {
-        input: squareBackgroundSvg(
-          size,
-          cornerRadius,
-        ),
-        top: 0,
-        left: 0,
-      },
       {
         input: resizedEmblem,
         gravity: "center",
@@ -150,31 +142,40 @@ async function createSquareIcon({
     .toFile(outputPath);
 }
 
-async function createSocialImage({
-  completeLogo,
-  outputPath,
-}) {
-  const logo = await sharp(completeLogo)
-    .resize({
-      width: 610,
-      height: 150,
-      fit: "contain",
-      withoutEnlargement: false,
-    })
-    .png()
-    .toBuffer();
-
-  const background = Buffer.from(`
-    <svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+function socialBackgroundSvg() {
+  return Buffer.from(`
+    <svg
+      width="1200"
+      height="630"
+      viewBox="0 0 1200 630"
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <defs>
-        <linearGradient id="hero" x1="0" y1="0" x2="1" y2="1">
+        <linearGradient
+          id="hero"
+          x1="0"
+          y1="0"
+          x2="1"
+          y2="1"
+        >
           <stop offset="0%" stop-color="#061D35"/>
           <stop offset="58%" stop-color="#0A345B"/>
           <stop offset="100%" stop-color="#0B5A86"/>
         </linearGradient>
 
-        <pattern id="dots" width="28" height="28" patternUnits="userSpaceOnUse">
-          <circle cx="2" cy="2" r="1.4" fill="#FFFFFF" opacity="0.08"/>
+        <pattern
+          id="dots"
+          width="28"
+          height="28"
+          patternUnits="userSpaceOnUse"
+        >
+          <circle
+            cx="2"
+            cy="2"
+            r="1.4"
+            fill="#FFFFFF"
+            opacity="0.08"
+          />
         </pattern>
       </defs>
 
@@ -183,16 +184,39 @@ async function createSocialImage({
 
       <rect
         x="54"
-        y="48"
-        width="700"
-        height="190"
-        rx="22"
+        y="42"
+        width="720"
+        height="180"
+        rx="24"
         fill="#FFFFFF"
       />
 
+      <text
+        x="226"
+        y="122"
+        fill="#082A4A"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="52"
+        font-weight="800"
+      >
+        ReliefBridge
+      </text>
+
+      <text
+        x="229"
+        y="164"
+        fill="#46576A"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="20"
+        font-weight="700"
+        letter-spacing="3"
+      >
+        DISASTER RECOVERY COORDINATION
+      </text>
+
       <rect
         x="54"
-        y="267"
+        y="260"
         width="88"
         height="7"
         rx="3.5"
@@ -201,7 +225,7 @@ async function createSocialImage({
 
       <text
         x="54"
-        y="350"
+        y="348"
         fill="#FFFFFF"
         font-family="Arial, Helvetica, sans-serif"
         font-size="58"
@@ -212,7 +236,7 @@ async function createSocialImage({
 
       <text
         x="54"
-        y="420"
+        y="418"
         fill="#FFBF2F"
         font-family="Arial, Helvetica, sans-serif"
         font-size="58"
@@ -223,18 +247,17 @@ async function createSocialImage({
 
       <text
         x="58"
-        y="493"
+        y="491"
         fill="#DCE9F4"
         font-family="Arial, Helvetica, sans-serif"
         font-size="27"
-        font-weight="400"
       >
         Survivors · Cases · Unmet needs · Partner referrals · Reporting
       </text>
 
       <text
         x="58"
-        y="564"
+        y="565"
         fill="#FFFFFF"
         font-family="Arial, Helvetica, sans-serif"
         font-size="24"
@@ -261,13 +284,28 @@ async function createSocialImage({
       />
     </svg>
   `);
+}
 
-  await sharp(background)
+async function createSocialImage({
+  emblem,
+  outputPath,
+}) {
+  const socialEmblem = await sharp(emblem)
+    .resize({
+      width: 138,
+      height: 138,
+      fit: "contain",
+      withoutEnlargement: false,
+    })
+    .png()
+    .toBuffer();
+
+  await sharp(socialBackgroundSvg())
     .composite([
       {
-        input: logo,
-        left: 96,
-        top: 68,
+        input: socialEmblem,
+        left: 72,
+        top: 62,
       },
     ])
     .png()
@@ -285,13 +323,12 @@ async function main() {
     recursive: true,
   });
 
-  const { completeLogo, emblem } =
-    await createLogoBuffers();
+  const emblem = await loadShieldEmblem();
 
   await createSquareIcon({
     emblem,
     size: 512,
-    padding: 54,
+    padding: 30,
     outputPath: iconPath,
     cornerRadius: 96,
   });
@@ -299,13 +336,13 @@ async function main() {
   await createSquareIcon({
     emblem,
     size: 180,
-    padding: 20,
+    padding: 11,
     outputPath: appleIconPath,
     cornerRadius: 34,
   });
 
   await createSocialImage({
-    completeLogo,
+    emblem,
     outputPath: openGraphPath,
   });
 
@@ -316,7 +353,7 @@ async function main() {
 
   console.log("");
   console.log(
-    "ReliefBridge brand assets created successfully:",
+    "ReliefBridge shield assets created successfully:",
   );
   console.log(iconPath);
   console.log(appleIconPath);
