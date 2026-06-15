@@ -239,7 +239,7 @@ function OfficialBanner() {
           <span className="h-3 w-px bg-white/25" />
 
           <a
-            href="mailto:reliefbridgeusa@gmail.com"
+            href="mailto:contact@reliefbridge.net"
             className="hover:text-white hover:no-underline"
           >
             Contact
@@ -454,13 +454,15 @@ function Hero() {
       <div className="relative border-t border-white/10 bg-navy-dark">
         <Container className="flex min-h-12 items-start gap-3 py-3 text-[12.5px] leading-5 sm:items-center sm:text-[13px]">
           <span className="inline-flex shrink-0 items-center gap-1.5 rounded-sm bg-gold px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-navy sm:text-[11px]">
-            Active
+            Pilot
           </span>
 
           <span className="min-w-0 text-white/90">
-            <span className="font-semibold">Coordination notice:</span> 6
-            disaster zones currently active across Gulf Coast LTRG, Western NC,
-            and Hawaii recovery networks.
+            <span className="font-semibold">
+              Founding Recovery Partner Pilot:
+            </span>{" "}
+            Now onboarding a limited number of disaster-recovery organizations
+            serving active recovery communities nationwide.
           </span>
         </Container>
       </div>
@@ -469,29 +471,45 @@ function Hero() {
 }
 
 function StatsStrip() {
-  const stats = [
-    { value: "1,400+", label: "Survivor cases coordinated" },
-    { value: "180+", label: "Partner organizations" },
-    { value: "18", label: "States served" },
-    { value: "98%", label: "Referral response within 48h" },
+  const capabilities = [
+    {
+      title: "Case coordination",
+      description:
+        "Organize intake, assignment, consent, notes, and recovery progress.",
+    },
+    {
+      title: "Referral accountability",
+      description:
+        "Track partner handoffs, responses, follow-up, and outcomes.",
+    },
+    {
+      title: "Unmet needs visibility",
+      description:
+        "Identify and prioritize survivor needs still requiring action.",
+    },
+    {
+      title: "Funder-ready reporting",
+      description:
+        "View operational trends and export structured Excel reports.",
+    },
   ];
 
   return (
     <section className="border-b border-line bg-surface-2">
-      <Container className="grid grid-cols-2 gap-x-4 gap-y-8 py-10 sm:py-12 md:grid-cols-4 md:gap-y-0">
-        {stats.map((stat, index) => (
+      <Container className="grid grid-cols-1 gap-x-4 gap-y-6 py-10 sm:grid-cols-2 sm:py-12 md:grid-cols-4 md:gap-y-0">
+        {capabilities.map((capability, index) => (
           <div
-            key={stat.label}
-            className={`flex min-w-0 flex-col gap-1.5 px-1 sm:px-2 md:px-6 ${
+            key={capability.title}
+            className={`flex min-w-0 flex-col gap-2 px-1 sm:px-2 md:px-6 ${
               index !== 0 ? "md:border-l md:border-line" : ""
             }`}
           >
-            <div className="rb-numerals break-words text-[30px] font-bold leading-none tracking-tight text-navy sm:text-[34px] md:text-[40px]">
-              {stat.value}
+            <div className="text-[17px] font-bold leading-6 tracking-tight text-navy">
+              {capability.title}
             </div>
 
-            <div className="text-[12.5px] font-medium leading-5 text-ink-3 sm:text-[13.5px]">
-              {stat.label}
+            <div className="text-[12.5px] font-medium leading-5 text-ink-3 sm:text-[13px]">
+              {capability.description}
             </div>
           </div>
         ))}
@@ -510,7 +528,7 @@ function CapabilitiesGrid() {
     {
       icon: Icon.Handshake,
       title: "Referral exchange",
-      body: "Securely refer survivors to vetted partner organizations. Track acceptance, status, and outcomes end-to-end.",
+      body: "Send structured referrals to partner organizations. Track acceptance, status, follow-up, and outcomes end-to-end.",
     },
     {
       icon: Icon.Heart,
@@ -525,12 +543,12 @@ function CapabilitiesGrid() {
     {
       icon: Icon.Chart,
       title: "Recovery reports & outcomes",
-      body: "Funder-ready reporting on closures, referrals accepted, duplicate-service risk, and outcomes by zone.",
+      body: "Funder-ready reporting on case progress, referrals, unmet needs, partner activity, and recovery outcomes.",
     },
     {
       icon: Icon.Shield,
       title: "Consent & privacy ready",
-      body: "Role-based access, audit trails, and consent capture designed for survivor data protection from day one.",
+      body: "Role-based access and consent-aware workflows designed to support responsible survivor data handling.",
     },
   ];
 
@@ -667,12 +685,12 @@ function FeatureSections() {
           alt="Damaged homes along a residential street after a major storm"
           eyebrow="Coordinated Disaster Response"
           title="One survivor record, from intake to closure."
-          body="Every survivor has a single coordinated record — events, household, needs, consent, notes, referrals, and outcomes. No duplicate-service risk across partners."
+          body="Every survivor can have one coordinated record for events, household information, needs, consent, notes, referrals, and outcomes — helping reduce duplicate-service risk across partners."
           bullets={[
             "Structured intake with consent capture",
             "Household, demographics, and disaster events linked",
             "Case manager assignment and lifecycle tracking",
-            "Audit trail of every note, status, and referral",
+            "Organized history of notes, statuses, and referrals",
           ]}
           cta="See case management"
           href="/login"
@@ -684,12 +702,12 @@ function FeatureSections() {
           alt="A worker rebuilding the interior of a home after damage"
           eyebrow="Partner Referral Exchange"
           title="Refer survivors to the right partner — and track what happens."
-          body="Send vetted referrals to housing partners, legal aid, repair coalitions, and faith-based responders. See response times, acceptance, and outcomes for every handoff."
+          body="Send structured referrals to housing partners, legal aid, repair coalitions, and faith-based responders. Monitor response times, acceptance, progress, and outcomes for every handoff."
           bullets={[
             "Secure referrals with structured consent",
             "Partner directory with capacity and service coverage",
             "Acceptance, response time, and outcome reporting",
-            "Closes the loop on unmet needs across the network",
+            "Continued visibility into unmet needs across the network",
           ]}
           cta="See the referral exchange"
           href="/login"
@@ -700,6 +718,55 @@ function FeatureSections() {
 }
 
 function DashboardPreview() {
+  const workflowCards = [
+    {
+      title: "Case coordination",
+      description: "Track intake through closure",
+      status: "Organized",
+    },
+    {
+      title: "Partner referrals",
+      description: "Monitor every handoff",
+      status: "Visible",
+    },
+    {
+      title: "Unmet needs",
+      description: "Prioritize continued action",
+      status: "Actionable",
+    },
+  ];
+
+  const sampleRows = [
+    [
+      "Sample household A",
+      "Initial assessment",
+      "Temporary housing",
+      "High",
+      "Open",
+    ],
+    [
+      "Sample household B",
+      "Partner referral",
+      "Roof repair support",
+      "High",
+      "In review",
+    ],
+    [
+      "Sample household C",
+      "Documentation",
+      "Insurance assistance",
+      "Medium",
+      "Follow-up",
+    ],
+    [
+      "Sample household D",
+      "Recovery planning",
+      "Transportation support",
+      "Medium",
+      "Coordinating",
+    ],
+  ];
+
   return (
     <section className="bg-surface py-14 sm:py-20">
       <Container>
@@ -715,7 +782,8 @@ function DashboardPreview() {
           <div className="min-w-0 lg:col-span-5">
             <p className="text-[15.5px] leading-7 text-ink-2 sm:text-[16px]">
               A purpose-built workspace for case managers and recovery directors
-              — not a generic CRM, not a spreadsheet, not a one-off database.
+              — not a generic CRM, not a spreadsheet, and not a disconnected
+              database.
             </p>
           </div>
         </div>
@@ -732,10 +800,33 @@ function DashboardPreview() {
             </div>
           </div>
 
-          <div className="grid min-w-0 grid-cols-1 lg:grid-cols-[220px_1fr]">
-            <aside className="hidden flex-col border-r border-line bg-surface-2 lg:flex">
+          <div className="grid min-w-0 grid-cols-1 lg:grid-cols-[260px_minmax(0,1fr)]">
+            <aside className="hidden min-w-0 overflow-hidden border-r border-line bg-surface-2 lg:flex lg:flex-col">
               <div className="border-b border-line px-4 py-5">
-                <ReliefBridgeLogo />
+                <div className="flex min-w-0 items-center gap-3">
+                  <div className="relative grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-[10px] bg-[#08264A] shadow-md shadow-black/15">
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#0B5E9E] via-[#08264A] to-[#06182E]" />
+                    <div className="absolute left-[-12px] top-[23px] h-[9px] w-[78px] rotate-[-22deg] bg-[#FDB022]" />
+                    <div className="absolute bottom-0 left-[12px] h-[23px] w-[6px] bg-[#FDB022]" />
+                    <div className="absolute bottom-0 left-[23px] h-[31px] w-[6px] bg-[#FDB022]" />
+                    <div className="absolute bottom-0 left-[34px] h-[20px] w-[6px] bg-[#FDB022]" />
+
+                    <div className="relative z-10 text-[19px] font-black text-white">
+                      R
+                    </div>
+                  </div>
+
+                  <div className="min-w-0">
+                    <div className="truncate text-[20px] font-black leading-none tracking-tight text-navy">
+                      ReliefBridge
+                    </div>
+
+                    <div className="mt-2 text-[8.5px] font-bold uppercase leading-[1.45] tracking-[0.16em] text-ink-3">
+                      <span className="block">Disaster Recovery</span>
+                      <span className="block">Coordination</span>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <div className="px-3 py-5">
@@ -770,11 +861,11 @@ function DashboardPreview() {
               <div className="flex min-w-0 flex-col items-start justify-between gap-4 sm:flex-row sm:flex-wrap sm:items-end">
                 <div className="min-w-0">
                   <div className="text-[11px] font-semibold uppercase leading-5 tracking-[0.12em] text-blue sm:text-[12px] sm:tracking-[0.14em]">
-                    Gulf Coast LTRG · Recovery cases
+                    Sample recovery workspace
                   </div>
 
                   <h3 className="mt-2 text-[21px] font-bold leading-tight tracking-tight text-navy sm:text-[24px]">
-                    142 active cases across 6 disaster zones
+                    A clear operational view for every recovery team.
                   </h3>
                 </div>
 
@@ -784,25 +875,21 @@ function DashboardPreview() {
               </div>
 
               <div className="mt-6 grid gap-3 sm:grid-cols-3">
-                {[
-                  ["142", "Active cases", "+8 this week"],
-                  ["18", "Pending referrals", "-3 vs last week"],
-                  ["74", "Open unmet needs", "+12 this month"],
-                ].map((stat) => (
+                {workflowCards.map((card) => (
                   <div
-                    key={stat[1]}
+                    key={card.title}
                     className="min-w-0 rounded-sm border border-line bg-surface p-4"
                   >
                     <div className="text-[12px] font-semibold text-ink-3">
-                      {stat[1]}
+                      {card.title}
                     </div>
 
-                    <div className="rb-numerals mt-1 text-[26px] font-bold leading-none tracking-tight text-navy">
-                      {stat[0]}
+                    <div className="mt-2 text-[15px] font-bold leading-5 text-navy">
+                      {card.description}
                     </div>
 
-                    <div className="mt-2 text-[11.5px] font-semibold text-green">
-                      {stat[2]}
+                    <div className="mt-3 inline-flex rounded-full bg-green/10 px-2 py-1 text-[10.5px] font-bold uppercase tracking-[0.08em] text-green">
+                      {card.status}
                     </div>
                   </div>
                 ))}
@@ -812,8 +899,8 @@ function DashboardPreview() {
                 <table className="min-w-[720px] border-collapse text-left text-[13px]">
                   <thead className="bg-surface-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-3">
                     <tr>
-                      <th className="px-4 py-3">Survivor</th>
-                      <th className="px-4 py-3">Event</th>
+                      <th className="px-4 py-3">Sample record</th>
+                      <th className="px-4 py-3">Recovery stage</th>
                       <th className="px-4 py-3">Primary need</th>
                       <th className="px-4 py-3">Priority</th>
                       <th className="px-4 py-3">Status</th>
@@ -821,49 +908,28 @@ function DashboardPreview() {
                   </thead>
 
                   <tbody>
-                    {[
-                      [
-                        "Angela Morris",
-                        "Hurricane Idalia",
-                        "Emergency housing",
-                        "High",
-                        "Open",
-                      ],
-                      [
-                        "Maria Lopez",
-                        "TS flooding · NC",
-                        "Roof repair referral",
-                        "High",
-                        "In Review",
-                      ],
-                      [
-                        "David Carter",
-                        "House fire · Beaumont",
-                        "Insurance documentation",
-                        "Medium",
-                        "Open",
-                      ],
-                      [
-                        "Samuel Wright",
-                        "Tornado · Mayfield",
-                        "Transportation support",
-                        "Medium",
-                        "Follow-up",
-                      ],
-                    ].map((row) => (
+                    {sampleRows.map((row) => (
                       <tr key={row[0]} className="border-t border-line">
                         <td className="px-4 py-3 font-semibold text-navy">
                           {row[0]}
                         </td>
+
                         <td className="px-4 py-3 text-ink-2">{row[1]}</td>
+
                         <td className="px-4 py-3 text-ink-2">{row[2]}</td>
+
                         <td className="px-4 py-3 text-red">{row[3]}</td>
+
                         <td className="px-4 py-3 text-blue">{row[4]}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
+
+              <p className="mt-3 text-[11px] leading-5 text-ink-3">
+                Sample data shown for demonstration purposes only.
+              </p>
             </div>
           </div>
         </div>
@@ -891,7 +957,7 @@ function WhoItsFor() {
           </div>
 
           <h2 className="mt-3 text-[27px] font-bold leading-tight tracking-tight text-navy sm:text-[28px] md:text-[32px]">
-            Trusted by the organizations doing the real work after disasters.
+            Designed for the organizations doing the real work after disasters.
           </h2>
 
           <p className="mt-4 text-[15.5px] leading-7 text-ink-2">
@@ -948,7 +1014,7 @@ function CTABand() {
             </ActionLink>
 
             <ActionLink
-              href="mailto:reliefbridgeusa@gmail.com"
+              href="mailto:contact@reliefbridge.net"
               variant="secondary"
             >
               <Icon.Mail className="h-4 w-4" />
