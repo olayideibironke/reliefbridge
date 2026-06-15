@@ -196,8 +196,8 @@ function ActionLink({
 }) {
   const className =
     variant === "primary"
-      ? "inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-sm bg-blue px-5 py-3 text-[15px] font-semibold text-white shadow-sm transition hover:bg-navy-light hover:no-underline sm:w-auto"
-      : "inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-sm border-2 border-white/80 bg-transparent px-5 py-[10px] text-[15px] font-semibold text-white transition hover:bg-white hover:text-navy hover:no-underline sm:w-auto";
+      ? "inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-sm bg-gold px-5 py-3 text-[15px] font-bold !text-navy shadow-sm transition hover:bg-white hover:!text-navy hover:no-underline sm:w-auto"
+      : "inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-sm border-2 border-white/80 bg-transparent px-5 py-[10px] text-[15px] font-semibold !text-white transition hover:bg-white hover:!text-navy hover:no-underline sm:w-auto";
 
   if (
     href.startsWith("mailto:") ||
