@@ -29,56 +29,56 @@ const baseStroke = {
 };
 
 const Icon = {
-  Flag: (p: IconProps) => (
-    <svg viewBox="0 0 24 24" {...baseStroke} {...p}>
+  Flag: (props: IconProps) => (
+    <svg viewBox="0 0 24 24" {...baseStroke} {...props}>
       <path d="M5 21V4" />
       <path d="M5 4h11l-1.5 3.5L16 11H5" />
     </svg>
   ),
 
-  Search: (p: IconProps) => (
-    <svg viewBox="0 0 24 24" {...baseStroke} {...p}>
+  Search: (props: IconProps) => (
+    <svg viewBox="0 0 24 24" {...baseStroke} {...props}>
       <circle cx="11" cy="11" r="6.5" />
       <path d="m20 20-4.3-4.3" />
     </svg>
   ),
 
-  ArrowRight: (p: IconProps) => (
-    <svg viewBox="0 0 24 24" {...baseStroke} {...p}>
+  ArrowRight: (props: IconProps) => (
+    <svg viewBox="0 0 24 24" {...baseStroke} {...props}>
       <path d="M5 12h14" />
       <path d="m13 5 7 7-7 7" />
     </svg>
   ),
 
-  ChevronRight: (p: IconProps) => (
-    <svg viewBox="0 0 24 24" {...baseStroke} {...p}>
+  ChevronRight: (props: IconProps) => (
+    <svg viewBox="0 0 24 24" {...baseStroke} {...props}>
       <path d="m9 6 6 6-6 6" />
     </svg>
   ),
 
-  CaseFolder: (p: IconProps) => (
-    <svg viewBox="0 0 32 32" {...baseStroke} {...p}>
+  CaseFolder: (props: IconProps) => (
+    <svg viewBox="0 0 32 32" {...baseStroke} {...props}>
       <path d="M4 9.5a2 2 0 0 1 2-2h6.5l2.5 2.5H26a2 2 0 0 1 2 2V24a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z" />
       <path d="M4 13h24" />
     </svg>
   ),
 
-  Handshake: (p: IconProps) => (
-    <svg viewBox="0 0 32 32" {...baseStroke} {...p}>
+  Handshake: (props: IconProps) => (
+    <svg viewBox="0 0 32 32" {...baseStroke} {...props}>
       <path d="M3 16h4l3-4 4 3 3-3 4 3 5-4 3 2" />
       <path d="M10 18.5c1 2 4 3 5.5 1.5" />
       <path d="M18 21c1.5 1.5 4.5.5 5-1.5" />
     </svg>
   ),
 
-  Heart: (p: IconProps) => (
-    <svg viewBox="0 0 32 32" {...baseStroke} {...p}>
+  Heart: (props: IconProps) => (
+    <svg viewBox="0 0 32 32" {...baseStroke} {...props}>
       <path d="M16 27S5 21 5 13.5a5.5 5.5 0 0 1 11-2.2 5.5 5.5 0 0 1 11 2.2C27 21 16 27 16 27Z" />
     </svg>
   ),
 
-  Network: (p: IconProps) => (
-    <svg viewBox="0 0 32 32" {...baseStroke} {...p}>
+  Network: (props: IconProps) => (
+    <svg viewBox="0 0 32 32" {...baseStroke} {...props}>
       <circle cx="16" cy="6" r="2.5" />
       <circle cx="6" cy="24" r="2.5" />
       <circle cx="26" cy="24" r="2.5" />
@@ -87,8 +87,8 @@ const Icon = {
     </svg>
   ),
 
-  Chart: (p: IconProps) => (
-    <svg viewBox="0 0 32 32" {...baseStroke} {...p}>
+  Chart: (props: IconProps) => (
+    <svg viewBox="0 0 32 32" {...baseStroke} {...props}>
       <path d="M5 27V8" />
       <path d="M5 27h22" />
       <path d="M10 22v-6" />
@@ -98,35 +98,36 @@ const Icon = {
     </svg>
   ),
 
-  Shield: (p: IconProps) => (
-    <svg viewBox="0 0 32 32" {...baseStroke} {...p}>
+  Shield: (props: IconProps) => (
+    <svg viewBox="0 0 32 32" {...baseStroke} {...props}>
       <path d="M16 4 5 8v8c0 6.5 4.5 10.5 11 12 6.5-1.5 11-5.5 11-12V8Z" />
       <path d="m11.5 16.5 3 3 6-6" />
     </svg>
   ),
 
-  Phone: (p: IconProps) => (
-    <svg viewBox="0 0 24 24" {...baseStroke} {...p}>
-      <path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h2.6l1.4 4-2 1.5a12 12 0 0 0 5.5 5.5l1.5-2 4 1.4v2.6A1.5 1.5 0 0 1 17 18.5C9.8 18.5 4 12.7 4 5.5Z" />
+  Mail: (props: IconProps) => (
+    <svg viewBox="0 0 24 24" {...baseStroke} {...props}>
+      <rect x="3.5" y="5" width="17" height="14" rx="2" />
+      <path d="m5 7 7 5 7-5" />
     </svg>
   ),
 
-  Lock: (p: IconProps) => (
-    <svg viewBox="0 0 24 24" {...baseStroke} {...p}>
+  Lock: (props: IconProps) => (
+    <svg viewBox="0 0 24 24" {...baseStroke} {...props}>
       <rect x="5.5" y="10.5" width="13" height="9" rx="1.5" />
       <path d="M8.5 10.5V8a3.5 3.5 0 1 1 7 0v2.5" />
     </svg>
   ),
 
-  CircleCheck: (p: IconProps) => (
-    <svg viewBox="0 0 24 24" {...baseStroke} {...p}>
+  CircleCheck: (props: IconProps) => (
+    <svg viewBox="0 0 24 24" {...baseStroke} {...props}>
       <circle cx="12" cy="12" r="9" />
       <path d="m8 12 3 3 5-6" />
     </svg>
   ),
 
-  Menu: (p: IconProps) => (
-    <svg viewBox="0 0 24 24" {...baseStroke} {...p}>
+  Menu: (props: IconProps) => (
+    <svg viewBox="0 0 24 24" {...baseStroke} {...props}>
       <path d="M4 7h16M4 12h16M4 17h16" />
     </svg>
   ),
@@ -184,19 +185,36 @@ function ReliefBridgeLogo({ light = false }: { light?: boolean }) {
   );
 }
 
-function PrimaryButton({ children }: { children: ReactNode }) {
-  return (
-    <button className="inline-flex w-full items-center justify-center gap-2 rounded-sm bg-blue px-5 py-3 text-[15px] font-semibold text-white shadow-sm transition hover:bg-navy-light sm:w-auto">
-      {children}
-    </button>
-  );
-}
+function ActionLink({
+  children,
+  href,
+  variant = "primary",
+}: {
+  children: ReactNode;
+  href: string;
+  variant?: "primary" | "secondary";
+}) {
+  const className =
+    variant === "primary"
+      ? "inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-sm bg-blue px-5 py-3 text-[15px] font-semibold text-white shadow-sm transition hover:bg-navy-light hover:no-underline sm:w-auto"
+      : "inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-sm border-2 border-white/80 bg-transparent px-5 py-[10px] text-[15px] font-semibold text-white transition hover:bg-white hover:text-navy hover:no-underline sm:w-auto";
 
-function SecondaryButton({ children }: { children: ReactNode }) {
+  if (
+    href.startsWith("mailto:") ||
+    href.startsWith("tel:") ||
+    href.startsWith("http")
+  ) {
+    return (
+      <a href={href} className={className}>
+        {children}
+      </a>
+    );
+  }
+
   return (
-    <button className="inline-flex w-full items-center justify-center gap-2 rounded-sm border-2 border-white/80 bg-transparent px-5 py-[10px] text-[15px] font-semibold text-white transition hover:bg-white hover:text-navy sm:w-auto">
+    <Link href={href} className={className}>
       {children}
-    </button>
+    </Link>
   );
 }
 
@@ -211,14 +229,20 @@ function OfficialBanner() {
         </span>
 
         <span className="ml-auto hidden items-center gap-4 text-white/80 md:flex">
-          <a href="#" className="hover:text-white hover:no-underline">
+          <Link
+            href="/request-demo"
+            className="hover:text-white hover:no-underline"
+          >
             Help Center
-          </a>
+          </Link>
 
           <span className="h-3 w-px bg-white/25" />
 
-          <a href="#" className="hover:text-white hover:no-underline">
-            Contact (24/7)
+          <a
+            href="mailto:reliefbridgeusa@gmail.com"
+            className="hover:text-white hover:no-underline"
+          >
+            Contact
           </a>
         </span>
       </Container>
@@ -258,7 +282,7 @@ function MobileNavigation() {
 
         <div className="border-t border-line p-3">
           <Link
-            href="#demo"
+            href="/request-demo"
             className="flex h-11 items-center justify-center gap-2 rounded-sm bg-blue px-4 text-[14px] font-semibold text-white hover:bg-navy-light hover:no-underline"
           >
             Request Demo
@@ -303,7 +327,7 @@ function Masthead() {
           </Link>
 
           <Link
-            href="#demo"
+            href="/request-demo"
             className="inline-flex items-center gap-1.5 rounded-sm bg-navy px-4 py-2.5 text-[13.5px] font-semibold text-white hover:bg-navy-light hover:no-underline"
           >
             Request Demo
@@ -336,7 +360,7 @@ function PrimaryNav() {
         </ul>
 
         <Link
-          href="#demo"
+          href="/request-demo"
           className="ml-auto inline-flex items-center gap-1.5 self-stretch border-l border-white/10 bg-navy-light px-5 text-[14px] font-semibold text-white hover:bg-blue hover:no-underline"
         >
           Request Demo
@@ -378,15 +402,17 @@ function Hero() {
           </p>
 
           <div className="mt-8 flex flex-col items-stretch gap-3 sm:mt-9 sm:flex-row sm:flex-wrap sm:items-center">
-            <PrimaryButton>
+            <ActionLink href="/request-demo">
               Request Demo
               <Icon.ArrowRight className="h-4 w-4" />
-            </PrimaryButton>
+            </ActionLink>
 
-            <SecondaryButton>View Platform</SecondaryButton>
+            <ActionLink href="/login" variant="secondary">
+              View Platform
+            </ActionLink>
 
             <Link
-              href="#demo"
+              href="/request-demo"
               className="inline-flex min-h-11 w-full items-center justify-center gap-1.5 text-center text-[14px] font-semibold text-white/85 hover:text-white hover:no-underline sm:ml-1 sm:w-auto"
             >
               Talk to recovery operations
@@ -546,13 +572,13 @@ function CapabilitiesGrid() {
                   {item.body}
                 </p>
 
-                <a
-                  href="#"
+                <Link
+                  href="/request-demo"
                   className="mt-auto inline-flex items-center gap-1.5 text-[13.5px] font-semibold text-blue hover:text-navy-light"
                 >
                   Learn more
                   <Icon.ChevronRight className="h-3.5 w-3.5" />
-                </a>
+                </Link>
               </div>
             );
           })}
@@ -570,6 +596,7 @@ function FeatureRow({
   body,
   bullets,
   cta,
+  href,
   flip = false,
 }: {
   image: string;
@@ -579,6 +606,7 @@ function FeatureRow({
   body: string;
   bullets: string[];
   cta: string;
+  href: string;
   flip?: boolean;
 }) {
   return (
@@ -618,13 +646,13 @@ function FeatureRow({
           ))}
         </ul>
 
-        <a
-          href="#"
+        <Link
+          href={href}
           className="mt-7 inline-flex items-center gap-1.5 text-[14.5px] font-semibold text-blue hover:text-navy-light"
         >
           {cta}
           <Icon.ArrowRight className="h-4 w-4" />
-        </a>
+        </Link>
       </div>
     </div>
   );
@@ -647,6 +675,7 @@ function FeatureSections() {
             "Audit trail of every note, status, and referral",
           ]}
           cta="See case management"
+          href="/login"
         />
 
         <FeatureRow
@@ -663,6 +692,7 @@ function FeatureSections() {
             "Closes the loop on unmet needs across the network",
           ]}
           cta="See the referral exchange"
+          href="/login"
         />
       </Container>
     </section>
@@ -748,9 +778,9 @@ function DashboardPreview() {
                   </h3>
                 </div>
 
-                <button className="rounded-sm bg-blue px-3 py-2 text-[12.5px] font-semibold text-white hover:bg-navy-light">
+                <span className="rounded-sm bg-blue px-3 py-2 text-[12.5px] font-semibold text-white">
                   + Add survivor
-                </button>
+                </span>
               </div>
 
               <div className="mt-6 grid gap-3 sm:grid-cols-3">
@@ -907,19 +937,23 @@ function CTABand() {
           </h2>
 
           <p className="mt-4 max-w-[60ch] text-[16px] leading-7 text-white/85">
-            A 30-minute walk-through with our recovery operations team.
+            A tailored walk-through focused on your recovery operations,
+            partner network, referrals, and reporting responsibilities.
           </p>
 
           <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-            <PrimaryButton>
+            <ActionLink href="/request-demo">
               Request Demo
               <Icon.ArrowRight className="h-4 w-4" />
-            </PrimaryButton>
+            </ActionLink>
 
-            <SecondaryButton>
-              <Icon.Phone className="h-4 w-4" />
-              Call (24/7)
-            </SecondaryButton>
+            <ActionLink
+              href="mailto:reliefbridgeusa@gmail.com"
+              variant="secondary"
+            >
+              <Icon.Mail className="h-4 w-4" />
+              Email our team
+            </ActionLink>
           </div>
         </div>
       </Container>
@@ -964,14 +998,22 @@ function Footer() {
               </div>
 
               <ul className="mt-4 space-y-2.5">
-                {column.slice(1).map((link) => (
-                  <li key={link}>
-                    <a
-                      href="#"
+                {column.slice(1).map((item) => (
+                  <li key={item}>
+                    <Link
+                      href={
+                        item === "Contact"
+                          ? "/request-demo"
+                          : item === "Case Management" ||
+                              item === "Referral Exchange" ||
+                              item === "Unmet Needs"
+                            ? "/login"
+                            : "/request-demo"
+                      }
                       className="text-[13.5px] leading-5 text-white/85 hover:text-white"
                     >
-                      {link}
-                    </a>
+                      {item}
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -988,18 +1030,21 @@ function Footer() {
           </div>
 
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-            <a href="#" className="hover:text-white">
+            <Link href="/request-demo" className="hover:text-white">
               Privacy
-            </a>
-            <a href="#" className="hover:text-white">
+            </Link>
+
+            <Link href="/request-demo" className="hover:text-white">
               Security
-            </a>
-            <a href="#" className="hover:text-white">
+            </Link>
+
+            <Link href="/request-demo" className="hover:text-white">
               Accessibility
-            </a>
-            <a href="#" className="hover:text-white">
+            </Link>
+
+            <Link href="/request-demo" className="hover:text-white">
               Terms
-            </a>
+            </Link>
           </div>
         </Container>
       </div>
