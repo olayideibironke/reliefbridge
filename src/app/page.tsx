@@ -228,7 +228,7 @@ function OfficialBanner() {
 
 function MobileNavigation() {
   return (
-    <details className="group relative shrink-0 lg:hidden">
+    <details className="group relative ml-auto shrink-0 lg:hidden">
       <summary className="grid h-11 w-11 cursor-pointer list-none place-items-center rounded-sm border border-line bg-surface text-ink-2 [&::-webkit-details-marker]:hidden">
         <span className="sr-only">Open navigation menu</span>
         <Icon.Menu className="h-5 w-5" />
