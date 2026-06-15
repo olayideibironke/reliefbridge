@@ -197,7 +197,7 @@ function ActionLink({
   const className =
     variant === "primary"
       ? "inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-sm bg-gold px-5 py-3 text-[15px] font-bold !text-navy shadow-sm transition hover:bg-white hover:!text-navy hover:no-underline sm:w-auto"
-      : "inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-sm border-2 border-white/80 bg-transparent px-5 py-[10px] text-[15px] font-semibold !text-white transition hover:bg-white hover:!text-navy hover:no-underline sm:w-auto";
+      : "inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-sm border-2 border-white/80 bg-transparent px-5 py-[10px] text-[15px] font-semibold text-white transition hover:bg-white hover:text-navy hover:no-underline sm:w-auto";
 
   if (
     href.startsWith("mailto:") ||
@@ -283,7 +283,7 @@ function MobileNavigation() {
         <div className="border-t border-line p-3">
           <Link
             href="/request-demo"
-            className="flex h-11 items-center justify-center gap-2 rounded-sm bg-blue px-4 text-[14px] font-semibold text-white hover:bg-navy-light hover:no-underline"
+            className="flex h-11 items-center justify-center gap-2 rounded-sm bg-gold px-4 text-[14px] font-bold !text-navy shadow-sm transition hover:bg-white hover:!text-navy hover:no-underline"
           >
             Request Demo
             <Icon.ArrowRight className="h-4 w-4" />
@@ -328,7 +328,7 @@ function Masthead() {
 
           <Link
             href="/request-demo"
-            className="inline-flex items-center gap-1.5 rounded-sm bg-navy px-4 py-2.5 text-[13.5px] font-semibold text-white hover:bg-navy-light hover:no-underline"
+            className="inline-flex min-h-12 items-center justify-center gap-2 rounded-sm bg-gold px-5 py-3 text-[15px] font-bold !text-navy shadow-sm transition hover:bg-white hover:!text-navy hover:no-underline"
           >
             Request Demo
             <Icon.ArrowRight className="h-3.5 w-3.5" />
@@ -358,14 +358,6 @@ function PrimaryNav() {
             </li>
           ))}
         </ul>
-
-        <Link
-          href="/request-demo"
-          className="ml-auto inline-flex items-center gap-1.5 self-stretch border-l border-white/10 bg-navy-light px-5 text-[14px] font-semibold text-white hover:bg-blue hover:no-underline"
-        >
-          Request Demo
-          <Icon.ArrowRight className="h-3.5 w-3.5" />
-        </Link>
       </Container>
     </nav>
   );
