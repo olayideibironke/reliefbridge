@@ -6,20 +6,26 @@ import { requireProfile } from "@/lib/session";
 import { Sidebar } from "@/components/app/Sidebar";
 import { TopBar } from "@/components/app/TopBar";
 import { MobileHeader } from "@/components/app/MobileHeader";
+import { SessionInactivityGuard } from "@/components/app/SessionInactivityGuard";
 import type { Profile } from "@/lib/types";
 
 type ProfileWithFullName = Profile & {
   full_name?: string | null;
 };
 
-function formatRole(role: string | null | undefined) {
+function formatRole(
+  role: string | null | undefined,
+) {
   if (!role) {
     return "Case Manager";
   }
 
   return role
     .replace(/_/g, " ")
-    .replace(/\b\w/g, (character) => character.toUpperCase());
+    .replace(
+      /\b\w/g,
+      (character) => character.toUpperCase(),
+    );
 }
 
 export default async function AppLayout({
@@ -27,7 +33,8 @@ export default async function AppLayout({
 }: {
   children: ReactNode;
 }) {
-  const supabase = await createSupabaseServerClient();
+  const supabase =
+    await createSupabaseServerClient();
 
   const {
     data: { user },
@@ -37,16 +44,21 @@ export default async function AppLayout({
     redirect("/login");
   }
 
-  const profile = (await requireProfile()) as ProfileWithFullName;
+  const profile =
+    (await requireProfile()) as ProfileWithFullName;
 
   let orgName = "ReliefBridge Workspace";
 
   if (profile.organization_id) {
-    const { data: organization } = await supabase
-      .from("organizations")
-      .select("name")
-      .eq("id", profile.organization_id)
-      .maybeSingle();
+    const { data: organization } =
+      await supabase
+        .from("organizations")
+        .select("name")
+        .eq(
+          "id",
+          profile.organization_id,
+        )
+        .maybeSingle();
 
     if (organization?.name) {
       orgName = organization.name;
@@ -64,13 +76,15 @@ export default async function AppLayout({
   ]
     .filter(
       (value): value is string =>
-        typeof value === "string" && value.trim().length > 0,
+        typeof value === "string" &&
+        value.trim().length > 0,
     )
     .join(" ")
     .trim();
 
   const metadataName =
-    typeof user.user_metadata?.full_name === "string"
+    typeof user.user_metadata?.full_name ===
+    "string"
       ? user.user_metadata.full_name.trim()
       : "";
 
@@ -86,6 +100,8 @@ export default async function AppLayout({
 
   return (
     <div className="flex min-h-screen bg-surface-2">
+      <SessionInactivityGuard />
+
       <Sidebar
         user={{
           name,
@@ -98,7 +114,10 @@ export default async function AppLayout({
       <div className="flex min-w-0 flex-1 flex-col">
         <MobileHeader orgName={orgName} />
         <TopBar orgName={orgName} />
-        <main className="flex-1">{children}</main>
+
+        <main className="flex-1">
+          {children}
+        </main>
       </div>
     </div>
   );
