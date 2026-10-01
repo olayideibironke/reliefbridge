@@ -7,7 +7,14 @@ import { Logo } from "@/components/brand/Logo";
 import { Icons } from "@/components/ui/Icons";
 import { cn } from "@/lib/utils";
 
-const links = [
+type MobileLink = {
+  label: string;
+  href: string;
+  exact?: boolean;
+  demoWorkspaceOnly?: boolean;
+};
+
+const links: MobileLink[] = [
   { label: "Overview", href: "/app" },
   { label: "Survivors", href: "/app/survivors" },
   { label: "Recovery cases", href: "/app/cases" },
@@ -15,13 +22,25 @@ const links = [
   { label: "Referrals", href: "/app/referrals" },
   { label: "Partners", href: "/app/partners" },
   { label: "Reports", href: "/app/reports", exact: true },
-  { label: "Louisiana VOAD", href: "/app/reports/louisiana-voad" },
+  {
+    label: "Louisiana VOAD",
+    href: "/app/reports/louisiana-voad",
+    demoWorkspaceOnly: true,
+  },
   { label: "Settings", href: "/app/settings/organization" },
 ];
 
 export function MobileHeader({ orgName }: { orgName: string }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const isDemoWorkspace =
+    orgName.trim().toLowerCase() ===
+    "louisiana voad demo workspace";
+  const visibleLinks = links.filter(
+    (link) =>
+      !link.demoWorkspaceOnly ||
+      isDemoWorkspace
+  );
 
   return (
     <div className="border-b border-line bg-surface lg:hidden">
@@ -58,7 +77,7 @@ export function MobileHeader({ orgName }: { orgName: string }) {
               <span className="font-medium text-ink-2">{orgName}</span>
             </div>
             <nav className="flex-1 overflow-y-auto p-3">
-              {links.map((l) => {
+              {visibleLinks.map((l) => {
                 const active = l.exact
                   ? pathname === l.href
                   : pathname === l.href || pathname.startsWith(`${l.href}/`);
