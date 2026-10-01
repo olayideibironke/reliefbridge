@@ -28,9 +28,9 @@ export async function updateOrgAction(
   const organizationType = s(formData.get("organization_type")) as OrgType;
   const city = s(formData.get("city"));
   const state = s(formData.get("state")).toUpperCase();
-    const phone = s(formData.get("phone"));
+  const phone = s(formData.get("phone"));
   const email = s(formData.get("email"));
-  
+
   const fieldErrors: Record<string, string> = {};
   if (!name) fieldErrors.name = "Required";
   if (!ORG_TYPES.includes(organizationType)) fieldErrors.organization_type = "Pick a valid type";
