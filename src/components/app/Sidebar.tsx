@@ -16,6 +16,7 @@ type NavItem = {
   href: string;
   icon: ComponentType<SVGProps<SVGSVGElement>>;
   match?: (path: string) => boolean;
+  demoWorkspaceOnly?: boolean;
 };
 
 type NavGroup = {
@@ -93,6 +94,7 @@ const groups: NavGroup[] = [
         label: "Louisiana VOAD",
         href: "/app/reports/louisiana-voad",
         icon: Icons.Reports,
+        demoWorkspaceOnly: true,
       },
     ],
   },
@@ -135,11 +137,25 @@ export function Sidebar({
     (normalizedRole === "owner" ||
       normalizedRole === "admin");
 
-  const visibleGroups = groups.filter(
-    (group) =>
-      !group.platformAdminOnly ||
-      isPlatformAdmin
-  );
+  const isDemoWorkspace =
+    normalizedOrganizationName ===
+    "louisiana voad demo workspace";
+
+  const visibleGroups = groups
+    .filter(
+      (group) =>
+        !group.platformAdminOnly ||
+        isPlatformAdmin
+    )
+    .map((group) => ({
+      ...group,
+      items: group.items.filter(
+        (item) =>
+          !item.demoWorkspaceOnly ||
+          isDemoWorkspace
+      ),
+    }))
+    .filter((group) => group.items.length > 0);
 
   return (
     <aside className="sticky top-0 hidden h-screen w-[268px] shrink-0 flex-col border-r border-line bg-surface-2 lg:flex">
