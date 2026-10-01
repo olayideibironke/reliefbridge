@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { Input, Select, Textarea } from "@/components/ui/Field";
+import { Input, Select } from "@/components/ui/Field";
 import { SubmitButton } from "@/components/ui/SubmitButton";
 import { Alert } from "@/components/ui/Alert";
 import { Card, CardBody, CardFooter } from "@/components/ui/Card";
@@ -22,7 +22,7 @@ export function OrgForm({ org }: { org: Organization }) {
           )}
           <Input label="Organization name" name="name" required defaultValue={org.name} error={fe.name} />
           <div className="grid gap-4 sm:grid-cols-2">
-            <Select label="Type" name="type" required defaultValue={org.type} error={fe.type}>
+            <Select label="Type" name="organization_type" required defaultValue={org.organization_type ?? ""} error={fe.organization_type}>
               {ORG_TYPES.map((t) => (
                 <option key={t} value={t}>
                   {t}
@@ -38,14 +38,6 @@ export function OrgForm({ org }: { org: Organization }) {
                 </option>
               ))}
             </Select>
-            <Input
-              label="Website"
-              name="website"
-              type="url"
-              placeholder="https://example.org"
-              defaultValue={org.website ?? ""}
-              error={fe.website}
-            />
             <Input label="Phone" name="phone" type="tel" defaultValue={org.phone ?? ""} />
             <Input
               label="Email"
@@ -55,13 +47,6 @@ export function OrgForm({ org }: { org: Organization }) {
               error={fe.email}
             />
           </div>
-          <Textarea
-            label="About"
-            name="description"
-            rows={5}
-            defaultValue={org.description ?? ""}
-            placeholder="What does your organization do? Service area, capacity, specialties…"
-          />
         </CardBody>
         <CardFooter>
           <SubmitButton>Save organization</SubmitButton>
