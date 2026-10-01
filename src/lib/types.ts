@@ -41,13 +41,12 @@ export type ProfileRole = "owner" | "admin" | "member" | "viewer";
 export interface Organization {
   id: string;
   name: string;
-  type: OrgType;
+  organization_type: OrgType | null;
   city: string | null;
   state: string | null;
-  website: string | null;
   phone: string | null;
   email: string | null;
-  description: string | null;
+  status: string | null;
   created_at: string;
   updated_at: string;
 }
