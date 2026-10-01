@@ -37,10 +37,19 @@ export default async function PartnersPage({
 
   const supabase = await createSupabaseServerClient();
 
+  const isLouisianaDemo = profile.organization_id === "5ccd3d6a-e177-4396-ac62-8077d086696e";
+
   let query = supabase
     .from("organizations")
     .select("id, name, organization_type, city, state, email, phone, status, created_at")
+    .eq("status", "active")
     .order("name", { ascending: true });
+
+  // Keep the curated Louisiana demonstration focused on its Louisiana network
+  // without changing visibility for real ReliefBridge organizations.
+  if (isLouisianaDemo) {
+    query = query.eq("state", "LA");
+  }
 
   if (q) {
     query = query.ilike("name", `%${q}%`);
@@ -62,7 +71,9 @@ export default async function PartnersPage({
       <PageHeader
         eyebrow="Network"
         title="Partner organizations"
-        subtitle="Directory of every organization in the ReliefBridge network — housing, legal aid, repair, faith-based, county, and more."
+        subtitle={isLouisianaDemo
+          ? "Louisiana organizations available for coordinated referrals in this demonstration workspace."
+          : "Directory of every organization in the ReliefBridge network — housing, legal aid, repair, faith-based, county, and more."}
         breadcrumbs={[{ label: "Network", href: "/app" }, { label: "Partner organizations" }]}
       />
 
