@@ -87,6 +87,12 @@ const groups: NavGroup[] = [
         label: "Reports",
         href: "/app/reports",
         icon: Icons.Reports,
+        match: (path) => path === "/app/reports" || path.startsWith("/app/reports/closed-cases") || path.startsWith("/app/reports/open-cases") || path.startsWith("/app/reports/org-activity") || path.startsWith("/app/reports/referral-outcomes") || path.startsWith("/app/reports/unmet-needs"),
+      },
+      {
+        label: "Louisiana VOAD",
+        href: "/app/reports/louisiana-voad",
+        icon: Icons.Reports,
       },
     ],
   },
@@ -137,7 +143,6 @@ export function Sidebar({
 
   return (
     <aside className="sticky top-0 hidden h-screen w-[268px] shrink-0 flex-col border-r border-line bg-surface-2 lg:flex">
-      {/* Brand */}
       <div className="shrink-0 border-b border-line px-5 py-5">
         <Link
           href="/app"
@@ -148,7 +153,6 @@ export function Sidebar({
         </Link>
       </div>
 
-      {/* Organization */}
       <div className="shrink-0 px-3 py-3">
         <div className="rounded-sm border border-line bg-surface px-3 py-2.5">
           <div className="flex items-center gap-2.5">
@@ -172,7 +176,6 @@ export function Sidebar({
         </div>
       </div>
 
-      {/* Navigation */}
       <nav className="min-h-0 flex-1 overflow-y-auto px-3 pb-6">
         {visibleGroups.map((group) => (
           <div
@@ -226,7 +229,6 @@ export function Sidebar({
         ))}
       </nav>
 
-      {/* User */}
       <div className="shrink-0 border-t border-line bg-surface-2 px-3 py-3">
         <Link
           href="/app/settings/profile"
