@@ -25,21 +25,17 @@ export async function updateOrgAction(
   }
 
   const name = s(formData.get("name"));
-  const type = s(formData.get("type")) as OrgType;
+  const organizationType = s(formData.get("organization_type")) as OrgType;
   const city = s(formData.get("city"));
   const state = s(formData.get("state")).toUpperCase();
-  const website = s(formData.get("website"));
-  const phone = s(formData.get("phone"));
+    const phone = s(formData.get("phone"));
   const email = s(formData.get("email"));
-  const description = s(formData.get("description"));
-
+  
   const fieldErrors: Record<string, string> = {};
   if (!name) fieldErrors.name = "Required";
-  if (!ORG_TYPES.includes(type)) fieldErrors.type = "Pick a valid type";
+  if (!ORG_TYPES.includes(organizationType)) fieldErrors.organization_type = "Pick a valid type";
   if (state && !US_STATES.includes(state)) fieldErrors.state = "Use a 2-letter code";
   if (email && !isEmail(email)) fieldErrors.email = "Enter a valid email";
-  if (website && !/^https?:\/\//.test(website))
-    fieldErrors.website = "Include http(s)://";
   if (Object.keys(fieldErrors).length) {
     return { ok: false, message: "Please correct the highlighted fields.", fieldErrors };
   }
@@ -49,13 +45,11 @@ export async function updateOrgAction(
     .from("organizations")
     .update({
       name,
-      type,
+      organization_type: organizationType,
       city: emptyToNull(city),
       state: emptyToNull(state),
-      website: emptyToNull(website),
       phone: emptyToNull(phone),
       email: emptyToNull(email),
-      description: emptyToNull(description),
     })
     .eq("id", profile.organization_id);
 
