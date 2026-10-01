@@ -39,9 +39,7 @@ export default async function UnmetNeedsPage({
 
   let query = supabase
     .from("unmet_needs")
-    .select(
-      "*, survivors:survivors!unmet_needs_survivor_id_fkey ( id, first_name, last_name )"
-    )
+    .select("*")
     .order("created_at", { ascending: false })
     .limit(250);
 
@@ -54,17 +52,28 @@ export default async function UnmetNeedsPage({
 
   const { data, error } = await query;
 
-  let rows = ((data ?? []) as unknown) as Row[];
+  const needs = (data ?? []) as UnmetNeed[];
+  const survivorIds = Array.from(
+    new Set(needs.map((need) => need.survivor_id).filter(Boolean))
+  );
 
-  if (error) {
-    const fallback = await supabase
-      .from("unmet_needs")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(250);
+  const { data: survivorData } = survivorIds.length
+    ? await supabase
+        .from("survivors")
+        .select("id, first_name, last_name")
+        .in("id", survivorIds)
+    : { data: [] };
 
-    rows = ((fallback.data ?? []) as unknown) as Row[];
-  }
+  const survivorsById = new Map(
+    (survivorData ?? []).map((survivor) => [survivor.id, survivor])
+  );
+
+  const rows: Row[] = needs.map((need) => ({
+    ...need,
+    survivors: need.survivor_id
+      ? (survivorsById.get(need.survivor_id) ?? null)
+      : null,
+  }));
 
   return (
     <>
@@ -127,7 +136,13 @@ export default async function UnmetNeedsPage({
           </CardBody>
         </Card>
 
-        {rows.length === 0 ? (
+        {error ? (
+          <Card>
+            <CardBody>
+              <div className="text-red">Could not load unmet needs. {error.message}</div>
+            </CardBody>
+          </Card>
+        ) : rows.length === 0 ? (
           <EmptyState
             icon={<Icons.Needs className="h-7 w-7" />}
             title="No unmet needs captured"
