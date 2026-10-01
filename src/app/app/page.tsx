@@ -60,7 +60,7 @@ export default async function DashboardPage() {
         .from("recovery_cases")
         .select("id", { count: "exact", head: true })
         .eq("organization_id", orgId)
-        .neq("status", "Closed"),
+        .eq("status", "open"),
 
       supabase
         .from("referrals")
@@ -72,7 +72,7 @@ export default async function DashboardPage() {
         .from("unmet_needs")
         .select("id", { count: "exact", head: true })
         .eq("organization_id", orgId)
-        .eq("status", "open"),
+        .eq("status", "Open"),
 
       supabase
         .from("organizations")
