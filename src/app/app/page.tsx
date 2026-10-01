@@ -43,6 +43,19 @@ export default async function DashboardPage() {
   let partnerCount = 0;
 
   if (orgId) {
+    const isLouisianaDemo =
+      orgId === "5ccd3d6a-e177-4396-ac62-8077d086696e";
+
+    let partnersQuery = supabase
+      .from("organizations")
+      .select("id", { count: "exact", head: true })
+      .neq("id", orgId)
+      .eq("status", "active");
+
+    if (isLouisianaDemo) {
+      partnersQuery = partnersQuery.eq("state", "LA");
+    }
+
     const [
       activeSurvivorsResult,
       activeCasesResult,
@@ -74,11 +87,7 @@ export default async function DashboardPage() {
         .eq("organization_id", orgId)
         .eq("status", "open"),
 
-      supabase
-        .from("organizations")
-        .select("id", { count: "exact", head: true })
-        .neq("id", orgId)
-        .eq("status", "active"),
+      partnersQuery,
     ]);
 
     activeSurvivorCount = activeSurvivorsResult.count ?? 0;
