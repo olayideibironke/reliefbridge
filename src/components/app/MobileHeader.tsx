@@ -14,7 +14,8 @@ const links = [
   { label: "Unmet needs", href: "/app/unmet-needs" },
   { label: "Referrals", href: "/app/referrals" },
   { label: "Partners", href: "/app/partners" },
-  { label: "Reports", href: "/app/reports" },
+  { label: "Reports", href: "/app/reports", exact: true },
+  { label: "Louisiana VOAD", href: "/app/reports/louisiana-voad" },
   { label: "Settings", href: "/app/settings/organization" },
 ];
 
@@ -58,7 +59,10 @@ export function MobileHeader({ orgName }: { orgName: string }) {
             </div>
             <nav className="flex-1 overflow-y-auto p-3">
               {links.map((l) => {
-                const active = pathname === l.href || pathname.startsWith(`${l.href}/`);
+                const active = l.exact
+                  ? pathname === l.href
+                  : pathname === l.href || pathname.startsWith(`${l.href}/`);
+
                 return (
                   <Link
                     key={l.href}
