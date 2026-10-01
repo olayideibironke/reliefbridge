@@ -35,7 +35,7 @@ export default async function PartnerDetailPage({
         eyebrow={isMe ? "Your organization" : "Partner organization"}
         title={org.name}
         subtitle={
-          [org.type, [org.city, org.state].filter(Boolean).join(", ")]
+          [org.organization_type, [org.city, org.state].filter(Boolean).join(", ")]
             .filter(Boolean)
             .join(" · ") || undefined
         }
@@ -70,40 +70,12 @@ export default async function PartnerDetailPage({
               <dl className="grid grid-cols-2 gap-x-6 gap-y-4 text-[13.5px]">
                 <Field
                   label="Type"
-                  node={<Badge tone="blue">{org.type}</Badge>}
+                  node={<Badge tone="blue">{org.organization_type ?? "Organization"}</Badge>}
                 />
                 <Field label="Location" value={[org.city, org.state].filter(Boolean).join(", ")} />
-                <Field
-                  label="Website"
-                  node={
-                    org.website ? (
-                      <a
-                        href={org.website}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-blue hover:text-navy-light"
-                      >
-                        {org.website}
-                      </a>
-                    ) : (
-                      "—"
-                    )
-                  }
-                />
                 <Field label="Email" value={org.email} />
                 <Field label="Phone" value={org.phone} />
               </dl>
-
-              {org.description && (
-                <div className="mt-6">
-                  <div className="text-[11.5px] font-bold uppercase tracking-[0.1em] text-ink-3">
-                    About
-                  </div>
-                  <p className="mt-2 whitespace-pre-line text-[14px] leading-6 text-ink-2">
-                    {org.description}
-                  </p>
-                </div>
-              )}
             </CardBody>
           </Card>
         </div>
