@@ -217,7 +217,17 @@ export function Sidebar({
                         )}
                       />
 
-                      <span className="truncate">
+                      <span
+                        className={cn(
+                          "truncate",
+                          active ? "text-white" : ""
+                        )}
+                        style={
+                          active
+                            ? { color: "#ffffff" }
+                            : undefined
+                        }
+                      >
                         {item.label}
                       </span>
                     </Link>
