@@ -111,11 +111,11 @@ export default async function DemoHubPage() {
                   <Td>{(() => { const effectiveStatus = demo.status === "active" && new Date(demo.expires_at).getTime() <= now ? "expired" : demo.status; return <span className={`inline-flex rounded-full border px-2.5 py-1 text-[11.5px] font-bold capitalize ${statusClasses(effectiveStatus)}`}>{effectiveStatus}</span>; })()}</Td>
                   <Td className="rb-numerals whitespace-nowrap text-[12.5px]">{formatDate(demo.expires_at)}</Td>
                   <Td className="rb-numerals whitespace-nowrap text-[12.5px]">{formatDate(demo.last_access_at)}</Td>
-                  <Td align="right">
-                    <div className="flex flex-wrap justify-end gap-2">
+                  <Td align="right" className="min-w-[310px] align-top">
+                    <div className="flex flex-col items-end gap-2">
                       <ResetPasswordControl demoId={demo.id} />
                       {demo.status === "active" ? (
-                        <>
+                        <div className="flex flex-wrap items-center justify-end gap-2">
                           <form action={demoControlAction} className="flex items-center gap-2">
                             <input type="hidden" name="demo_id" value={demo.id} />
                             <input type="hidden" name="action" value="set_duration" />
@@ -134,7 +134,7 @@ export default async function DemoHubPage() {
                             <input type="hidden" name="action" value="disable" />
                             <Button type="submit" variant="danger" size="sm">Disable</Button>
                           </form>
-                        </>
+                        </div>
                       ) : (
                         <form action={demoControlAction} className="flex items-center gap-2">
                           <input type="hidden" name="demo_id" value={demo.id} />
