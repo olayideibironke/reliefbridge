@@ -153,12 +153,12 @@ export default async function UnmetNeedsPage({
                 ? "No needs match those filters. Try clearing them."
                 : "Add unmet needs against survivor records to coordinate referrals and partner outreach."
             }
-            action={
+            action={!isManagedDemo ? (
               <LinkButton href="/app/unmet-needs/new">
                 <Icons.Plus className="h-4 w-4" />
                 Capture first need
               </LinkButton>
-            }
+            ) : undefined}
           />
         ) : (
           <Card>
