@@ -1,5 +1,6 @@
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { requireProfile } from "@/lib/session";
+import { redirect } from "next/navigation";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Icons } from "@/components/ui/Icons";
@@ -13,6 +14,8 @@ export const metadata = { title: "Organization profile — ReliefBridge" };
 export default async function OrgSettingsPage() {
   const profile = await requireProfile();
   const supabase = await createSupabaseServerClient();
+  const { data: demoAccess } = await supabase.rpc("get_my_demo_access");
+  if (Array.isArray(demoAccess) && demoAccess[0]?.is_demo) redirect("/app");
 
   let org: Organization | null = null;
   if (profile.organization_id) {
