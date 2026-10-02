@@ -42,6 +42,31 @@ export async function loginAction(
     return { ok: false, message: error.message || "Sign in failed." };
   }
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (user) {
+    const { data: demo } = await supabase
+      .from("demo_workspaces")
+      .select("status, expires_at")
+      .eq("auth_user_id", user.id)
+      .maybeSingle();
+
+    if (
+      demo &&
+      (demo.status !== "active" ||
+        new Date(demo.expires_at).getTime() <= Date.now())
+    ) {
+      await supabase.auth.signOut();
+      return {
+        ok: false,
+        message:
+          "This demonstration access period has ended. Please contact Westforge for renewed access.",
+      };
+    }
+  }
+
   revalidatePath("/app", "layout");
   redirect(next.startsWith("/") ? next : "/app");
 }
