@@ -47,14 +47,11 @@ export async function loginAction(
   } = await supabase.auth.getUser();
 
   if (user) {
-    const { data: demo } = await supabase
-      .from("demo_workspaces")
-      .select("status, expires_at")
-      .eq("auth_user_id", user.id)
-      .maybeSingle();
+    const { data: demoAccess } = await supabase.rpc("get_my_demo_access");
+    const demo = Array.isArray(demoAccess) ? demoAccess[0] : null;
 
     if (
-      demo &&
+      demo?.is_demo &&
       (demo.status !== "active" ||
         new Date(demo.expires_at).getTime() <= Date.now())
     ) {
