@@ -69,11 +69,13 @@ export function CreateDemoForm() {
   const [state, action, pending] = useActionState(createDemoAction, initialState);
   const [selectedState, setSelectedState] = useState<keyof typeof US_LOCATIONS | "">("");
   const [copied, setCopied] = useState<"password" | "all" | null>(null);
+  const [passwordVisible, setPasswordVisible] = useState(true);
 
   async function copyText(text: string, kind: "password" | "all") {
     try {
       await navigator.clipboard.writeText(text);
       setCopied(kind);
+      setPasswordVisible(false);
       window.setTimeout(() => setCopied(null), 1800);
     } catch {
       const textarea = document.createElement("textarea");
@@ -86,6 +88,7 @@ export function CreateDemoForm() {
       document.execCommand("copy");
       textarea.remove();
       setCopied(kind);
+      setPasswordVisible(false);
       window.setTimeout(() => setCopied(null), 1800);
     }
   }
@@ -134,8 +137,9 @@ export function CreateDemoForm() {
             <div>
               <div className="text-[11px] font-bold text-ink-3">TEMPORARY PASSWORD</div>
               <div className="mt-1 flex items-center gap-2">
-                <div className="break-all font-mono text-[13px] font-bold text-navy">{state.credentials.password}</div>
-                <button type="button" onClick={() => copyText(state.credentials?.password ?? "", "password")} className="shrink-0 rounded-sm border border-blue/20 bg-white px-2 py-1 text-[11px] font-bold text-blue hover:border-blue">{copied === "password" ? "Copied!" : "Copy password"}</button>
+                <div className="break-all font-mono text-[13px] font-bold text-navy">{passwordVisible ? state.credentials.password : "••••••••••••••••••••"}</div>
+                <button type="button" onClick={() => setPasswordVisible((visible) => !visible)} className="shrink-0 rounded-sm border border-line bg-white px-2 py-1 text-[11px] font-bold text-navy hover:border-blue">{passwordVisible ? "Hide" : "Show"}</button>
+                <button type="button" onClick={() => copyText(state.credentials?.password ?? "", "password")} className="shrink-0 rounded-sm border border-blue/20 bg-white px-2 py-1 text-[11px] font-bold text-blue hover:border-blue">{copied === "password" ? "Copied!" : "Copy"}</button>
               </div>
             </div>
             <div><div className="text-[11px] font-bold text-ink-3">EXPIRES</div><div className="mt-1 text-[13px] font-semibold text-navy">{state.credentials.expires_at ? new Date(state.credentials.expires_at).toLocaleString() : "Not set"}</div></div>

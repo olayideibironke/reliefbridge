@@ -22,6 +22,7 @@ function copyFallback(text: string) {
 export function ResetPasswordControl({ demoId }: { demoId: string }) {
   const [state, action, pending] = useActionState(resetDemoPasswordAction, initialState);
   const [copied, setCopied] = useState(false);
+  const [passwordVisible, setPasswordVisible] = useState(true);
 
   async function copyPassword() {
     const password = state.credentials?.password;
@@ -35,6 +36,7 @@ export function ResetPasswordControl({ demoId }: { demoId: string }) {
     }
     if (ok) {
       setCopied(true);
+      setPasswordVisible(false);
       window.setTimeout(() => setCopied(false), 2000);
     }
   }
@@ -53,15 +55,16 @@ export function ResetPasswordControl({ demoId }: { demoId: string }) {
             New password
           </div>
           <div className="mt-1 break-all font-mono text-[12px] font-bold text-navy">
-            {state.credentials.password}
+            {passwordVisible ? state.credentials.password : "••••••••••••••••••••"}
           </div>
-          <button
-            type="button"
-            onClick={copyPassword}
-            className="mt-2 inline-flex h-8 w-full items-center justify-center rounded-sm border border-blue/20 bg-white px-3 text-[11.5px] font-bold text-blue hover:border-blue"
-          >
-            {copied ? "Copied!" : "Copy password"}
-          </button>
+          <div className="mt-2 grid grid-cols-2 gap-2">
+            <button type="button" onClick={() => setPasswordVisible((visible) => !visible)} className="inline-flex h-8 items-center justify-center rounded-sm border border-line bg-white px-3 text-[11.5px] font-bold text-navy hover:border-blue">
+              {passwordVisible ? "Hide" : "Show"}
+            </button>
+            <button type="button" onClick={copyPassword} className="inline-flex h-8 items-center justify-center rounded-sm border border-blue/20 bg-white px-3 text-[11.5px] font-bold text-blue hover:border-blue">
+              {copied ? "Copied!" : "Copy"}
+            </button>
+          </div>
         </div>
       )}
       {state.message && !state.credentials && (
