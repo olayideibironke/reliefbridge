@@ -68,6 +68,27 @@ const inputClass = "mt-1.5 h-11 w-full rounded-sm border border-line bg-white px
 export function CreateDemoForm() {
   const [state, action, pending] = useActionState(createDemoAction, initialState);
   const [selectedState, setSelectedState] = useState<keyof typeof US_LOCATIONS | "">("");
+  const [copied, setCopied] = useState<"password" | "all" | null>(null);
+
+  async function copyText(text: string, kind: "password" | "all") {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(kind);
+      window.setTimeout(() => setCopied(null), 1800);
+    } catch {
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+      document.execCommand("copy");
+      textarea.remove();
+      setCopied(kind);
+      window.setTimeout(() => setCopied(null), 1800);
+    }
+  }
 
   return (
     <form action={action} className="space-y-5">
@@ -110,11 +131,17 @@ export function CreateDemoForm() {
           <div className="text-[12px] font-bold uppercase tracking-[0.12em] text-blue">Access details</div>
           <div className="mt-3 grid gap-3 md:grid-cols-3">
             <div><div className="text-[11px] font-bold text-ink-3">LOGIN</div><div className="mt-1 break-all text-[13px] font-semibold text-navy">{state.credentials.login_email}</div></div>
-            <div><div className="text-[11px] font-bold text-ink-3">TEMPORARY PASSWORD</div><div className="mt-1 break-all font-mono text-[13px] font-bold text-navy">{state.credentials.password}</div></div>
+            <div>
+              <div className="text-[11px] font-bold text-ink-3">TEMPORARY PASSWORD</div>
+              <div className="mt-1 flex items-center gap-2">
+                <div className="break-all font-mono text-[13px] font-bold text-navy">{state.credentials.password}</div>
+                <button type="button" onClick={() => copyText(state.credentials?.password ?? "", "password")} className="shrink-0 rounded-sm border border-blue/20 bg-white px-2 py-1 text-[11px] font-bold text-blue hover:border-blue">{copied === "password" ? "Copied!" : "Copy password"}</button>
+              </div>
+            </div>
             <div><div className="text-[11px] font-bold text-ink-3">EXPIRES</div><div className="mt-1 text-[13px] font-semibold text-navy">{state.credentials.expires_at ? new Date(state.credentials.expires_at).toLocaleString() : "Not set"}</div></div>
           </div>
           <p className="mt-3 text-[12px] text-ink-3">The password is not stored in the Demo Hub. Copy it before leaving this page.</p>
-          <button type="button" onClick={() => navigator.clipboard.writeText(`ReliefBridge demo access\nLogin: ${state.credentials?.login_email ?? ""}\nPassword: ${state.credentials?.password ?? ""}\nExpires: ${state.credentials?.expires_at ? new Date(state.credentials.expires_at).toLocaleString() : ""}\nSign in: https://reliefbridge.net/login`)} className="mt-4 inline-flex h-9 items-center rounded-sm border border-blue/20 bg-white px-3 text-[12.5px] font-bold text-blue hover:border-blue">Copy access details</button>
+          <button type="button" onClick={() => copyText(`ReliefBridge demo access\nLogin: ${state.credentials?.login_email ?? ""}\nPassword: ${state.credentials?.password ?? ""}\nExpires: ${state.credentials?.expires_at ? new Date(state.credentials.expires_at).toLocaleString() : ""}\nSign in: https://reliefbridge.net/login`, "all")} className="mt-4 inline-flex h-9 items-center rounded-sm border border-blue/20 bg-white px-3 text-[12.5px] font-bold text-blue hover:border-blue">{copied === "all" ? "Copied!" : "Copy access details"}</button>
         </div>
       )}
       <Button type="submit" size="sm" disabled={pending}>{pending ? "Creating demo..." : "Create demo"}</Button>
