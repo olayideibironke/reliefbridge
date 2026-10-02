@@ -75,6 +75,11 @@ const groups: NavGroup[] = [
     platformAdminOnly: true,
     items: [
       {
+        label: "Demo Hub",
+        href: "/app/demo-hub",
+        icon: Icons.Reports,
+      },
+      {
         label: "Demo requests",
         href: "/app/demo-requests",
         icon: Icons.Reports,
