@@ -9,7 +9,7 @@ const PLATFORM_ORGANIZATION_ID = "9f3cb5cc-aa6f-44cb-8aa9-b0a7bc505142";
 export type DemoHubState = {
   ok: boolean;
   message: string | null;
-  credentials?: { login_email: string; password: string; expires_at: string };
+  credentials?: { login_email?: string; password: string; expires_at?: string };
 };
 
 function value(formData: FormData, key: string) {
@@ -63,7 +63,26 @@ export async function createDemoAction(_previous: DemoHubState, formData: FormDa
 export async function demoControlAction(formData: FormData) {
   const demo_id = value(formData, "demo_id");
   const action = value(formData, "action");
-  if (!demo_id || !["extend", "disable"].includes(action)) return;
+  if (!demo_id || !["extend", "disable", "reactivate", "archive"].includes(action)) return;
   await invoke({ action, demo_id, duration_days: 7 });
   revalidatePath("/app/demo-hub");
+}
+
+
+export async function resetDemoPasswordAction(
+  _previous: DemoHubState,
+  formData: FormData,
+): Promise<DemoHubState> {
+  const demo_id = value(formData, "demo_id");
+  if (!demo_id) return { ok: false, message: "Demo is required." };
+  try {
+    const data = await invoke({ action: "reset_password", demo_id });
+    return {
+      ok: true,
+      message: "Password reset. Copy the new password now. It is shown only once.",
+      credentials: { password: data.password },
+    };
+  } catch (error) {
+    return { ok: false, message: error instanceof Error ? error.message : "Could not reset password." };
+  }
 }
