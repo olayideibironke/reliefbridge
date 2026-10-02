@@ -177,11 +177,11 @@ export default async function SurvivorDetailPage({
                 icon={<Icons.Cases className="h-6 w-6" />}
                 title="No cases open for this survivor"
                 description="Open a recovery case to track lifecycle, status, and notes."
-                action={
+                action={!isManagedDemo ? (
                   <LinkButton href={`/app/cases/new?survivor=${survivor.id}`}>
                     Open first case
                   </LinkButton>
-                }
+                ) : undefined}
               />
             ) : (
               <DataTable className="rounded-none border-0">

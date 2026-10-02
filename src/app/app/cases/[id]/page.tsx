@@ -140,7 +140,7 @@ export default async function CaseDetailPage({
               {!isManagedDemo && <CaseNoteForm caseId={recoveryCase.id} />}
               {noteList.length === 0 ? (
                 <div className="rounded-sm border border-dashed border-line bg-surface-2 px-4 py-8 text-center text-[13px] text-ink-3">
-                  No notes yet. Add the first update above.
+                  {isManagedDemo ? "No case notes are included in this demonstration." : "No notes yet. Add the first update above."}
                 </div>
               ) : (
                 <ul className="space-y-3 border-t border-line pt-4">
