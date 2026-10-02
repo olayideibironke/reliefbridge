@@ -147,7 +147,7 @@ export default async function ReferralsPage({
                 : "Partner organizations haven't sent any referrals your way yet."
             }
             action={
-              direction === "outgoing" ? (
+              !isManagedDemo && direction === "outgoing" ? (
                 <LinkButton href="/app/referrals/new">
                   <Icons.Plus className="h-4 w-4" />
                   Send first referral
