@@ -36,15 +36,22 @@ async function invoke(body: Record<string, unknown>) {
 
 export async function createDemoAction(_previous: DemoHubState, formData: FormData): Promise<DemoHubState> {
   const organization_name = value(formData, "organization_name");
-  const organization_type = value(formData, "organization_type") || "VOAD or COAD";
+  const organization_type = value(formData, "organization_type") || "VOAD";
   const city = value(formData, "city");
   const state = value(formData, "state").toUpperCase();
   const contact_name = value(formData, "contact_name");
   const contact_email = value(formData, "contact_email");
   const duration_days = Number(value(formData, "duration_days") || "7");
 
-  if (!organization_name || state.length !== 2) {
+  if (!organization_name || !/^[A-Z]{2}$/.test(state)) {
     return { ok: false, message: "Organization name and two-letter state are required." };
+  }
+
+  if (contact_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact_email)) {
+    return { ok: false, message: "Enter a valid contact email." };
+  }
+  if (![1, 3, 7, 14, 30].includes(duration_days)) {
+    return { ok: false, message: "Choose a valid demo duration." };
   }
 
   try {
