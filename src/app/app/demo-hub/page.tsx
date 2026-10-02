@@ -12,6 +12,7 @@ import { Icons } from "@/components/ui/Icons";
 import { Button } from "@/components/ui/Button";
 import { CreateDemoForm } from "./CreateDemoForm";
 import { demoControlAction } from "./actions";
+import { ResetPasswordControl } from "./ResetPasswordControl";
 
 export const dynamic = "force-dynamic";
 
@@ -110,17 +111,33 @@ export default async function DemoHubPage() {
                   <Td><span className={`inline-flex rounded-full border px-2.5 py-1 text-[11.5px] font-bold capitalize ${statusClasses(demo.status)}`}>{demo.status}</span></Td>
                   <Td className="rb-numerals whitespace-nowrap text-[12.5px]">{formatDate(demo.expires_at)}</Td>
                   <Td align="right">
-                    <div className="flex justify-end gap-2">
-                      <form action={demoControlAction}>
-                        <input type="hidden" name="demo_id" value={demo.id} />
-                        <input type="hidden" name="action" value="extend" />
-                        <Button type="submit" variant="outline" size="sm">+7 days</Button>
-                      </form>
-                      {demo.status === "active" && (
+                    <div className="flex flex-wrap justify-end gap-2">
+                      <ResetPasswordControl demoId={demo.id} />
+                      {demo.status === "active" ? (
+                        <>
+                          <form action={demoControlAction}>
+                            <input type="hidden" name="demo_id" value={demo.id} />
+                            <input type="hidden" name="action" value="extend" />
+                            <Button type="submit" variant="outline" size="sm">+7 days</Button>
+                          </form>
+                          <form action={demoControlAction}>
+                            <input type="hidden" name="demo_id" value={demo.id} />
+                            <input type="hidden" name="action" value="disable" />
+                            <Button type="submit" variant="danger" size="sm">Disable</Button>
+                          </form>
+                        </>
+                      ) : (
                         <form action={demoControlAction}>
                           <input type="hidden" name="demo_id" value={demo.id} />
-                          <input type="hidden" name="action" value="disable" />
-                          <Button type="submit" variant="danger" size="sm">Disable</Button>
+                          <input type="hidden" name="action" value="reactivate" />
+                          <Button type="submit" variant="outline" size="sm">Reactivate 7 days</Button>
+                        </form>
+                      )}
+                      {demo.status !== "archived" && (
+                        <form action={demoControlAction}>
+                          <input type="hidden" name="demo_id" value={demo.id} />
+                          <input type="hidden" name="action" value="archive" />
+                          <Button type="submit" variant="ghost" size="sm">Archive</Button>
                         </form>
                       )}
                     </div>
