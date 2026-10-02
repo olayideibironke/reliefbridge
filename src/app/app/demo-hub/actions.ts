@@ -78,8 +78,10 @@ export async function createDemoAction(_previous: DemoHubState, formData: FormDa
 export async function demoControlAction(formData: FormData) {
   const demo_id = value(formData, "demo_id");
   const action = value(formData, "action");
-  if (!demo_id || !["extend", "disable", "reactivate", "archive"].includes(action)) return;
-  await invoke({ action, demo_id, duration_days: 7 });
+  if (!demo_id || !["set_duration", "disable", "reactivate", "archive"].includes(action)) return;
+  const requestedDays = Number(value(formData, "duration_days") || "7");
+  const duration_days = [1, 3, 7, 14, 30].includes(requestedDays) ? requestedDays : 7;
+  await invoke({ action, demo_id, duration_days });
   revalidatePath("/app/demo-hub");
 }
 

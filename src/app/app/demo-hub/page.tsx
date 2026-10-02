@@ -116,10 +116,17 @@ export default async function DemoHubPage() {
                       <ResetPasswordControl demoId={demo.id} />
                       {demo.status === "active" ? (
                         <>
-                          <form action={demoControlAction}>
+                          <form action={demoControlAction} className="flex items-center gap-2">
                             <input type="hidden" name="demo_id" value={demo.id} />
-                            <input type="hidden" name="action" value="extend" />
-                            <Button type="submit" variant="outline" size="sm">+7 days</Button>
+                            <input type="hidden" name="action" value="set_duration" />
+                            <select name="duration_days" defaultValue="7" aria-label="Set access duration" className="h-9 rounded-sm border border-line bg-white px-2 text-[12.5px] font-semibold text-navy">
+                              <option value="1">1 day</option>
+                              <option value="3">3 days</option>
+                              <option value="7">7 days</option>
+                              <option value="14">14 days</option>
+                              <option value="30">30 days</option>
+                            </select>
+                            <Button type="submit" variant="outline" size="sm">Set duration</Button>
                           </form>
                           <form action={demoControlAction}>
                             <input type="hidden" name="demo_id" value={demo.id} />
@@ -128,10 +135,17 @@ export default async function DemoHubPage() {
                           </form>
                         </>
                       ) : (
-                        <form action={demoControlAction}>
+                        <form action={demoControlAction} className="flex items-center gap-2">
                           <input type="hidden" name="demo_id" value={demo.id} />
                           <input type="hidden" name="action" value="reactivate" />
-                          <Button type="submit" variant="outline" size="sm">Reactivate 7 days</Button>
+                          <select name="duration_days" defaultValue="7" aria-label="Reactivation duration" className="h-9 rounded-sm border border-line bg-white px-2 text-[12.5px] font-semibold text-navy">
+                            <option value="1">1 day</option>
+                            <option value="3">3 days</option>
+                            <option value="7">7 days</option>
+                            <option value="14">14 days</option>
+                            <option value="30">30 days</option>
+                          </select>
+                          <Button type="submit" variant="outline" size="sm">Reactivate</Button>
                         </form>
                       )}
                       {demo.status !== "archived" && (
