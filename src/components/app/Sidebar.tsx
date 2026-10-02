@@ -120,6 +120,7 @@ const groups: NavGroup[] = [
 export function Sidebar({
   user,
   orgName,
+  isManagedDemo = false,
 }: {
   user: {
     name: string;
@@ -127,6 +128,7 @@ export function Sidebar({
     role: string;
   };
   orgName: string;
+  isManagedDemo?: boolean;
 }) {
   const pathname = usePathname();
 
@@ -152,6 +154,7 @@ export function Sidebar({
         !group.platformAdminOnly ||
         isPlatformAdmin
     )
+    .filter((group) => !(isManagedDemo && group.title === "Account"))
     .map((group) => ({
       ...group,
       items: group.items.filter(
