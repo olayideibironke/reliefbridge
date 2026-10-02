@@ -17,8 +17,8 @@ export function CreateDemoForm() {
           <input name="organization_name" required className={inputClass} />
         </label>
         <label className="text-[12.5px] font-semibold text-ink-2">Organization type
-          <select name="organization_type" defaultValue="VOAD or COAD" className={inputClass}>
-            <option>VOAD or COAD</option><option>Long-Term Recovery Group</option><option>Nonprofit</option><option>Faith-Based Organization</option><option>Government Agency</option><option>Other</option>
+          <select name="organization_type" defaultValue="VOAD" className={inputClass}>
+            <option value="VOAD">VOAD</option><option value="COAD">COAD</option><option>Long-Term Recovery Group</option><option>Nonprofit</option><option>Faith-Based Organization</option><option>Government Agency</option><option>Other</option>
           </select>
         </label>
         <label className="text-[12.5px] font-semibold text-ink-2">State
@@ -49,6 +49,7 @@ export function CreateDemoForm() {
             <div><div className="text-[11px] font-bold text-ink-3">EXPIRES</div><div className="mt-1 text-[13px] font-semibold text-navy">{new Date(state.credentials.expires_at).toLocaleString()}</div></div>
           </div>
           <p className="mt-3 text-[12px] text-ink-3">The password is not stored in the Demo Hub. Copy it before leaving this page.</p>
+          <button type="button" onClick={() => navigator.clipboard.writeText(`ReliefBridge demo access\nLogin: ${state.credentials?.login_email ?? ""}\nPassword: ${state.credentials?.password ?? ""}\nExpires: ${state.credentials?.expires_at ? new Date(state.credentials.expires_at).toLocaleString() : ""}\nSign in: https://reliefbridge.net/login`)} className="mt-4 inline-flex h-9 items-center rounded-sm border border-blue/20 bg-white px-3 text-[12.5px] font-bold text-blue hover:border-blue">Copy access details</button>
         </div>
       )}
       <Button type="submit" size="sm" disabled={pending}>{pending ? "Creating demo..." : "Create demo"}</Button>
