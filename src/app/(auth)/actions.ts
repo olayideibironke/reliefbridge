@@ -47,7 +47,11 @@ export async function loginAction(
   } = await supabase.auth.getUser();
 
   if (user) {
-    const { data: demoAccess } = await supabase.rpc("get_my_demo_access");
+    const { data: demoAccess, error: demoAccessError } = await supabase.rpc("get_my_demo_access");
+    if (demoAccessError) {
+      await supabase.auth.signOut();
+      return { ok: false, message: "Access verification is temporarily unavailable. Please try again." };
+    }
     const demo = Array.isArray(demoAccess) ? demoAccess[0] : null;
 
     if (
@@ -186,6 +190,16 @@ export async function resetPasswordAction(
   }
 
   const supabase = await createSupabaseServerClient();
+  const { data: demoAccess, error: demoAccessError } = await supabase.rpc("get_my_demo_access");
+  const demo = Array.isArray(demoAccess) ? demoAccess[0] : null;
+  if (demoAccessError || demo?.is_demo) {
+    return {
+      ok: false,
+      message: demo?.is_demo
+        ? "Managed demo passwords can only be reset by a ReliefBridge administrator."
+        : "Access verification is temporarily unavailable. Please try again.",
+    };
+  }
   const { error } = await supabase.auth.updateUser({ password });
   if (error) {
     return { ok: false, message: error.message };
