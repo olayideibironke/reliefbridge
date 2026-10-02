@@ -687,6 +687,9 @@ export default async function ReportsIndexPage({
     await createSupabaseServerClient();
 
   const profile = await requireProfile();
+  const { data: demoAccess } = await supabase.rpc("get_my_demo_access");
+  const isManagedDemo =
+    Array.isArray(demoAccess) && Boolean(demoAccess[0]?.is_demo);
 
   const organizationId =
     profile.organization_id;
@@ -1007,6 +1010,7 @@ export default async function ReportsIndexPage({
           },
         ]}
         actions={
+          !isManagedDemo ? (
           <a
             href={exportHref}
             aria-label="Download organization report as an Excel workbook"
@@ -1025,6 +1029,7 @@ export default async function ReportsIndexPage({
               XLSX
             </span>
           </a>
+          ) : undefined
         }
       />
 
