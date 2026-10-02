@@ -43,6 +43,8 @@ export default async function CasesPage({
   const priority = PRIORITIES.includes(sp.priority as Priority) ? (sp.priority as Priority) : "";
 
   const supabase = await createSupabaseServerClient();
+  const { data: demoAccess } = await supabase.rpc("get_my_demo_access");
+  const isManagedDemo = Array.isArray(demoAccess) && Boolean(demoAccess[0]?.is_demo);
   let query = supabase
     .from("recovery_cases")
     .select(
@@ -79,12 +81,12 @@ export default async function CasesPage({
         title="Recovery cases"
         subtitle="Every active and closed recovery case across your organization."
         breadcrumbs={[{ label: "Workspace", href: "/app" }, { label: "Recovery cases" }]}
-        actions={
+        actions={!isManagedDemo ? (
           <LinkButton href="/app/cases/new">
             <Icons.Plus className="h-4 w-4" />
             New case
           </LinkButton>
-        }
+        ) : undefined}
       />
 
       <div className="space-y-6 px-6 py-8 md:px-10">
