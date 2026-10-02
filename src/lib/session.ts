@@ -4,14 +4,11 @@ import { createSupabaseServerClient } from "@/lib/supabase-server";
 import type { Profile } from "@/lib/types";
 
 async function enforceDemoAccess(supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>, userId: string) {
-  const { data: demo, error } = await supabase
-    .from("demo_workspaces")
-    .select("status, expires_at")
-    .eq("auth_user_id", userId)
-    .maybeSingle();
+  const { data, error } = await supabase.rpc("get_my_demo_access");
+  const demo = Array.isArray(data) ? data[0] : null;
 
   // Normal ReliefBridge users have no demo record and continue unchanged.
-  if (error || !demo) return;
+  if (error || !demo?.is_demo) return;
 
   const expired =
     demo.status !== "active" ||
@@ -22,8 +19,8 @@ async function enforceDemoAccess(supabase: Awaited<ReturnType<typeof createSupab
     redirect("/login?demo_expired=1");
   }
 
-  // Best-effort activity stamp. RLS intentionally prevents the demo user
-  // from changing the registry, so failure here must not block access.
+  // Best-effort timestamp for the Demo Hub's Last access column.
+  await supabase.rpc("touch_my_demo_access");
 }
 
 export async function getSessionUser() {
