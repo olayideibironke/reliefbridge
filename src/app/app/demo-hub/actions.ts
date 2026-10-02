@@ -1,0 +1,69 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { createSupabaseServerClient } from "@/lib/supabase-server";
+import { requireProfile } from "@/lib/session";
+
+const PLATFORM_ORGANIZATION_ID = "9f3cb5cc-aa6f-44cb-8aa9-b0a7bc505142";
+
+export type DemoHubState = {
+  ok: boolean;
+  message: string | null;
+  credentials?: { login_email: string; password: string; expires_at: string };
+};
+
+function value(formData: FormData, key: string) {
+  const item = formData.get(key);
+  return typeof item === "string" ? item.trim() : "";
+}
+
+async function requirePlatformAdmin() {
+  const profile = await requireProfile();
+  const role = profile.role?.trim().toLowerCase() ?? "";
+  if (profile.organization_id !== PLATFORM_ORGANIZATION_ID || !["owner", "admin"].includes(role)) {
+    throw new Error("Platform administrator access is required.");
+  }
+}
+
+async function invoke(body: Record<string, unknown>) {
+  await requirePlatformAdmin();
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.functions.invoke("demo-admin", { body });
+  if (error) throw new Error(error.message || "Demo administration failed.");
+  if (data?.error) throw new Error(String(data.error));
+  return data;
+}
+
+export async function createDemoAction(_previous: DemoHubState, formData: FormData): Promise<DemoHubState> {
+  const organization_name = value(formData, "organization_name");
+  const organization_type = value(formData, "organization_type") || "VOAD or COAD";
+  const city = value(formData, "city");
+  const state = value(formData, "state").toUpperCase();
+  const contact_name = value(formData, "contact_name");
+  const contact_email = value(formData, "contact_email");
+  const duration_days = Number(value(formData, "duration_days") || "7");
+
+  if (!organization_name || state.length !== 2) {
+    return { ok: false, message: "Organization name and two-letter state are required." };
+  }
+
+  try {
+    const data = await invoke({ action: "create", organization_name, organization_type, city, state, contact_name, contact_email, duration_days });
+    revalidatePath("/app/demo-hub");
+    return {
+      ok: true,
+      message: "Demo created. Copy the credentials now. The password is shown only once.",
+      credentials: { login_email: data.login_email, password: data.password, expires_at: data.expires_at },
+    };
+  } catch (error) {
+    return { ok: false, message: error instanceof Error ? error.message : "Could not create demo." };
+  }
+}
+
+export async function demoControlAction(formData: FormData) {
+  const demo_id = value(formData, "demo_id");
+  const action = value(formData, "action");
+  if (!demo_id || !["extend", "disable"].includes(action)) return;
+  await invoke({ action, demo_id, duration_days: 7 });
+  revalidatePath("/app/demo-hub");
+}
