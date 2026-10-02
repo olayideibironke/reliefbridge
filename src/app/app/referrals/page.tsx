@@ -46,6 +46,8 @@ export default async function ReferralsPage({
     : "";
 
   const supabase = await createSupabaseServerClient();
+  const { data: demoAccess } = await supabase.rpc("get_my_demo_access");
+  const isManagedDemo = Array.isArray(demoAccess) && Boolean(demoAccess[0]?.is_demo);
   const orgId = profile.organization_id ?? "00000000-0000-0000-0000-000000000000";
 
   let query = supabase
@@ -74,12 +76,12 @@ export default async function ReferralsPage({
         title="Referral exchange"
         subtitle="Send referrals to partner organizations and track what happens to every handoff."
         breadcrumbs={[{ label: "Network", href: "/app" }, { label: "Referral exchange" }]}
-        actions={
+        actions={!isManagedDemo ? (
           <LinkButton href="/app/referrals/new">
             <Icons.Plus className="h-4 w-4" />
             Send referral
           </LinkButton>
-        }
+        ) : undefined}
       />
 
       <div className="space-y-6 px-6 py-8 md:px-10">
