@@ -153,12 +153,12 @@ export default async function CasesPage({
                 ? "No cases match those filters. Try clearing them."
                 : "Open a recovery case for a survivor to start tracking lifecycle, priority, and outcomes."
             }
-            action={
+            action={!isManagedDemo ? (
               <LinkButton href="/app/cases/new">
                 <Icons.Plus className="h-4 w-4" />
                 Open first case
               </LinkButton>
-            }
+            ) : undefined}
           />
         ) : (
           <Card>
