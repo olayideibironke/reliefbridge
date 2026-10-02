@@ -40,10 +40,6 @@ function formatDate(value: string | null) {
   return new Intl.DateTimeFormat("en-US", { dateStyle: "medium" }).format(new Date(value));
 }
 
-function durationDaysRemaining(expiresAt: string) {
-  return Math.max(1, Math.min(30, Math.ceil((new Date(expiresAt).getTime() - Date.now()) / 86400000)));
-}
-
 function statusClasses(status: DemoWorkspace["status"]) {
   if (status === "active") return "border-green/20 bg-green/10 text-green";
   if (status === "expired") return "border-gold/25 bg-gold/10 text-[#8A5A00]";
@@ -123,12 +119,13 @@ export default async function DemoHubPage() {
                           <form action={demoControlAction} className="flex items-center gap-2">
                             <input type="hidden" name="demo_id" value={demo.id} />
                             <input type="hidden" name="action" value="set_duration" />
-                            <select name="duration_days" defaultValue={String(durationDaysRemaining(demo.expires_at))} aria-label="Set access duration" className="h-9 rounded-sm border border-line bg-white px-2 text-[12.5px] font-semibold text-navy">
-                              <option value="1">1 day</option>
-                              <option value="3">3 days</option>
-                              <option value="7">7 days</option>
-                              <option value="14">14 days</option>
-                              <option value="30">30 days</option>
+                            <select name="duration_days" defaultValue="" aria-label="Set access duration" className="h-9 rounded-sm border border-line bg-white px-2 text-[12.5px] font-semibold text-navy">
+                              <option value="" disabled>Change duration</option>
+                              <option value="1">1 day from now</option>
+                              <option value="3">3 days from now</option>
+                              <option value="7">7 days from now</option>
+                              <option value="14">14 days from now</option>
+                              <option value="30">30 days from now</option>
                             </select>
                             <Button type="submit" variant="outline" size="sm">Set duration</Button>
                           </form>
