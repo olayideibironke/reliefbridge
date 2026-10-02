@@ -75,6 +75,11 @@ const groups: NavGroup[] = [
     platformAdminOnly: true,
     items: [
       {
+        label: "Demo Hub",
+        href: "/app/demo-hub",
+        icon: Icons.Reports,
+      },
+      {
         label: "Demo requests",
         href: "/app/demo-requests",
         icon: Icons.Reports,
@@ -115,6 +120,7 @@ const groups: NavGroup[] = [
 export function Sidebar({
   user,
   orgName,
+  isManagedDemo = false,
 }: {
   user: {
     name: string;
@@ -122,6 +128,7 @@ export function Sidebar({
     role: string;
   };
   orgName: string;
+  isManagedDemo?: boolean;
 }) {
   const pathname = usePathname();
 
@@ -147,6 +154,7 @@ export function Sidebar({
         !group.platformAdminOnly ||
         isPlatformAdmin
     )
+    .filter((group) => !(isManagedDemo && group.title === "Account"))
     .map((group) => ({
       ...group,
       items: group.items.filter(
@@ -185,7 +193,7 @@ export function Sidebar({
               </div>
 
               <div className="truncate text-[11px] text-ink-3">
-                Active organization
+                {isManagedDemo ? "Managed demo · Read-only" : "Active organization"}
               </div>
             </div>
           </div>
@@ -257,7 +265,7 @@ export function Sidebar({
 
       <div className="shrink-0 border-t border-line bg-surface-2 px-3 py-3">
         <Link
-          href="/app/settings/profile"
+          href={isManagedDemo ? "/app" : "/app/settings/profile"}
           className="flex items-center gap-3 rounded-sm px-2 py-2 hover:bg-surface hover:no-underline"
         >
           <span className="grid h-9 w-9 shrink-0 place-items-center rounded-sm bg-navy text-[12px] font-bold text-white">

@@ -1,5 +1,27 @@
+import { redirect } from "next/navigation";
+
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import type { Profile } from "@/lib/types";
+
+async function enforceDemoAccess(supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>) {
+  const { data, error } = await supabase.rpc("get_my_demo_access");
+  const demo = Array.isArray(data) ? data[0] : null;
+
+  // Normal ReliefBridge users have no demo record and continue unchanged.
+  if (error || !demo?.is_demo) return;
+
+  const expired =
+    demo.status !== "active" ||
+    new Date(demo.expires_at).getTime() <= Date.now();
+
+  if (expired) {
+    await supabase.auth.signOut();
+    redirect("/login?demo_expired=1");
+  }
+
+  // Best-effort timestamp for the Demo Hub's Last access column.
+  await supabase.rpc("touch_my_demo_access");
+}
 
 export async function getSessionUser() {
   const supabase = await createSupabaseServerClient();
@@ -9,10 +31,8 @@ export async function getSessionUser() {
     error,
   } = await supabase.auth.getUser();
 
-  if (error || !user) {
-    return null;
-  }
-
+  if (error || !user) return null;
+  await enforceDemoAccess(supabase);
   return user;
 }
 
@@ -24,9 +44,8 @@ export async function getProfile(): Promise<Profile | null> {
     error: userError,
   } = await supabase.auth.getUser();
 
-  if (userError || !user) {
-    return null;
-  }
+  if (userError || !user) return null;
+  await enforceDemoAccess(supabase);
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
@@ -40,10 +59,7 @@ export async function getProfile(): Promise<Profile | null> {
     );
   }
 
-  if (!profile) {
-    return null;
-  }
-
+  if (!profile) return null;
   return profile as unknown as Profile;
 }
 

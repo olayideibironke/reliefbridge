@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string }>;
+  searchParams: Promise<{ next?: string; demo_expired?: string }>;
 }) {
   const sp = await searchParams;
   const next = sp.next && sp.next.startsWith("/") ? sp.next : "/app";
@@ -28,6 +28,12 @@ export default async function LoginPage({
           Sign in to coordinate survivor cases, referrals, and partner activity.
         </p>
       </div>
+
+      {sp.demo_expired === "1" && (
+        <div className="mb-5 rounded-sm border border-gold/30 bg-gold/10 px-4 py-3 text-[13.5px] leading-5 text-ink-2">
+          This demonstration access period has ended. Please contact Westforge for renewed access.
+        </div>
+      )}
 
       <LoginForm next={next} />
 

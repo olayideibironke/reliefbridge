@@ -30,7 +30,7 @@ const links: MobileLink[] = [
   { label: "Settings", href: "/app/settings/organization" },
 ];
 
-export function MobileHeader({ orgName }: { orgName: string }) {
+export function MobileHeader({ orgName, isManagedDemo = false }: { orgName: string; isManagedDemo?: boolean }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const isDemoWorkspace =
@@ -38,8 +38,8 @@ export function MobileHeader({ orgName }: { orgName: string }) {
     "louisiana voad demo workspace";
   const visibleLinks = links.filter(
     (link) =>
-      !link.demoWorkspaceOnly ||
-      isDemoWorkspace
+      (!link.demoWorkspaceOnly || isDemoWorkspace) &&
+      !(isManagedDemo && link.href.startsWith("/app/settings"))
   );
 
   return (

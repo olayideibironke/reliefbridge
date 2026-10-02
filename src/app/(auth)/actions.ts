@@ -42,6 +42,32 @@ export async function loginAction(
     return { ok: false, message: error.message || "Sign in failed." };
   }
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (user) {
+    const { data: demoAccess, error: demoAccessError } = await supabase.rpc("get_my_demo_access");
+    if (demoAccessError) {
+      await supabase.auth.signOut();
+      return { ok: false, message: "Access verification is temporarily unavailable. Please try again." };
+    }
+    const demo = Array.isArray(demoAccess) ? demoAccess[0] : null;
+
+    if (
+      demo?.is_demo &&
+      (demo.status !== "active" ||
+        new Date(demo.expires_at).getTime() <= Date.now())
+    ) {
+      await supabase.auth.signOut();
+      return {
+        ok: false,
+        message:
+          "This demonstration access period has ended. Please contact Westforge for renewed access.",
+      };
+    }
+  }
+
   revalidatePath("/app", "layout");
   redirect(next.startsWith("/") ? next : "/app");
 }
@@ -164,6 +190,16 @@ export async function resetPasswordAction(
   }
 
   const supabase = await createSupabaseServerClient();
+  const { data: demoAccess, error: demoAccessError } = await supabase.rpc("get_my_demo_access");
+  const demo = Array.isArray(demoAccess) ? demoAccess[0] : null;
+  if (demoAccessError || demo?.is_demo) {
+    return {
+      ok: false,
+      message: demo?.is_demo
+        ? "Managed demo passwords can only be reset by a ReliefBridge administrator."
+        : "Access verification is temporarily unavailable. Please try again.",
+    };
+  }
   const { error } = await supabase.auth.updateUser({ password });
   if (error) {
     return { ok: false, message: error.message };

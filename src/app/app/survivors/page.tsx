@@ -30,6 +30,8 @@ export default async function SurvivorsPage({
   const state = sp.state && US_STATES.includes(sp.state) ? sp.state : "";
 
   const supabase = await createSupabaseServerClient();
+  const { data: demoAccess } = await supabase.rpc("get_my_demo_access");
+  const isManagedDemo = Array.isArray(demoAccess) && Boolean(demoAccess[0]?.is_demo);
 
   let query = supabase
     .from("survivors")
@@ -72,12 +74,12 @@ export default async function SurvivorsPage({
         title="Survivors"
         subtitle="Every survivor coordinated by your organization. Search, filter, and open any record."
         breadcrumbs={[{ label: "Workspace", href: "/app" }, { label: "Survivors" }]}
-        actions={
+        actions={!isManagedDemo ? (
           <LinkButton href="/app/survivors/new">
             <Icons.Plus className="h-4 w-4" />
             Add survivor
           </LinkButton>
-        }
+        ) : undefined}
       />
 
       <div className="space-y-6 px-6 py-8 md:px-10">
@@ -148,12 +150,12 @@ export default async function SurvivorsPage({
                 ? "No survivors match those filters. Try clearing them."
                 : "Add the first survivor your organization is coordinating to begin tracking cases, needs, and referrals."
             }
-            action={
+            action={!isManagedDemo ? (
               <LinkButton href="/app/survivors/new">
                 <Icons.Plus className="h-4 w-4" />
                 Add first survivor
               </LinkButton>
-            }
+            ) : undefined}
           />
         ) : (
           <Card>

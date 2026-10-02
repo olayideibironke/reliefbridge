@@ -34,6 +34,8 @@ export default async function CaseDetailPage({
   const { id } = await params;
   const profile = await requireProfile();
   const supabase = await createSupabaseServerClient();
+  const { data: demoAccess } = await supabase.rpc("get_my_demo_access");
+  const isManagedDemo = Array.isArray(demoAccess) && Boolean(demoAccess[0]?.is_demo);
 
   const { data: caseRow } = await supabase
     .from("recovery_cases")
@@ -135,10 +137,10 @@ export default async function CaseDetailPage({
           <Card>
             <CardHeader title="Activity timeline" subtitle="Case notes, newest first" />
             <CardBody className="space-y-5">
-              <CaseNoteForm caseId={recoveryCase.id} />
+              {!isManagedDemo && <CaseNoteForm caseId={recoveryCase.id} />}
               {noteList.length === 0 ? (
                 <div className="rounded-sm border border-dashed border-line bg-surface-2 px-4 py-8 text-center text-[13px] text-ink-3">
-                  No notes yet. Add the first update above.
+                  {isManagedDemo ? "No case notes are included in this demonstration." : "No notes yet. Add the first update above."}
                 </div>
               ) : (
                 <ul className="space-y-3 border-t border-line pt-4">
@@ -168,7 +170,7 @@ export default async function CaseDetailPage({
           <Card>
             <CardHeader title="Update case" />
             <CardBody padded={false}>
-              <CaseEdit
+              {!isManagedDemo ? <CaseEdit
                 id={recoveryCase.id}
                 defaults={{
                   case_manager: recoveryCase.case_manager,
@@ -178,7 +180,7 @@ export default async function CaseDetailPage({
                   notes: recoveryCase.notes,
                 }}
                 managers={managerOptions}
-              />
+              /> : <div className="p-5 text-[13px] text-ink-3">Read-only demonstration. Case changes are disabled.</div>}
             </CardBody>
           </Card>
 

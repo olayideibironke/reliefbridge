@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { requireProfile } from "@/lib/session";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -20,6 +21,8 @@ export default async function NewCasePage({
   const profile = await requireProfile();
   const sp = await searchParams;
   const supabase = await createSupabaseServerClient();
+  const { data: demoAccess } = await supabase.rpc("get_my_demo_access");
+  if (Array.isArray(demoAccess) && demoAccess[0]?.is_demo) redirect("/app/cases");
 
   const orgId = profile.organization_id;
 

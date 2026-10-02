@@ -40,9 +40,13 @@ export default async function ResetPasswordPage() {
     );
   }
 
-  // Quick sanity: if user is fully authenticated but not in recovery flow,
-  // it's still fine to let them set a new password.
-  void redirect;
+  const { data: demoAccess, error: demoAccessError } = await supabase.rpc("get_my_demo_access");
+  const demo = Array.isArray(demoAccess) ? demoAccess[0] : null;
+  if (demoAccessError) redirect("/login");
+  if (demo?.is_demo) {
+    await supabase.auth.signOut();
+    redirect("/login?demo_managed=1");
+  }
 
   return (
     <div>

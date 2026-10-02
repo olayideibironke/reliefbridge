@@ -47,6 +47,10 @@ export default async function AppLayout({
   const profile =
     (await requireProfile()) as ProfileWithFullName;
 
+  const { data: demoAccess } = await supabase.rpc("get_my_demo_access");
+  const isManagedDemo =
+    Array.isArray(demoAccess) && Boolean(demoAccess[0]?.is_demo);
+
   let orgName = "ReliefBridge Workspace";
 
   if (profile.organization_id) {
@@ -109,10 +113,11 @@ export default async function AppLayout({
           role,
         }}
         orgName={orgName}
+        isManagedDemo={isManagedDemo}
       />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <MobileHeader orgName={orgName} />
+        <MobileHeader orgName={orgName} isManagedDemo={isManagedDemo} />
         <TopBar orgName={orgName} />
 
         <main className="flex-1">

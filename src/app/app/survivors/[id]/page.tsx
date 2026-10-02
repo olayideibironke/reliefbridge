@@ -34,6 +34,8 @@ export default async function SurvivorDetailPage({
   const { id } = await params;
   const profile = await requireProfile();
   const supabase = await createSupabaseServerClient();
+  const { data: demoAccess } = await supabase.rpc("get_my_demo_access");
+  const isManagedDemo = Array.isArray(demoAccess) && Boolean(demoAccess[0]?.is_demo);
 
   const { data: survivorRow } = await supabase
     .from("survivors")
@@ -103,7 +105,7 @@ export default async function SurvivorDetailPage({
           { label: "Survivors", href: "/app/survivors" },
           { label: fullName(survivor.first_name, survivor.last_name) },
         ]}
-        actions={
+        actions={!isManagedDemo ? (
           <>
             <LinkButton
               href={`/app/cases/new?survivor=${survivor.id}`}
@@ -121,7 +123,7 @@ export default async function SurvivorDetailPage({
               Send referral
             </LinkButton>
           </>
-        }
+        ) : undefined}
       />
 
       <div className="grid gap-6 px-6 py-8 md:px-10 lg:grid-cols-3">
@@ -160,14 +162,14 @@ export default async function SurvivorDetailPage({
           <Card>
             <CardHeader
               title="Recovery cases"
-              actions={
+              actions={!isManagedDemo ? (
                 <Link
                   href={`/app/cases/new?survivor=${survivor.id}`}
                   className="text-[12.5px] font-semibold text-blue hover:text-navy-light hover:no-underline"
                 >
                   + New case
                 </Link>
-              }
+              ) : undefined}
             />
             {caseList.length === 0 ? (
               <EmptyState
@@ -175,11 +177,11 @@ export default async function SurvivorDetailPage({
                 icon={<Icons.Cases className="h-6 w-6" />}
                 title="No cases open for this survivor"
                 description="Open a recovery case to track lifecycle, status, and notes."
-                action={
+                action={!isManagedDemo ? (
                   <LinkButton href={`/app/cases/new?survivor=${survivor.id}`}>
                     Open first case
                   </LinkButton>
-                }
+                ) : undefined}
               />
             ) : (
               <DataTable className="rounded-none border-0">
@@ -221,14 +223,14 @@ export default async function SurvivorDetailPage({
           <Card>
             <CardHeader
               title="Unmet needs"
-              actions={
+              actions={!isManagedDemo ? (
                 <Link
                   href={`/app/unmet-needs/new?survivor=${survivor.id}`}
                   className="text-[12.5px] font-semibold text-blue hover:text-navy-light hover:no-underline"
                 >
                   + Add need
                 </Link>
-              }
+              ) : undefined}
             />
             {needList.length === 0 ? (
               <EmptyState
@@ -265,14 +267,14 @@ export default async function SurvivorDetailPage({
           <Card>
             <CardHeader
               title="Referrals"
-              actions={
+              actions={!isManagedDemo ? (
                 <Link
                   href={`/app/referrals/new?survivor=${survivor.id}`}
                   className="text-[12.5px] font-semibold text-blue hover:text-navy-light hover:no-underline"
                 >
                   + Send referral
                 </Link>
-              }
+              ) : undefined}
             />
             {referralList.length === 0 ? (
               <EmptyState
@@ -312,7 +314,7 @@ export default async function SurvivorDetailPage({
           <Card>
             <CardHeader title="Coordination" />
             <CardBody padded={false}>
-              <SurvivorEdit
+              {!isManagedDemo ? <SurvivorEdit
                 id={survivor.id}
                 defaults={{
                   status: survivor.status,
@@ -320,7 +322,7 @@ export default async function SurvivorDetailPage({
                   notes: survivor.notes,
                 }}
                 managers={managerOptions}
-              />
+              /> : <div className="p-5 text-[13px] text-ink-3">Read-only demonstration. Coordination changes are disabled.</div>}
             </CardBody>
           </Card>
         </div>

@@ -36,6 +36,8 @@ export default async function UnmetNeedsPage({
     : "";
 
   const supabase = await createSupabaseServerClient();
+  const { data: demoAccess } = await supabase.rpc("get_my_demo_access");
+  const isManagedDemo = Array.isArray(demoAccess) && Boolean(demoAccess[0]?.is_demo);
 
   let query = supabase
     .from("unmet_needs")
@@ -82,12 +84,12 @@ export default async function UnmetNeedsPage({
         title="Unmet needs"
         subtitle="Captured survivor needs across housing, repair, legal aid, mental health, transportation, and more."
         breadcrumbs={[{ label: "Workspace", href: "/app" }, { label: "Unmet needs" }]}
-        actions={
+        actions={!isManagedDemo ? (
           <LinkButton href="/app/unmet-needs/new">
             <Icons.Plus className="h-4 w-4" />
             Add need
           </LinkButton>
-        }
+        ) : undefined}
       />
 
       <div className="space-y-6 px-6 py-8 md:px-10">
@@ -151,12 +153,12 @@ export default async function UnmetNeedsPage({
                 ? "No needs match those filters. Try clearing them."
                 : "Add unmet needs against survivor records to coordinate referrals and partner outreach."
             }
-            action={
+            action={!isManagedDemo ? (
               <LinkButton href="/app/unmet-needs/new">
                 <Icons.Plus className="h-4 w-4" />
                 Capture first need
               </LinkButton>
-            }
+            ) : undefined}
           />
         ) : (
           <Card>
