@@ -150,12 +150,12 @@ export default async function SurvivorsPage({
                 ? "No survivors match those filters. Try clearing them."
                 : "Add the first survivor your organization is coordinating to begin tracking cases, needs, and referrals."
             }
-            action={
+            action={!isManagedDemo ? (
               <LinkButton href="/app/survivors/new">
                 <Icons.Plus className="h-4 w-4" />
                 Add first survivor
               </LinkButton>
-            }
+            ) : undefined}
           />
         ) : (
           <Card>
