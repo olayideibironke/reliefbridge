@@ -223,7 +223,7 @@ export default async function SurvivorDetailPage({
           <Card>
             <CardHeader
               title="Unmet needs"
-              actions={
+              actions={!isManagedDemo ? (
                 <Link
                   href={`/app/unmet-needs/new?survivor=${survivor.id}`}
                   className="text-[12.5px] font-semibold text-blue hover:text-navy-light hover:no-underline"
@@ -267,7 +267,7 @@ export default async function SurvivorDetailPage({
           <Card>
             <CardHeader
               title="Referrals"
-              actions={
+              actions={!isManagedDemo ? (
                 <Link
                   href={`/app/referrals/new?survivor=${survivor.id}`}
                   className="text-[12.5px] font-semibold text-blue hover:text-navy-light hover:no-underline"
