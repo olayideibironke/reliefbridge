@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import type { Profile } from "@/lib/types";
 
-async function enforceDemoAccess(supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>, userId: string) {
+async function enforceDemoAccess(supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>) {
   const { data, error } = await supabase.rpc("get_my_demo_access");
   const demo = Array.isArray(data) ? data[0] : null;
 
@@ -32,7 +32,7 @@ export async function getSessionUser() {
   } = await supabase.auth.getUser();
 
   if (error || !user) return null;
-  await enforceDemoAccess(supabase, user.id);
+  await enforceDemoAccess(supabase);
   return user;
 }
 
@@ -45,7 +45,7 @@ export async function getProfile(): Promise<Profile | null> {
   } = await supabase.auth.getUser();
 
   if (userError || !user) return null;
-  await enforceDemoAccess(supabase, user.id);
+  await enforceDemoAccess(supabase);
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
