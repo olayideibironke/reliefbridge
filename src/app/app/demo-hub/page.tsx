@@ -9,6 +9,9 @@ import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { DataTable, THead, Tr, Th, Td } from "@/components/ui/Table";
 import { Icons } from "@/components/ui/Icons";
+import { Button } from "@/components/ui/Button";
+import { CreateDemoForm } from "./CreateDemoForm";
+import { demoControlAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -84,14 +87,9 @@ export default async function DemoHubPage() {
         </section>
 
         <Card>
-          <CardHeader title="Create organization demo" subtitle="The provisioning controls are being connected here. Seven days will be the default access window." />
+          <CardHeader title="Create organization demo" subtitle="Provision an isolated demonstration workspace with temporary access. Seven days is the default." />
           <CardBody>
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              <div><div className="text-[12px] font-bold uppercase tracking-[0.1em] text-ink-3">Default duration</div><div className="mt-2 text-[15px] font-bold text-navy">7 days</div></div>
-              <div><div className="text-[12px] font-bold uppercase tracking-[0.1em] text-ink-3">Client role</div><div className="mt-2 text-[15px] font-bold text-navy">Viewer</div></div>
-              <div><div className="text-[12px] font-bold uppercase tracking-[0.1em] text-ink-3">Isolation</div><div className="mt-2 text-[15px] font-bold text-navy">Organization scoped</div></div>
-              <div><div className="text-[12px] font-bold uppercase tracking-[0.1em] text-ink-3">Administration</div><div className="mt-2 text-[15px] font-bold text-navy">Westforge only</div></div>
-            </div>
+            <CreateDemoForm />
           </CardBody>
         </Card>
 
@@ -103,7 +101,7 @@ export default async function DemoHubPage() {
           <Card>
             <div className="border-b border-line px-5 py-4"><h2 className="text-[16px] font-bold text-navy">Managed demonstrations</h2><p className="mt-1 text-[12.5px] text-ink-3">Access status, client identity, expiration, and recent use.</p></div>
             <DataTable className="rounded-none border-0">
-              <THead><Tr><Th>Organization</Th><Th>Contact</Th><Th>Login</Th><Th>Status</Th><Th>Expires</Th><Th align="right">Last access</Th></Tr></THead>
+              <THead><Tr><Th>Organization</Th><Th>Contact</Th><Th>Login</Th><Th>Status</Th><Th>Expires</Th><Th align="right">Actions</Th></Tr></THead>
               <tbody>{demos.map((demo) => (
                 <Tr key={demo.id}>
                   <Td><div className="font-semibold text-navy">{demo.organizations?.name ?? "Demo organization"}</div><div className="mt-1 text-[12px] text-ink-3">{demo.organizations?.state ?? "State not set"}</div></Td>
@@ -111,7 +109,22 @@ export default async function DemoHubPage() {
                   <Td><span className="text-[13px] font-semibold text-blue">{demo.login_email}</span></Td>
                   <Td><span className={`inline-flex rounded-full border px-2.5 py-1 text-[11.5px] font-bold capitalize ${statusClasses(demo.status)}`}>{demo.status}</span></Td>
                   <Td className="rb-numerals whitespace-nowrap text-[12.5px]">{formatDate(demo.expires_at)}</Td>
-                  <Td align="right" className="rb-numerals whitespace-nowrap text-[12.5px] text-ink-3">{formatDate(demo.last_access_at)}</Td>
+                  <Td align="right">
+                    <div className="flex justify-end gap-2">
+                      <form action={demoControlAction}>
+                        <input type="hidden" name="demo_id" value={demo.id} />
+                        <input type="hidden" name="action" value="extend" />
+                        <Button type="submit" variant="outline" size="sm">+7 days</Button>
+                      </form>
+                      {demo.status === "active" && (
+                        <form action={demoControlAction}>
+                          <input type="hidden" name="demo_id" value={demo.id} />
+                          <input type="hidden" name="action" value="disable" />
+                          <Button type="submit" variant="danger" size="sm">Disable</Button>
+                        </form>
+                      )}
+                    </div>
+                  </Td>
                 </Tr>
               ))}</tbody>
             </DataTable>
