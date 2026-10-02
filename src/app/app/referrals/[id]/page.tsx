@@ -35,6 +35,8 @@ export default async function ReferralDetailPage({
   const { id } = await params;
   const profile = await requireProfile();
   const supabase = await createSupabaseServerClient();
+  const { data: demoAccess } = await supabase.rpc("get_my_demo_access");
+  const isManagedDemo = Array.isArray(demoAccess) && Boolean(demoAccess[0]?.is_demo);
 
   const { data, error } = await supabase
     .from("referrals")
@@ -163,7 +165,7 @@ export default async function ReferralDetailPage({
         </div>
 
         <div className="space-y-6">
-          {(isSender || isReceiver) && (
+          {!isManagedDemo && (isSender || isReceiver) && (
             <ReferralStatusControl
               id={r.id}
               current={r.status}
@@ -171,7 +173,7 @@ export default async function ReferralDetailPage({
             />
           )}
 
-          {isSender && (
+          {!isManagedDemo && isSender && (
             <ReferralNotesEdit id={r.id} notes={r.notes} />
           )}
         </div>
