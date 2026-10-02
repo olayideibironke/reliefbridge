@@ -19,6 +19,9 @@ export default async function DashboardPage() {
 
   const orgId = profile.organization_id;
   const email = user?.email ?? "";
+  const { data: demoAccess } = await supabase.rpc("get_my_demo_access");
+  const isManagedDemo =
+    Array.isArray(demoAccess) && Boolean(demoAccess[0]?.is_demo);
 
   const profileFirstName =
     typeof profile.first_name === "string"
@@ -143,21 +146,23 @@ export default async function DashboardPage() {
         title={`Good day, ${firstName}.`}
         subtitle="Monitor survivor recovery cases, partner referrals, unmet needs, and coordination activity across your ReliefBridge workspace."
         actions={
-          <>
-            <LinkButton
-              href="/app/survivors/new"
-              variant="outline"
-              size="md"
-            >
-              <Icons.Plus className="h-4 w-4" />
-              New survivor
-            </LinkButton>
+          isManagedDemo ? undefined : (
+            <>
+              <LinkButton
+                href="/app/survivors/new"
+                variant="outline"
+                size="md"
+              >
+                <Icons.Plus className="h-4 w-4" />
+                New survivor
+              </LinkButton>
 
-            <LinkButton href="/app/referrals/new" size="md">
-              <Icons.Referrals className="h-4 w-4" />
-              Send referral
-            </LinkButton>
-          </>
+              <LinkButton href="/app/referrals/new" size="md">
+                <Icons.Referrals className="h-4 w-4" />
+                Send referral
+              </LinkButton>
+            </>
+          )
         }
       />
 
@@ -223,10 +228,12 @@ export default async function DashboardPage() {
               </div>
 
               <div className="flex flex-wrap gap-3">
-                <LinkButton href="/app/survivors/new">
-                  <Icons.Plus className="h-4 w-4" />
-                  Add survivor
-                </LinkButton>
+                {!isManagedDemo && (
+                  <LinkButton href="/app/survivors/new">
+                    <Icons.Plus className="h-4 w-4" />
+                    Add survivor
+                  </LinkButton>
+                )}
 
                 <LinkButton href="/app/cases" variant="outline">
                   View recovery cases
