@@ -28,7 +28,15 @@ async function requirePlatformAdmin() {
 async function invoke(body: Record<string, unknown>) {
   await requirePlatformAdmin();
   const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase.functions.invoke("demo-admin", { body });
+  const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+  const accessToken = sessionData.session?.access_token;
+  if (sessionError || !accessToken) {
+    throw new Error("Your session could not be verified. Sign in again and retry.");
+  }
+  const { data, error } = await supabase.functions.invoke("demo-admin", {
+    body,
+    headers: { Authorization: "Bearer " + accessToken },
+  });
   if (error) throw new Error(error.message || "Demo administration failed.");
   if (data?.error) throw new Error(String(data.error));
   return data;
