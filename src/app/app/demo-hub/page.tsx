@@ -102,14 +102,15 @@ export default async function DemoHubPage() {
           <Card>
             <div className="border-b border-line px-5 py-4"><h2 className="text-[16px] font-bold text-navy">Managed demonstrations</h2><p className="mt-1 text-[12.5px] text-ink-3">Access status, client identity, expiration, and recent use.</p></div>
             <DataTable className="rounded-none border-0">
-              <THead><Tr><Th>Organization</Th><Th>Contact</Th><Th>Login</Th><Th>Status</Th><Th>Expires</Th><Th align="right">Actions</Th></Tr></THead>
+              <THead><Tr><Th>Organization</Th><Th>Contact</Th><Th>Login</Th><Th>Status</Th><Th>Expires</Th><Th>Last access</Th><Th align="right">Actions</Th></Tr></THead>
               <tbody>{demos.map((demo) => (
                 <Tr key={demo.id}>
                   <Td><div className="font-semibold text-navy">{demo.organizations?.name ?? "Demo organization"}</div><div className="mt-1 text-[12px] text-ink-3">{demo.organizations?.state ?? "State not set"}</div></Td>
                   <Td><div className="text-[13px] font-semibold text-ink-2">{demo.contact_name ?? "Not assigned"}</div><div className="mt-1 text-[12px] text-ink-3">{demo.contact_email ?? ""}</div></Td>
                   <Td><span className="text-[13px] font-semibold text-blue">{demo.login_email}</span></Td>
-                  <Td><span className={`inline-flex rounded-full border px-2.5 py-1 text-[11.5px] font-bold capitalize ${statusClasses(demo.status)}`}>{demo.status}</span></Td>
+                  <Td>{(() => { const effectiveStatus = demo.status === "active" && new Date(demo.expires_at).getTime() <= now ? "expired" : demo.status; return <span className={`inline-flex rounded-full border px-2.5 py-1 text-[11.5px] font-bold capitalize ${statusClasses(effectiveStatus)}`}>{effectiveStatus}</span>; })()}</Td>
                   <Td className="rb-numerals whitespace-nowrap text-[12.5px]">{formatDate(demo.expires_at)}</Td>
+                  <Td className="rb-numerals whitespace-nowrap text-[12.5px]">{formatDate(demo.last_access_at)}</Td>
                   <Td align="right">
                     <div className="flex flex-wrap justify-end gap-2">
                       <ResetPasswordControl demoId={demo.id} />
