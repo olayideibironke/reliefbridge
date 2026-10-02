@@ -1,7 +1,6 @@
 import { requireProfile } from "@/lib/session";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
-import { redirect } from "next/navigation";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { SettingsNav } from "../SettingsNav";
 import { ProfileForm } from "./ProfileForm";
