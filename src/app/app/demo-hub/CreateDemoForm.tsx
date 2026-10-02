@@ -66,7 +66,8 @@ const STATE_NAMES: Record<keyof typeof US_LOCATIONS, string> = {
 const inputClass = "mt-1.5 h-11 w-full rounded-sm border border-line bg-white px-3 text-[14px] text-ink outline-none transition focus:border-blue focus:ring-2 focus:ring-blue/10";
 
 export function CreateDemoForm() {
-  const [state, action, pending] = useActionState(createDemoAction, initialState);\n  const [selectedState, setSelectedState] = useState<keyof typeof US_LOCATIONS | "">("");
+  const [state, action, pending] = useActionState(createDemoAction, initialState);
+  const [selectedState, setSelectedState] = useState<keyof typeof US_LOCATIONS | "">("");
 
   return (
     <form action={action} className="space-y-5">
