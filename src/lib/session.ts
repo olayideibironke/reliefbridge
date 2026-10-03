@@ -61,6 +61,11 @@ export async function getProfile(): Promise<Profile | null> {
 
   if (!profile) return null;
 
+  if (profile.access_status === "disabled") {
+    await supabase.auth.signOut();
+    redirect("/login?access_disabled=1");
+  }
+
   const { data: organizationAccess } = await supabase.rpc("get_my_organization_access");
   const access = Array.isArray(organizationAccess) ? organizationAccess[0] : null;
   if (access && access.allowed === false) {
