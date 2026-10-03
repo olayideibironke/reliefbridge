@@ -75,11 +75,10 @@ export async function getProfile(): Promise<Profile | null> {
 
   if (
     profile.organization_id === "9f3cb5cc-aa6f-44cb-8aa9-b0a7bc505142" &&
-    ["owner", "admin"].includes(String(profile.role ?? "").toLowerCase()) &&
-    profile.access_status !== "disabled"
+    ["owner", "admin", "manager", "staff"].includes(String(profile.role ?? "").toLowerCase()) &&
+    profile.access_status === "active"
   ) {
     await supabase.rpc("touch_my_platform_access");
-    if (profile.access_status === "invited") profile.access_status = "active";
   }
 
   return profile as unknown as Profile;
