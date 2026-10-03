@@ -19,6 +19,8 @@ export default async function PartnerDetailPage({
   const { id } = await params;
   const profile = await requireProfile();
   const supabase = await createSupabaseServerClient();
+  const { data: demoAccess } = await supabase.rpc("get_my_demo_access");
+  const isManagedDemo = Array.isArray(demoAccess) && Boolean(demoAccess[0]?.is_demo);
 
   const { data } = await supabase
     .from("organizations")
@@ -44,7 +46,7 @@ export default async function PartnerDetailPage({
           { label: "Partner organizations", href: "/app/partners" },
           { label: org.name },
         ]}
-        actions={
+        actions={isManagedDemo ? undefined : (
           <>
             {!isMe && (
               <LinkButton href={`/app/referrals/new?org=${org.id}`}>
@@ -59,7 +61,7 @@ export default async function PartnerDetailPage({
               </LinkButton>
             )}
           </>
-        }
+        )}
       />
 
       <div className="grid gap-6 px-6 py-8 md:px-10 lg:grid-cols-3">
@@ -88,7 +90,7 @@ export default async function PartnerDetailPage({
                 Send a referral to this organization for survivors in their
                 service area and category.
               </p>
-              {!isMe ? (
+              {!isManagedDemo && (!isMe ? (
                 <LinkButton href={`/app/referrals/new`} className="w-full justify-center">
                   Send a referral
                 </LinkButton>
@@ -99,7 +101,7 @@ export default async function PartnerDetailPage({
                 >
                   Edit your organization profile →
                 </Link>
-              )}
+              ))}
             </CardBody>
           </Card>
         </div>
