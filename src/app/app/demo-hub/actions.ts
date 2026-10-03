@@ -9,7 +9,8 @@ const PLATFORM_ORGANIZATION_ID = "9f3cb5cc-aa6f-44cb-8aa9-b0a7bc505142";
 export type DemoHubState = {
   ok: boolean;
   message: string | null;
-  credentials?: { login_email?: string; password: string; expires_at?: string };\n  invitation_status?: "sent" | "failed";
+  credentials?: { login_email?: string; password: string; expires_at?: string };
+  invitation_status?: "sent" | "failed";
 };
 
 function value(formData: FormData, key: string) {
@@ -67,7 +68,8 @@ export async function createDemoAction(_previous: DemoHubState, formData: FormDa
     revalidatePath("/app/demo-hub");
     return {
       ok: true,
-      message: data.invitation_status === "sent" ? "Demo created and invitation sent to the client contact." : `Demo created, but the invitation could not be sent. ${data.invitation_error ?? "You can copy the credentials below."}`,\n      invitation_status: data.invitation_status,
+      message: data.invitation_status === "sent" ? "Demo created and invitation sent to the client contact." : `Demo created, but the invitation could not be sent. ${data.invitation_error ?? "You can copy the credentials below."}`,
+      invitation_status: data.invitation_status,
       credentials: { login_email: data.login_email, password: data.password, expires_at: data.expires_at },
     };
   } catch (error) {

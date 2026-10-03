@@ -31,7 +31,9 @@ type DemoWorkspace = {
   status: "active" | "expired" | "disabled" | "archived";
   starts_at: string;
   expires_at: string;
-  last_access_at: string | null;\n  invitation_status: "not_sent" | "sent" | "failed";\n  invitation_sent_at: string | null;
+  last_access_at: string | null;
+  invitation_status: "not_sent" | "sent" | "failed";
+  invitation_sent_at: string | null;
   organizations: { name: string; state: string | null } | null;
 };
 
@@ -107,7 +109,8 @@ export default async function DemoHubPage() {
                 <Tr key={demo.id}>
                   <Td><div className="font-semibold text-navy">{demo.organizations?.name ?? "Demo organization"}</div><div className="mt-1 text-[12px] text-ink-3">{demo.organizations?.state ?? "State not set"}</div></Td>
                   <Td><div className="text-[13px] font-semibold text-ink-2">{demo.contact_name ?? "Not assigned"}</div><div className="mt-1 text-[12px] text-ink-3">{demo.contact_email ?? ""}</div></Td>
-                  <Td><div className={`text-[12.5px] font-bold capitalize ${demo.invitation_status === "sent" ? "text-green" : demo.invitation_status === "failed" ? "text-red" : "text-ink-3"}`}>{demo.invitation_status === "not_sent" ? "Not sent" : demo.invitation_status}</div>{demo.invitation_sent_at && <div className="mt-1 text-[11.5px] text-ink-3">{formatDate(demo.invitation_sent_at)}</div>}</Td>\n                  <Td><span className="text-[13px] font-semibold text-blue">{demo.login_email}</span></Td>
+                  <Td><div className={`text-[12.5px] font-bold capitalize ${demo.invitation_status === "sent" ? "text-green" : demo.invitation_status === "failed" ? "text-red" : "text-ink-3"}`}>{demo.invitation_status === "not_sent" ? "Not sent" : demo.invitation_status}</div>{demo.invitation_sent_at && <div className="mt-1 text-[11.5px] text-ink-3">{formatDate(demo.invitation_sent_at)}</div>}</Td>
+                  <Td><span className="text-[13px] font-semibold text-blue">{demo.login_email}</span></Td>
                   <Td>{(() => { const effectiveStatus = demo.status === "active" && new Date(demo.expires_at).getTime() <= now ? "expired" : demo.status; return <span className={`inline-flex rounded-full border px-2.5 py-1 text-[11.5px] font-bold capitalize ${statusClasses(effectiveStatus)}`}>{effectiveStatus}</span>; })()}</Td>
                   <Td className="rb-numerals whitespace-nowrap text-[12.5px]">{formatDate(demo.expires_at)}</Td>
                   <Td className="rb-numerals whitespace-nowrap text-[12.5px]">{formatDate(demo.last_access_at)}</Td>
