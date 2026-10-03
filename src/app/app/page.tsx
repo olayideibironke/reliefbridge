@@ -13,7 +13,7 @@ export default async function DashboardPage(){
  const s=await createSupabaseServerClient();
  const [orgs,users,survivors,cases,needs,refs,demos,requests]=await Promise.all([
  s.from("organizations").select("id",{count:"exact",head:true}).eq("is_demo_network",false),
- s.from("profiles").select("id",{count:"exact",head:true}).neq("access_status","disabled"),
+ s.from("profiles").select("id",{count:"exact",head:true}).eq("access_status","active"),
  s.from("survivors").select("id",{count:"exact",head:true}),
  s.from("recovery_cases").select("id",{count:"exact",head:true}).eq("status","open"),
  s.from("unmet_needs").select("id",{count:"exact",head:true}).eq("status","open"),
