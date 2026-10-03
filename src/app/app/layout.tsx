@@ -100,7 +100,8 @@ export default async function AppLayout({
     "ReliefBridge User";
 
   const email = user.email ?? "";
-  const role = formatRole(profile.role);\n  const isPlatformAdmin = profile.organization_id === "9f3cb5cc-aa6f-44cb-8aa9-b0a7bc505142" && ["owner", "admin"].includes((profile.role ?? "").toLowerCase());
+  const role = formatRole(profile.role);
+  const isPlatformAdmin = profile.organization_id === "9f3cb5cc-aa6f-44cb-8aa9-b0a7bc505142" && ["owner", "admin"].includes((profile.role ?? "").toLowerCase());
 
   return (
     <div className="flex min-h-screen bg-surface-2">
@@ -114,6 +115,7 @@ export default async function AppLayout({
         }}
         orgName={orgName}
         isManagedDemo={isManagedDemo}
+        isPlatformAdmin={isPlatformAdmin}
       />
 
       <div className="flex min-w-0 flex-1 flex-col">
