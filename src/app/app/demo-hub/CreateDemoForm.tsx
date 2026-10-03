@@ -117,10 +117,10 @@ export function CreateDemoForm() {
           </select>
         </label>
         <label className="text-[12.5px] font-semibold text-ink-2">Client contact
-          <input name="contact_name" className={inputClass} />
+          <input name="contact_name" required className={inputClass} />
         </label>
         <label className="text-[12.5px] font-semibold text-ink-2">Contact email
-          <input name="contact_email" type="email" className={inputClass} />
+          <input name="contact_email" type="email" required className={inputClass} />
         </label>
         <label className="text-[12.5px] font-semibold text-ink-2">Access duration
           <select name="duration_days" defaultValue="7" className={inputClass}>
@@ -144,7 +144,7 @@ export function CreateDemoForm() {
             </div>
             <div><div className="text-[11px] font-bold text-ink-3">EXPIRES</div><div className="mt-1 text-[13px] font-semibold text-navy">{state.credentials.expires_at ? new Date(state.credentials.expires_at).toLocaleString() : "Not set"}</div></div>
           </div>
-          <p className="mt-3 text-[12px] text-ink-3">The password is not stored in the Demo Hub. Copy it before leaving this page.</p>
+          <p className="mt-3 text-[12px] text-ink-3">The password is not stored in the Demo Hub. A ReliefBridge invitation is sent automatically to the client contact when delivery succeeds.</p>
           <button type="button" onClick={() => copyText(`ReliefBridge demo access\nLogin: ${state.credentials?.login_email ?? ""}\nPassword: ${state.credentials?.password ?? ""}\nExpires: ${state.credentials?.expires_at ? new Date(state.credentials.expires_at).toLocaleString() : ""}\nSign in: https://reliefbridge.net/login`, "all")} className="mt-4 inline-flex h-9 items-center rounded-sm border border-blue/20 bg-white px-3 text-[12.5px] font-bold text-blue hover:border-blue">{copied === "all" ? "Copied!" : "Copy access details"}</button>
         </div>
       )}

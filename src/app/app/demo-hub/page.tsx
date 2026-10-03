@@ -31,7 +31,7 @@ type DemoWorkspace = {
   status: "active" | "expired" | "disabled" | "archived";
   starts_at: string;
   expires_at: string;
-  last_access_at: string | null;
+  last_access_at: string | null;\n  invitation_status: "not_sent" | "sent" | "failed";\n  invitation_sent_at: string | null;
   organizations: { name: string; state: string | null } | null;
 };
 
@@ -58,7 +58,7 @@ export default async function DemoHubPage() {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("demo_workspaces")
-    .select("id, organization_id, contact_name, contact_email, login_email, status, starts_at, expires_at, last_access_at, organizations(name,state)")
+    .select("id, organization_id, contact_name, contact_email, login_email, status, starts_at, expires_at, last_access_at, invitation_status, invitation_sent_at, organizations(name,state)")
     .order("created_at", { ascending: false });
 
   const demos = ((data ?? []) as unknown) as DemoWorkspace[];
@@ -102,12 +102,12 @@ export default async function DemoHubPage() {
           <Card>
             <div className="border-b border-line px-5 py-4"><h2 className="text-[16px] font-bold text-navy">Managed demonstrations</h2><p className="mt-1 text-[12.5px] text-ink-3">Access status, client identity, expiration, and recent use.</p></div>
             <DataTable className="rounded-none border-0">
-              <THead><Tr><Th>Organization</Th><Th>Contact</Th><Th>Login</Th><Th>Status</Th><Th>Expires</Th><Th>Last access</Th><Th align="right">Actions</Th></Tr></THead>
+              <THead><Tr><Th>Organization</Th><Th>Contact</Th><Th>Invitation</Th><Th>Login</Th><Th>Status</Th><Th>Expires</Th><Th>Last access</Th><Th align="right">Actions</Th></Tr></THead>
               <tbody>{demos.map((demo) => (
                 <Tr key={demo.id}>
                   <Td><div className="font-semibold text-navy">{demo.organizations?.name ?? "Demo organization"}</div><div className="mt-1 text-[12px] text-ink-3">{demo.organizations?.state ?? "State not set"}</div></Td>
                   <Td><div className="text-[13px] font-semibold text-ink-2">{demo.contact_name ?? "Not assigned"}</div><div className="mt-1 text-[12px] text-ink-3">{demo.contact_email ?? ""}</div></Td>
-                  <Td><span className="text-[13px] font-semibold text-blue">{demo.login_email}</span></Td>
+                  <Td><div className={`text-[12.5px] font-bold capitalize ${demo.invitation_status === "sent" ? "text-green" : demo.invitation_status === "failed" ? "text-red" : "text-ink-3"}`}>{demo.invitation_status === "not_sent" ? "Not sent" : demo.invitation_status}</div>{demo.invitation_sent_at && <div className="mt-1 text-[11.5px] text-ink-3">{formatDate(demo.invitation_sent_at)}</div>}</Td>\n                  <Td><span className="text-[13px] font-semibold text-blue">{demo.login_email}</span></Td>
                   <Td>{(() => { const effectiveStatus = demo.status === "active" && new Date(demo.expires_at).getTime() <= now ? "expired" : demo.status; return <span className={`inline-flex rounded-full border px-2.5 py-1 text-[11.5px] font-bold capitalize ${statusClasses(effectiveStatus)}`}>{effectiveStatus}</span>; })()}</Td>
                   <Td className="rb-numerals whitespace-nowrap text-[12.5px]">{formatDate(demo.expires_at)}</Td>
                   <Td className="rb-numerals whitespace-nowrap text-[12.5px]">{formatDate(demo.last_access_at)}</Td>
