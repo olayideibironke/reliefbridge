@@ -61,6 +61,13 @@ export async function getProfile(): Promise<Profile | null> {
 
   if (!profile) return null;
 
+  const { data: organizationAccess } = await supabase.rpc("get_my_organization_access");
+  const access = Array.isArray(organizationAccess) ? organizationAccess[0] : null;
+  if (access && access.allowed === false) {
+    await supabase.auth.signOut();
+    redirect("/login?organization_disabled=1");
+  }
+
   if (
     profile.organization_id === "9f3cb5cc-aa6f-44cb-8aa9-b0a7bc505142" &&
     ["owner", "admin"].includes(String(profile.role ?? "").toLowerCase()) &&
