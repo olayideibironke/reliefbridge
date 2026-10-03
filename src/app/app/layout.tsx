@@ -119,8 +119,8 @@ export default async function AppLayout({
       />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <MobileHeader orgName={orgName} isManagedDemo={isManagedDemo} />
-        <TopBar orgName={orgName} />
+        <MobileHeader orgName={orgName} isManagedDemo={isManagedDemo} isPlatformAdmin={isPlatformAdmin} />
+        <TopBar orgName={orgName} isPlatformAdmin={isPlatformAdmin} />
 
         <main className="flex-1">
           {children}
