@@ -22,6 +22,7 @@ import type {
   Survivor,
 } from "@/lib/types";
 
+const PLATFORM = "9f3cb5cc-aa6f-44cb-8aa9-b0a7bc505142";
 export const dynamic = "force-dynamic";
 
 type Row = Pick<
@@ -37,6 +38,7 @@ export default async function CasesPage({
   searchParams: Promise<{ q?: string; status?: string; priority?: string }>;
 }) {
   const profile = await requireProfile();
+  const isPlatformStaff = profile.organization_id === PLATFORM && ["manager", "staff"].includes(String(profile.role ?? "").toLowerCase());
   const sp = await searchParams;
   const q = sp.q?.trim() ?? "";
   const status = CASE_STATUSES.includes(sp.status as CaseStatus) ? (sp.status as CaseStatus) : "";
@@ -53,10 +55,9 @@ export default async function CasesPage({
     .order("opened_at", { ascending: false })
     .limit(250);
 
-  if (profile.organization_id) {
-    query = query.eq("organization_id", profile.organization_id);
-  } else {
-    query = query.eq("organization_id", "00000000-0000-0000-0000-000000000000");
+  if (!isPlatformStaff) {
+    if (profile.organization_id) query = query.eq("organization_id", profile.organization_id);
+    else query = query.eq("organization_id", "00000000-0000-0000-0000-000000000000");
   }
   if (status) query = query.eq("status", status);
   if (priority) query = query.eq("priority", priority);
@@ -81,7 +82,7 @@ export default async function CasesPage({
         title="Recovery cases"
         subtitle="Every active and closed recovery case across your organization."
         breadcrumbs={[{ label: "Workspace", href: "/app" }, { label: "Recovery cases" }]}
-        actions={!isManagedDemo ? (
+        actions={!isManagedDemo && !isPlatformStaff ? (
           <LinkButton href="/app/cases/new">
             <Icons.Plus className="h-4 w-4" />
             New case
@@ -153,7 +154,7 @@ export default async function CasesPage({
                 ? "No cases match those filters. Try clearing them."
                 : "Open a recovery case for a survivor to start tracking lifecycle, priority, and outcomes."
             }
-            action={!isManagedDemo ? (
+            action={!isManagedDemo && !isPlatformStaff ? (
               <LinkButton href="/app/cases/new">
                 <Icons.Plus className="h-4 w-4" />
                 Open first case

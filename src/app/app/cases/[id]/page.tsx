@@ -16,6 +16,7 @@ import type {
 } from "@/lib/types";
 import { CaseEdit, CaseNoteForm } from "./CaseEdit";
 
+const PLATFORM = "9f3cb5cc-aa6f-44cb-8aa9-b0a7bc505142";
 export const dynamic = "force-dynamic";
 
 type CaseWithSurvivor = RecoveryCase & {
@@ -33,6 +34,7 @@ export default async function CaseDetailPage({
 }) {
   const { id } = await params;
   const profile = await requireProfile();
+  const isPlatformStaff = profile.organization_id === PLATFORM && ["manager", "staff"].includes(String(profile.role ?? "").toLowerCase());
   const supabase = await createSupabaseServerClient();
   const { data: demoAccess } = await supabase.rpc("get_my_demo_access");
   const isManagedDemo = Array.isArray(demoAccess) && Boolean(demoAccess[0]?.is_demo);
@@ -137,7 +139,7 @@ export default async function CaseDetailPage({
           <Card>
             <CardHeader title="Activity timeline" subtitle="Case notes, newest first" />
             <CardBody className="space-y-5">
-              {!isManagedDemo && <CaseNoteForm caseId={recoveryCase.id} />}
+              {!isManagedDemo && !isPlatformStaff && <CaseNoteForm caseId={recoveryCase.id} />}
               {noteList.length === 0 ? (
                 <div className="rounded-sm border border-dashed border-line bg-surface-2 px-4 py-8 text-center text-[13px] text-ink-3">
                   {isManagedDemo ? "No case notes are included in this demonstration." : "No notes yet. Add the first update above."}
@@ -170,7 +172,7 @@ export default async function CaseDetailPage({
           <Card>
             <CardHeader title="Update case" />
             <CardBody padded={false}>
-              {!isManagedDemo ? <CaseEdit
+              {!isManagedDemo && !isPlatformStaff ? <CaseEdit
                 id={recoveryCase.id}
                 defaults={{
                   case_manager: recoveryCase.case_manager,

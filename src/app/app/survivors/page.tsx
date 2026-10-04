@@ -14,6 +14,7 @@ import { SURVIVOR_STATUSES, US_STATES } from "@/lib/constants";
 import { LABELS } from "@/lib/constants";
 import type { Survivor, SurvivorStatus } from "@/lib/types";
 
+const PLATFORM = "9f3cb5cc-aa6f-44cb-8aa9-b0a7bc505142";
 export const dynamic = "force-dynamic";
 
 export default async function SurvivorsPage({
@@ -22,6 +23,7 @@ export default async function SurvivorsPage({
   searchParams: Promise<{ q?: string; status?: string; state?: string }>;
 }) {
   const profile = await requireProfile();
+  const isPlatformStaff = profile.organization_id === PLATFORM && ["manager", "staff"].includes(String(profile.role ?? "").toLowerCase());
   const sp = await searchParams;
   const q = sp.q?.trim() ?? "";
   const status = SURVIVOR_STATUSES.includes(sp.status as SurvivorStatus)
@@ -39,10 +41,9 @@ export default async function SurvivorsPage({
     .order("created_at", { ascending: false })
     .limit(200);
 
-  if (profile.organization_id) {
-    query = query.eq("organization_id", profile.organization_id);
-  } else {
-    query = query.eq("organization_id", "00000000-0000-0000-0000-000000000000");
+  if (!isPlatformStaff) {
+    if (profile.organization_id) query = query.eq("organization_id", profile.organization_id);
+    else query = query.eq("organization_id", "00000000-0000-0000-0000-000000000000");
   }
   if (q) {
     query = query.or(
@@ -74,7 +75,7 @@ export default async function SurvivorsPage({
         title="Survivors"
         subtitle="Every survivor coordinated by your organization. Search, filter, and open any record."
         breadcrumbs={[{ label: "Workspace", href: "/app" }, { label: "Survivors" }]}
-        actions={!isManagedDemo ? (
+        actions={!isManagedDemo && !isPlatformStaff ? (
           <LinkButton href="/app/survivors/new">
             <Icons.Plus className="h-4 w-4" />
             Add survivor
@@ -150,7 +151,7 @@ export default async function SurvivorsPage({
                 ? "No survivors match those filters. Try clearing them."
                 : "Add the first survivor your organization is coordinating to begin tracking cases, needs, and referrals."
             }
-            action={!isManagedDemo ? (
+            action={!isManagedDemo && !isPlatformStaff ? (
               <LinkButton href="/app/survivors/new">
                 <Icons.Plus className="h-4 w-4" />
                 Add first survivor

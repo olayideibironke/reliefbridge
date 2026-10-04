@@ -22,6 +22,7 @@ import type {
   Survivor,
 } from "@/lib/types";
 
+const PLATFORM = "9f3cb5cc-aa6f-44cb-8aa9-b0a7bc505142";
 export const dynamic = "force-dynamic";
 
 type Row = Referral & {
@@ -36,6 +37,7 @@ export default async function ReferralsPage({
   searchParams: Promise<{ direction?: "outgoing" | "incoming"; status?: string; category?: string }>;
 }) {
   const profile = await requireProfile();
+  const isPlatformStaff = profile.organization_id === PLATFORM && ["manager", "staff"].includes(String(profile.role ?? "").toLowerCase());
   const sp = await searchParams;
   const direction = sp.direction === "incoming" ? "incoming" : "outgoing";
   const status = REFERRAL_STATUSES.includes(sp.status as ReferralStatus)
@@ -58,10 +60,9 @@ export default async function ReferralsPage({
     .order("created_at", { ascending: false })
     .limit(250);
 
-  if (direction === "outgoing") {
-    query = query.eq("sending_org", orgId);
-  } else {
-    query = query.eq("receiving_org", orgId);
+  if (!isPlatformStaff) {
+    if (direction === "outgoing") query = query.eq("sending_org", orgId);
+    else query = query.eq("receiving_org", orgId);
   }
   if (status) query = query.eq("status", status);
   if (category) query = query.eq("category", category);
@@ -76,7 +77,7 @@ export default async function ReferralsPage({
         title="Referral exchange"
         subtitle="Send referrals to partner organizations and track what happens to every handoff."
         breadcrumbs={[{ label: "Network", href: "/app" }, { label: "Referral exchange" }]}
-        actions={!isManagedDemo ? (
+        actions={!isManagedDemo && !isPlatformStaff ? (
           <LinkButton href="/app/referrals/new">
             <Icons.Plus className="h-4 w-4" />
             Send referral
@@ -147,7 +148,7 @@ export default async function ReferralsPage({
                 : "Partner organizations haven't sent any referrals your way yet."
             }
             action={
-              !isManagedDemo && direction === "outgoing" ? (
+              !isManagedDemo && !isPlatformStaff && direction === "outgoing" ? (
                 <LinkButton href="/app/referrals/new">
                   <Icons.Plus className="h-4 w-4" />
                   Send first referral
