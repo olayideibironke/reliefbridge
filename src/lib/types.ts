@@ -70,6 +70,10 @@ export interface Profile {
     referral_status_change: boolean;
     weekly_digest: boolean;
   };
+  access_status?: "invited" | "active" | "disabled";
+  last_access_at?: string | null;
+  invited_by?: string | null;
+  invited_at?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -143,4 +147,4 @@ export interface Referral {
   completed_at: string | null;
   created_at: string;
   updated_at: string;
-}\n  access_status?: "invited" | "active" | "disabled";\n  last_access_at?: string | null;\n  invited_by?: string | null;\n  invited_at?: string | null;
+}

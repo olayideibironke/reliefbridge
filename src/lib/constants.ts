@@ -102,7 +102,9 @@ export const LABELS = {
   role: {
     owner: "Owner",
     admin: "Administrator",
+    manager: "Manager",
+    staff: "Staff",
     member: "Member",
     viewer: "Viewer",
   } as const,
-};\n    manager: "Manager",\n    staff: "Staff",
+};
