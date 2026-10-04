@@ -3,14 +3,16 @@ import { requireProfile } from "@/lib/session";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { fullName, relativeDate } from "@/lib/format";
-import { messageAction } from "./actions";\nimport { MailComposer } from "./MailComposer";
+import { messageAction } from "./actions";
+import { MailComposer } from "./MailComposer";
 
 const PLATFORM="9f3cb5cc-aa6f-44cb-8aa9-b0a7bc505142";
 type P={id:string;first_name:string|null;last_name:string|null;email:string|null;role?:string|null;title:string|null};
 type M={id:string;sender_id:string;subject:string;body:string;sent_at:string;sender_deleted_at?:string|null};
 type R={id:string;message_id:string;recipient_id:string;read_at:string|null;archived_at:string|null;deleted_at:string|null;created_at:string};
 type D={id:string;recipient_id:string|null;subject:string;body:string;updated_at:string};
-type A={id:string;message_id:string;storage_path:string;file_name:string;mime_type:string;size_bytes:number;created_at:string;signed_url?:string};\ntype SR={message_id:string;recipient_id:string;recipient_type:string};
+type A={id:string;message_id:string;storage_path:string;file_name:string;mime_type:string;size_bytes:number;created_at:string;signed_url?:string};
+type SR={message_id:string;recipient_id:string;recipient_type:string};
 
 export default async function MailPage({searchParams}:{searchParams:Promise<{folder?:string;message?:string;compose?:string;draft?:string;sent?:string;notice?:string}>}){
  const p=await requireProfile(),role=String(p.role??"").toLowerCase();
@@ -43,7 +45,8 @@ export default async function MailPage({searchParams}:{searchParams:Promise<{fol
  const selectedAttachments=selected?attachments.filter(a=>a.message_id===selected.id):[];
  const selectedDraft=drafts.find(x=>x.id===q.draft);
  const compose=q.compose==="1"||Boolean(selectedDraft);
- const name=(id:string)=>{const x=people.get(id);return x?fullName(x.first_name,x.last_name):"ReliefBridge Staff"};\n const sentNames=(id:string)=>{const names=sentRecipients.filter(r=>r.message_id===id).map(r=>name(r.recipient_id));return names.length?names.join(", "):"ReliefBridge Staff"};
+ const name=(id:string)=>{const x=people.get(id);return x?fullName(x.first_name,x.last_name):"ReliefBridge Staff"};
+ const sentNames=(id:string)=>{const names=sentRecipients.filter(r=>r.message_id===id).map(r=>name(r.recipient_id));return names.length?names.join(", "):"ReliefBridge Staff"};
  const folders=[["inbox","Inbox",unread],["sent","Sent",0],["drafts","Drafts",drafts.length],["archive","Archive",0],["trash","Trash",0]] as const;
  return <><PageHeader eyebrow="Communication" title="Internal Mail" subtitle="Secure staff-to-staff communication and operational correspondence inside ReliefBridge."/>
  <div className="px-6 py-8 md:px-10">{q.notice==="sent"?<div className="mb-4 rounded-sm border border-green-200 bg-green-50 px-4 py-3 text-sm font-semibold text-green-900">Message sent successfully. A copy is available in Sent.</div>:q.notice==="draft"?<div className="mb-4 rounded-sm border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-semibold text-navy">Draft saved successfully.</div>:null}<div className="overflow-hidden rounded-sm border border-line bg-white">
