@@ -2,107 +2,48 @@ import { redirect } from "next/navigation";
 import { requireProfile } from "@/lib/session";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { Card, CardBody, CardHeader } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
 import { fullName, relativeDate } from "@/lib/format";
-import { sendMessage, messageAction } from "./actions";
+import { sendMessage, messageAction, saveDraft, deleteDraft } from "./actions";
 
-const PLATFORM = "9f3cb5cc-aa6f-44cb-8aa9-b0a7bc505142";
+const PLATFORM="9f3cb5cc-aa6f-44cb-8aa9-b0a7bc505142";
+type P={id:string;first_name:string|null;last_name:string|null;email:string|null;role?:string|null;title:string|null};
+type M={id:string;sender_id:string;subject:string;body:string;sent_at:string;sender_deleted_at?:string|null};
+type R={id:string;message_id:string;recipient_id:string;read_at:string|null;archived_at:string|null;deleted_at:string|null;created_at:string};
+type D={id:string;recipient_id:string|null;subject:string;body:string;updated_at:string};
 
-type ProfileLite = { id: string; first_name: string | null; last_name: string | null; email: string | null; role?: string | null; title: string | null };
-type MessageRow = { id: string; sender_id: string; subject: string; body: string; sent_at: string };
-type RecipientRow = { id: string; message_id: string; recipient_id: string; read_at: string | null; archived_at: string | null; created_at: string };
-
-export default async function MailPage() {
-  const p = await requireProfile();
-  const role = String(p.role ?? "").toLowerCase();
-  if (p.organization_id !== PLATFORM || !["owner", "admin", "manager", "staff"].includes(role)) redirect("/app");
-
-  const s = await createSupabaseServerClient();
-  const [{ data: directoryData }, { data: recipientData }, { data: sentData }] = await Promise.all([
-    s.from("profiles").select("id,first_name,last_name,email,role,title").eq("organization_id", PLATFORM).eq("access_status", "active").neq("id", p.id).order("first_name"),
-    s.from("staff_message_recipients").select("id,message_id,recipient_id,read_at,archived_at,created_at").eq("recipient_id", p.id).is("deleted_at", null).is("archived_at", null).limit(100),
-    s.from("staff_messages").select("id,sender_id,subject,body,sent_at").eq("sender_id", p.id).order("sent_at", { ascending: false }).limit(100),
-  ]);
-
-  const directory = (directoryData ?? []) as ProfileLite[];
-  const recipientRows = (recipientData ?? []) as RecipientRow[];
-  const sentRows = (sentData ?? []) as MessageRow[];
-
-  const inboxMessageIds = recipientRows.map((r) => r.message_id);
-  const { data: inboxMessageData } = inboxMessageIds.length
-    ? await s.from("staff_messages").select("id,sender_id,subject,body,sent_at").in("id", inboxMessageIds)
-    : { data: [] as MessageRow[] };
-  const inboxMessages = (inboxMessageData ?? []) as MessageRow[];
-
-  const senderIds = [...new Set(inboxMessages.map((m) => m.sender_id))];
-  const { data: senderData } = senderIds.length
-    ? await s.from("profiles").select("id,first_name,last_name,email,title").in("id", senderIds)
-    : { data: [] as ProfileLite[] };
-  const senderMap = new Map(((senderData ?? []) as ProfileLite[]).map((x) => [x.id, x]));
-  const messageMap = new Map(inboxMessages.map((m) => [m.id, m]));
-  const inbox = recipientRows
-    .map((r) => ({ ...r, message: messageMap.get(r.message_id), sender: messageMap.get(r.message_id) ? senderMap.get(messageMap.get(r.message_id)!.sender_id) : undefined }))
-    .sort((a, b) => (b.message?.sent_at ?? "").localeCompare(a.message?.sent_at ?? ""));
-
-  const sentIds = sentRows.map((m) => m.id);
-  const { data: sentRecipientData } = sentIds.length
-    ? await s.from("staff_message_recipients").select("message_id,recipient_id").in("message_id", sentIds)
-    : { data: [] as { message_id: string; recipient_id: string }[] };
-  const sentRecipients = (sentRecipientData ?? []) as { message_id: string; recipient_id: string }[];
-  const recipientIds = [...new Set(sentRecipients.map((r) => r.recipient_id))];
-  const { data: recipientProfileData } = recipientIds.length
-    ? await s.from("profiles").select("id,first_name,last_name,email,title").in("id", recipientIds)
-    : { data: [] as ProfileLite[] };
-  const recipientMap = new Map(((recipientProfileData ?? []) as ProfileLite[]).map((x) => [x.id, x]));
-
-  return (
-    <>
-      <PageHeader eyebrow="Communication" title="Internal Mail" subtitle="Private staff-to-staff communication inside ReliefBridge. This is separate from survivor, partner, and public contact channels." />
-      <div className="space-y-6 px-6 py-8 md:px-10">
-        <Card>
-          <CardHeader title="Compose internal message" />
-          <CardBody>
-            <form action={sendMessage} className="space-y-3">
-              <select name="recipient_id" required className="h-11 w-full rounded-sm border border-line bg-white px-3">
-                <option value="">Select ReliefBridge staff recipient</option>
-                {directory.map((x) => <option key={x.id} value={x.id}>{fullName(x.first_name, x.last_name)} · {x.title || x.role}</option>)}
-              </select>
-              <input name="subject" required maxLength={200} placeholder="Subject" className="h-11 w-full rounded-sm border border-line px-3" />
-              <textarea name="body" required maxLength={20000} rows={5} placeholder="Write a private internal message…" className="w-full rounded-sm border border-line px-3 py-3" />
-              <Button type="submit">Send internal message</Button>
-            </form>
-          </CardBody>
-        </Card>
-        <div className="grid gap-6 xl:grid-cols-2">
-          <Card>
-            <CardHeader title="Inbox" subtitle="Messages sent directly to you." />
-            <CardBody padded={false}>
-              {!inbox.length ? <div className="p-5 text-sm text-ink-2">Your inbox is empty.</div> : <div className="divide-y divide-line">
-                {inbox.map((r) => <div key={r.id} className="p-5">
-                  <div className="flex justify-between gap-3"><div><div className="font-bold text-navy">{r.message?.subject}</div><div className="mt-1 text-[12px] text-ink-3">From {fullName(r.sender?.first_name, r.sender?.last_name)} · {relativeDate(r.message?.sent_at)}</div></div>{!r.read_at && <span className="h-fit rounded-full bg-blue px-2 py-1 text-[10px] font-bold text-white">NEW</span>}</div>
-                  <p className="mt-3 whitespace-pre-wrap text-[13.5px] leading-6 text-ink-2">{r.message?.body}</p>
-                  <div className="mt-3 flex gap-2">
-                    {!r.read_at && <form action={messageAction}><input type="hidden" name="action" value="read" /><input type="hidden" name="message_id" value={r.message?.id} /><Button type="submit" variant="outline" size="sm">Mark read</Button></form>}
-                    <form action={messageAction}><input type="hidden" name="action" value="archive" /><input type="hidden" name="message_id" value={r.message?.id} /><Button type="submit" variant="outline" size="sm">Archive</Button></form>
-                  </div>
-                </div>)}
-              </div>}
-            </CardBody>
-          </Card>
-          <Card>
-            <CardHeader title="Sent" subtitle="Messages you have sent to ReliefBridge staff." />
-            <CardBody padded={false}>
-              {!sentRows.length ? <div className="p-5 text-sm text-ink-2">No sent messages yet.</div> : <div className="divide-y divide-line">
-                {sentRows.map((m) => {
-                  const names = sentRecipients.filter((r) => r.message_id === m.id).map((r) => recipientMap.get(r.recipient_id)).filter((x): x is ProfileLite => Boolean(x)).map((x) => fullName(x.first_name, x.last_name)).join(", ");
-                  return <div key={m.id} className="p-5"><div className="font-bold text-navy">{m.subject}</div><div className="mt-1 text-[12px] text-ink-3">To {names || "Staff"} · {relativeDate(m.sent_at)}</div><p className="mt-3 whitespace-pre-wrap text-[13.5px] leading-6 text-ink-2">{m.body}</p></div>;
-                })}
-              </div>}
-            </CardBody>
-          </Card>
-        </div>
-      </div>
-    </>
-  );
+export default async function MailPage({searchParams}:{searchParams:Promise<{folder?:string;message?:string;compose?:string;draft?:string;sent?:string}>}){
+ const p=await requireProfile(),role=String(p.role??"").toLowerCase();
+ if(p.organization_id!==PLATFORM||!["owner","admin","manager","staff"].includes(role))redirect("/app");
+ const q=await searchParams,folder=["inbox","sent","drafts","archive","trash"].includes(q.folder||"")?q.folder!:"inbox",s=await createSupabaseServerClient();
+ const [{data:directoryData},{data:recData},{data:sentData},{data:draftData}]=await Promise.all([
+  s.from("profiles").select("id,first_name,last_name,email,role,title").eq("organization_id",PLATFORM).eq("access_status","active").neq("id",p.id).order("first_name"),
+  s.from("staff_message_recipients").select("id,message_id,recipient_id,read_at,archived_at,deleted_at,created_at").eq("recipient_id",p.id).limit(200),
+  s.from("staff_messages").select("id,sender_id,subject,body,sent_at,sender_deleted_at").eq("sender_id",p.id).order("sent_at",{ascending:false}).limit(200),
+  s.from("staff_message_drafts").select("id,recipient_id,subject,body,updated_at").eq("owner_id",p.id).order("updated_at",{ascending:false})
+ ]);
+ const directory=(directoryData??[]) as P[], rec=(recData??[]) as R[], sent=(sentData??[]) as M[], drafts=(draftData??[]) as D[];
+ const ids=[...new Set(rec.map(x=>x.message_id))];
+ const {data:incomingData}=ids.length?await s.from("staff_messages").select("id,sender_id,subject,body,sent_at,sender_deleted_at").in("id",ids):{data:[]};
+ const incoming=(incomingData??[]) as M[], all=[...incoming,...sent], peopleIds=[...new Set([...all.map(x=>x.sender_id),...directory.map(x=>x.id)])];
+ const {data:peopleData}=peopleIds.length?await s.from("profiles").select("id,first_name,last_name,email,title").in("id",peopleIds):{data:[]};
+ const people=new Map(((peopleData??[]) as P[]).map(x=>[x.id,x])), mm=new Map(incoming.map(x=>[x.id,x]));
+ const inbox=rec.map(r=>({r,m:mm.get(r.message_id)})).filter(x=>x.m);
+ const unread=inbox.filter(x=>!x.r.read_at&&!x.r.deleted_at&&!x.r.archived_at).length;
+ const list=folder==="sent"?sent.filter(m=>!m.sender_deleted_at):folder==="drafts"?[]:inbox.filter(x=>folder==="archive"?x.r.archived_at&&!x.r.deleted_at:folder==="trash"?x.r.deleted_at:!x.r.archived_at&&!x.r.deleted_at).map(x=>x.m!);
+ const selected=all.find(x=>x.id===q.message);
+ const selectedRec=selected?rec.find(x=>x.message_id===selected.id):undefined;
+ const selectedDraft=drafts.find(x=>x.id===q.draft);
+ const compose=q.compose==="1"||Boolean(selectedDraft);
+ const name=(id:string)=>{const x=people.get(id);return x?fullName(x.first_name,x.last_name):"ReliefBridge Staff"};
+ const folders=[["inbox","Inbox",unread],["sent","Sent",0],["drafts","Drafts",drafts.length],["archive","Archive",0],["trash","Trash",0]] as const;
+ return <><PageHeader eyebrow="Communication" title="Internal Mail" subtitle="Secure staff-to-staff communication and operational correspondence inside ReliefBridge."/>
+ <div className="px-6 py-8 md:px-10"><div className="overflow-hidden rounded-sm border border-line bg-white">
+  <div className="flex h-[64px] items-center justify-between border-b border-line px-5"><div><div className="font-bold text-navy">ReliefBridge Mail</div><div className="text-[12px] text-ink-3">Secure internal staff communication</div></div><a href="/app/mail?compose=1" className="rounded-sm bg-navy px-5 py-2.5 text-[13px] font-bold text-white hover:no-underline">＋ Compose</a></div>
+  <div className="grid min-h-[590px] lg:grid-cols-[190px_340px_1fr]">
+   <aside className="border-r border-line p-3">{folders.map(([key,label,count])=><a key={key} href={"/app/mail?folder="+key} className={"mb-1 flex items-center justify-between rounded-sm px-3 py-2.5 text-[13px] hover:no-underline "+(folder===key?"bg-surface font-bold text-navy":"text-ink-2")}><span>✉ &nbsp;{label}</span>{count>0?<span className="rounded-full bg-line px-2 py-0.5 text-[11px]">{count}</span>:null}</a>)}<div className="mt-5 border-t border-line px-3 pt-5"><div className="text-[10px] font-bold uppercase tracking-[.14em] text-ink-3">Internal only</div><p className="mt-2 text-[12px] leading-5 text-ink-3">Messages remain within authorized ReliefBridge staff accounts.</p></div></aside>
+   <section className="border-r border-line"><div className="border-b border-line px-4 py-3"><div className="font-bold text-navy">{folders.find(x=>x[0]===folder)?.[1]}</div>{folder==="inbox"?<div className="text-[12px] text-ink-3">{unread} unread</div>:null}</div>
+    {folder==="drafts"?(drafts.length?drafts.map(d=><a key={d.id} href={"/app/mail?folder=drafts&draft="+d.id} className="block border-b border-line px-4 py-4 hover:bg-surface hover:no-underline"><div className="font-semibold text-navy">{d.subject||"(No subject)"}</div><div className="mt-1 truncate text-[12px] text-ink-3">{d.body||"Empty draft"} · {relativeDate(d.updated_at)}</div></a>):<div className="p-5 text-sm text-ink-3">No drafts.</div>):list.length?list.map(m=><a key={m.id} href={"/app/mail?folder="+folder+"&message="+m.id} className="block border-b border-line px-4 py-4 hover:bg-surface hover:no-underline"><div className="flex justify-between gap-2"><div className="truncate font-semibold text-navy">{folder==="sent"?"To staff":name(m.sender_id)}</div><span className="shrink-0 text-[11px] text-ink-3">{relativeDate(m.sent_at)}</span></div><div className="mt-1 truncate text-[13px] font-medium text-ink-2">{m.subject}</div><div className="mt-1 truncate text-[12px] text-ink-3">{m.body}</div></a>):<div className="p-5 text-sm text-ink-3">No messages here.</div>}
+   </section>
+   <main className="p-6">{compose?<form action={sendMessage} className="mx-auto max-w-2xl space-y-4"><div className="flex items-center justify-between"><h2 className="text-xl font-bold text-navy">{selectedDraft?"Edit draft":"New message"}</h2><a href="/app/mail" className="text-sm text-ink-3">Close</a></div><select name="recipient_id" defaultValue={selectedDraft?.recipient_id??""} required className="h-11 w-full rounded-sm border border-line bg-white px-3"><option value="">Select ReliefBridge staff recipient</option>{directory.map(x=><option key={x.id} value={x.id}>{fullName(x.first_name,x.last_name)} · {x.title||x.role}</option>)}</select><input name="subject" defaultValue={selectedDraft?.subject??""} required maxLength={200} placeholder="Subject" className="h-11 w-full rounded-sm border border-line px-3"/><textarea name="body" defaultValue={selectedDraft?.body??""} required maxLength={20000} rows={10} placeholder="Write a private internal message…" className="w-full rounded-sm border border-line px-3 py-3"/><div className="flex gap-2"><button className="rounded-sm bg-navy px-5 py-2.5 text-sm font-bold text-white">Send message</button><button formAction={saveDraft} formNoValidate className="rounded-sm border border-line px-5 py-2.5 text-sm font-semibold text-navy">Save draft</button>{selectedDraft?<><input type="hidden" name="draft_id" value={selectedDraft.id}/><button formAction={deleteDraft} formNoValidate className="rounded-sm border border-line px-4 py-2.5 text-sm text-red">Delete draft</button></>:null}</div></form>:selected?<div className="mx-auto max-w-3xl"><div className="border-b border-line pb-5"><h2 className="text-xl font-bold text-navy">{selected.subject}</h2><div className="mt-2 text-[13px] text-ink-3">{selected.sender_id===p.id?"Sent by you":"From "+name(selected.sender_id)} · {relativeDate(selected.sent_at)}</div></div><p className="whitespace-pre-wrap py-6 text-[14px] leading-7 text-ink-2">{selected.body}</p><div className="flex gap-2">{selected.sender_id!==p.id&&!selectedRec?.read_at?<form action={messageAction}><input type="hidden" name="action" value="read"/><input type="hidden" name="message_id" value={selected.id}/><button className="rounded-sm border border-line px-3 py-2 text-sm">Mark read</button></form>:null}{folder==="inbox"?<form action={messageAction}><input type="hidden" name="action" value="archive"/><input type="hidden" name="message_id" value={selected.id}/><button className="rounded-sm border border-line px-3 py-2 text-sm">Archive</button></form>:null}<form action={messageAction}><input type="hidden" name="action" value={folder==="trash"?"restore":"trash"}/><input type="hidden" name="message_id" value={selected.id}/><button className="rounded-sm border border-line px-3 py-2 text-sm">{folder==="trash"?"Restore":"Move to trash"}</button></form></div></div>:<div className="grid h-full place-items-center text-center"><div><div className="text-3xl">✉</div><div className="mt-4 font-bold text-navy">Select a message</div><p className="mt-2 max-w-sm text-[13px] leading-6 text-ink-3">Open a message from the list or compose a new secure internal message to another ReliefBridge staff member.</p><a href="/app/mail?compose=1" className="mt-5 inline-block rounded-sm border border-line px-4 py-2.5 text-sm font-semibold text-navy hover:no-underline">＋ Compose message</a></div></div>}</main>
+  </div></div></div></>
 }
