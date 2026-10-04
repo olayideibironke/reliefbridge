@@ -9,7 +9,8 @@ const PLATFORM="9f3cb5cc-aa6f-44cb-8aa9-b0a7bc505142";
 type P={id:string;first_name:string|null;last_name:string|null;email:string|null;role?:string|null;title:string|null};
 type M={id:string;sender_id:string;subject:string;body:string;sent_at:string;sender_deleted_at?:string|null};
 type R={id:string;message_id:string;recipient_id:string;read_at:string|null;archived_at:string|null;deleted_at:string|null;created_at:string};
-type D={id:string;recipient_id:string|null;subject:string;body:string;updated_at:string};\ntype A={id:string;message_id:string;storage_path:string;file_name:string;mime_type:string;size_bytes:number;created_at:string;signed_url?:string};
+type D={id:string;recipient_id:string|null;subject:string;body:string;updated_at:string};
+type A={id:string;message_id:string;storage_path:string;file_name:string;mime_type:string;size_bytes:number;created_at:string;signed_url?:string};
 
 export default async function MailPage({searchParams}:{searchParams:Promise<{folder?:string;message?:string;compose?:string;draft?:string;sent?:string;notice?:string}>}){
  const p=await requireProfile(),role=String(p.role??"").toLowerCase();
@@ -30,8 +31,13 @@ export default async function MailPage({searchParams}:{searchParams:Promise<{fol
  const inbox=rec.map(r=>({r,m:mm.get(r.message_id)})).filter(x=>x.m);
  const unread=inbox.filter(x=>!x.r.read_at&&!x.r.deleted_at&&!x.r.archived_at).length;
  const list=folder==="sent"?sent.filter(m=>!m.sender_deleted_at):folder==="drafts"?[]:inbox.filter(x=>folder==="archive"?x.r.archived_at&&!x.r.deleted_at:folder==="trash"?x.r.deleted_at:!x.r.archived_at&&!x.r.deleted_at).map(x=>x.m!);
- const messageIds=[...new Set(all.map(x=>x.id))];\n const {data:attachmentData}=messageIds.length?await s.from("staff_message_attachments").select("id,message_id,storage_path,file_name,mime_type,size_bytes,created_at").in("message_id",messageIds).order("created_at",{ascending:true}):{data:[]};\n const attachments=(attachmentData??[]) as A[];\n for(const a of attachments){const {data}=await s.storage.from("staff-mail-attachments").createSignedUrl(a.storage_path,300);a.signed_url=data?.signedUrl}\n const selected=all.find(x=>x.id===q.message);
- const selectedRec=selected?rec.find(x=>x.message_id===selected.id):undefined;\n const selectedAttachments=selected?attachments.filter(a=>a.message_id===selected.id):[];
+ const messageIds=[...new Set(all.map(x=>x.id))];
+ const {data:attachmentData}=messageIds.length?await s.from("staff_message_attachments").select("id,message_id,storage_path,file_name,mime_type,size_bytes,created_at").in("message_id",messageIds).order("created_at",{ascending:true}):{data:[]};
+ const attachments=(attachmentData??[]) as A[];
+ for(const a of attachments){const {data}=await s.storage.from("staff-mail-attachments").createSignedUrl(a.storage_path,300);a.signed_url=data?.signedUrl}
+ const selected=all.find(x=>x.id===q.message);
+ const selectedRec=selected?rec.find(x=>x.message_id===selected.id):undefined;
+ const selectedAttachments=selected?attachments.filter(a=>a.message_id===selected.id):[];
  const selectedDraft=drafts.find(x=>x.id===q.draft);
  const compose=q.compose==="1"||Boolean(selectedDraft);
  const name=(id:string)=>{const x=people.get(id);return x?fullName(x.first_name,x.last_name):"ReliefBridge Staff"};
