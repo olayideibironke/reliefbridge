@@ -39,9 +39,9 @@ export async function sendMessage(fd:FormData){
   const {data,error}=await s.rpc("send_internal_message",{target_recipient:recipient,message_subject:subject,message_body:body});
   if(error) throw new Error(error.message);
   const messageId=typeof data==="string"?data:Array.isArray(data)?String(data[0]?.id||data[0]||""):String(data?.id||data||"");
-  if(messageId)sentIds.push(messageId);
+  if(messageId)sentIds.push(messageId); else {const {data:latest}=await s.from("staff_messages").select("id").eq("sender_id",p.id).eq("subject",subject).order("sent_at",{ascending:false}).limit(1).maybeSingle();if(latest?.id&&!sentIds.includes(latest.id))sentIds.push(latest.id);}
  }
- if(sentIds[0])await storeAttachments(s,p,sentIds[0],fd);
+ for(const messageId of sentIds)await storeAttachments(s,p,messageId,fd);
  const draft=String(fd.get("draft_id")||"");if(draft)await s.from("staff_message_drafts").delete().eq("id",draft);
  revalidatePath("/app/mail");redirect("/app/mail?folder=sent&notice=sent");
 }
