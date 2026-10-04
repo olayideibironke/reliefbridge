@@ -94,3 +94,9 @@ returns table(message_id uuid,recipient_id uuid,recipient_type text) language sq
 $$;
 revoke execute on function public.get_sent_message_recipients(uuid[]) from public,anon;
 grant execute on function public.get_sent_message_recipients(uuid[]) to authenticated;
+
+
+drop policy if exists "staff mail storage delete own" on storage.objects;
+create policy "staff mail storage delete own" on storage.objects for delete to authenticated using (
+ bucket_id='staff-mail-attachments' and (storage.foldername(name))[1]=auth.uid()::text
+);
