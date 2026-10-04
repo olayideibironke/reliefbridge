@@ -14,7 +14,7 @@ type D={id:string;recipient_id:string|null;subject:string;body:string;updated_at
 type A={id:string;message_id:string;storage_path:string;file_name:string;mime_type:string;size_bytes:number;created_at:string;signed_url?:string};
 type SR={message_id:string;recipient_id:string;recipient_type:string};
 
-export default async function MailPage({searchParams}:{searchParams:Promise<{folder?:string;message?:string;compose?:string;draft?:string;sent?:string;notice?:string}>}){
+export default async function MailPage({searchParams}:{searchParams:Promise<{folder?:string;message?:string;compose?:string;draft?:string;sent?:string;notice?:string;search?:string}>}){
  const p=await requireProfile(),role=String(p.role??"").toLowerCase();
  if(p.organization_id!==PLATFORM||!["owner","admin","manager","staff"].includes(role))redirect("/app");
  const q=await searchParams,folder=["inbox","sent","drafts","archive","trash"].includes(q.folder||"")?q.folder!:"inbox",s=await createSupabaseServerClient();
@@ -36,7 +36,10 @@ export default async function MailPage({searchParams}:{searchParams:Promise<{fol
  const people=new Map(((peopleData??[]) as P[]).map(x=>[x.id,x])), mm=new Map(incoming.map(x=>[x.id,x]));
  const inbox=rec.map(r=>({r,m:mm.get(r.message_id)})).filter(x=>x.m);
  const unread=inbox.filter(x=>!x.r.read_at&&!x.r.deleted_at&&!x.r.archived_at).length;
- const list=folder==="sent"?sent.filter(m=>!m.sender_deleted_at):folder==="drafts"?[]:inbox.filter(x=>folder==="archive"?x.r.archived_at&&!x.r.deleted_at:folder==="trash"?x.r.deleted_at:!x.r.archived_at&&!x.r.deleted_at).map(x=>x.m!);
+ const receivedList=inbox.filter(x=>folder==="archive"?x.r.archived_at&&!x.r.deleted_at:folder==="trash"?x.r.deleted_at:!x.r.archived_at&&!x.r.deleted_at).map(x=>x.m!);
+ const baseList=folder==="sent"?sent.filter(m=>!m.sender_deleted_at):folder==="drafts"?[]:folder==="trash"?[...receivedList,...sent.filter(m=>Boolean(m.sender_deleted_at))]:receivedList;
+ const search=String(q.search||"").trim().toLowerCase();
+ const list=search?baseList.filter(m=>[m.subject,m.body,m.sender_id===p.id?sentNamesSafe(m.id):""].join(" ").toLowerCase().includes(search)):baseList;
  const {data:attachmentData}=messageIds.length?await s.from("staff_message_attachments").select("id,message_id,storage_path,file_name,mime_type,size_bytes,created_at").in("message_id",messageIds).order("created_at",{ascending:true}):{data:[]};
  const attachments=(attachmentData??[]) as A[];
  for(const a of attachments){const {data}=await s.storage.from("staff-mail-attachments").createSignedUrl(a.storage_path,300);a.signed_url=data?.signedUrl}
@@ -47,10 +50,11 @@ export default async function MailPage({searchParams}:{searchParams:Promise<{fol
  const compose=q.compose==="1"||Boolean(selectedDraft);
  const name=(id:string)=>{const x=people.get(id);return x?fullName(x.first_name,x.last_name):"ReliefBridge Staff"};
  const sentNames=(id:string)=>{const names=sentRecipients.filter(r=>r.message_id===id).map(r=>name(r.recipient_id));return names.length?names.join(", "):"ReliefBridge Staff"};
+ function sentNamesSafe(id:string){const rows=sentRecipients.filter(r=>r.message_id===id);return rows.map(r=>r.recipient_id).join(" ")}
  const folders=[["inbox","Inbox",unread],["sent","Sent",0],["drafts","Drafts",drafts.length],["archive","Archive",0],["trash","Trash",0]] as const;
  return <><PageHeader eyebrow="Communication" title="Internal Mail" subtitle="Secure staff-to-staff communication and operational correspondence inside ReliefBridge."/>
  <div className="px-6 py-8 md:px-10">{q.notice==="sent"?<div className="mb-4 rounded-sm border border-green-200 bg-green-50 px-4 py-3 text-sm font-semibold text-green-900">Message sent successfully. A copy is available in Sent.</div>:q.notice==="draft"?<div className="mb-4 rounded-sm border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-semibold text-navy">Draft saved successfully.</div>:null}<div className="overflow-hidden rounded-sm border border-line bg-white">
-  <div className="flex h-[64px] items-center justify-between border-b border-line px-5"><div><div className="font-bold text-navy">ReliefBridge Mail</div><div className="text-[12px] text-ink-3">Secure internal staff communication</div></div><a href="/app/mail?compose=1" className="rounded-sm bg-navy px-5 py-2.5 text-[13px] font-extrabold !text-white hover:bg-[#0d2d4f] hover:!text-white hover:no-underline">＋ Compose</a></div>
+  <div className="flex min-h-[64px] flex-wrap items-center gap-3 border-b border-line px-5 py-3"><div className="min-w-[180px]"><div className="font-bold text-navy">ReliefBridge Mail</div><div className="text-[12px] text-ink-3">Secure internal staff communication</div></div><form className="min-w-[220px] flex-1" action="/app/mail"><input type="hidden" name="folder" value={folder}/><input name="search" defaultValue={q.search||""} placeholder="Search mail" className="h-10 w-full rounded-sm border border-line bg-white px-3 text-sm text-navy placeholder:text-ink-3"/></form><a href="/app/mail?compose=1" className="rounded-sm bg-navy px-5 py-2.5 text-[13px] font-extrabold !text-white hover:bg-[#0d2d4f] hover:!text-white hover:no-underline">＋ Compose</a></div>
   <div className="grid min-h-[590px] lg:grid-cols-[190px_340px_1fr]">
    <aside className="border-r border-line p-3">{folders.map(([key,label,count])=><a key={key} href={"/app/mail?folder="+key} className={"mb-1 flex items-center justify-between rounded-sm px-3 py-2.5 text-[13px] hover:no-underline "+(folder===key?"bg-surface font-bold text-navy":"text-ink-2")}><span>✉ &nbsp;{label}</span>{count>0?<span className="rounded-full bg-line px-2 py-0.5 text-[11px]">{count}</span>:null}</a>)}<div className="mt-5 border-t border-line px-3 pt-5"><div className="text-[10px] font-bold uppercase tracking-[.14em] text-ink-3">Internal only</div><p className="mt-2 text-[12px] leading-5 text-ink-3">Messages remain within authorized ReliefBridge staff accounts.</p></div></aside>
    <section className="border-r border-line"><div className="border-b border-line px-4 py-3"><div className="font-bold text-navy">{folders.find(x=>x[0]===folder)?.[1]}</div>{folder==="inbox"?<div className="text-[12px] text-ink-3">{unread} unread</div>:null}</div>
