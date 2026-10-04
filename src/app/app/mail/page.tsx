@@ -95,7 +95,7 @@ export default async function MailPage() {
             <CardBody padded={false}>
               {!sentRows.length ? <div className="p-5 text-sm text-ink-2">No sent messages yet.</div> : <div className="divide-y divide-line">
                 {sentRows.map((m) => {
-                  const names = sentRecipients.filter((r) => r.message_id === m.id).map((r) => recipientMap.get(r.recipient_id)).filter(Boolean).map((x) => fullName(x?.first_name, x?.last_name)).join(", ");
+                  const names = sentRecipients.filter((r) => r.message_id === m.id).map((r) => recipientMap.get(r.recipient_id)).filter((x): x is ProfileLite => Boolean(x)).map((x) => fullName(x.first_name, x.last_name)).join(", ");
                   return <div key={m.id} className="p-5"><div className="font-bold text-navy">{m.subject}</div><div className="mt-1 text-[12px] text-ink-3">To {names || "Staff"} · {relativeDate(m.sent_at)}</div><p className="mt-3 whitespace-pre-wrap text-[13.5px] leading-6 text-ink-2">{m.body}</p></div>;
                 })}
               </div>}
