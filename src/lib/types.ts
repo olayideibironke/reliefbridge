@@ -36,7 +36,7 @@ export type ReferralStatus =
   | "Completed"
   | "Declined";
 
-export type ProfileRole = "owner" | "admin" | "member" | "viewer";
+export type ProfileRole = "owner" | "admin" | "manager" | "staff" | "member" | "viewer";
 
 export interface Organization {
   id: string;
@@ -143,4 +143,4 @@ export interface Referral {
   completed_at: string | null;
   created_at: string;
   updated_at: string;
-}
+}\n  access_status?: "invited" | "active" | "disabled";\n  last_access_at?: string | null;\n  invited_by?: string | null;\n  invited_at?: string | null;

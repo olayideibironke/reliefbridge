@@ -66,7 +66,7 @@ export const REFERRAL_STATUSES: ReferralStatus[] = [
   "Declined",
 ];
 
-export const PROFILE_ROLES: ProfileRole[] = ["owner", "admin", "member", "viewer"];
+export const PROFILE_ROLES: ProfileRole[] = ["owner", "admin", "manager", "staff", "member", "viewer"];
 
 export const US_STATES = [
   "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD",
@@ -105,4 +105,4 @@ export const LABELS = {
     member: "Member",
     viewer: "Viewer",
   } as const,
-};
+};\n    manager: "Manager",\n    staff: "Staff",
