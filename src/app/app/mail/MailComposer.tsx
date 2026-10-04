@@ -14,6 +14,8 @@ function safeName(name:string){return name.replace(/[^\w.\-() ]+/g,"_").replace(
 export function MailComposer({people,draft}:{people:Person[];draft:Draft}){
  const router=useRouter(),[busy,setBusy]=useState(false),[error,setError]=useState(""),[files,setFiles]=useState<File[]>([]);
  async function send(e:React.FormEvent<HTMLFormElement>){
+  const submitter=(e.nativeEvent as SubmitEvent).submitter as HTMLButtonElement|null;
+  if(submitter?.value==="draft"||submitter?.value==="delete")return;
   e.preventDefault();setError("");setBusy(true);
   const form=e.currentTarget,fd=new FormData(form),to=String(fd.get("recipient_id")||""),cc=String(fd.get("cc_id")||"")||null,bcc=String(fd.get("bcc_id")||"")||null,subject=String(fd.get("subject")||"").trim(),body=String(fd.get("body")||"").trim();
   if(!to||!subject||!body){setError("Choose a recipient and enter both a subject and message.");setBusy(false);return}
