@@ -43,3 +43,11 @@ create policy "staff mail storage read" on storage.objects for select to authent
   )
  )
 );
+
+-- SECURITY DEFINER staff RPCs must never be callable anonymously.
+revoke execute on function public.get_my_work_assignments() from anon;
+revoke execute on function public.restore_internal_message(uuid) from anon;
+revoke execute on function public.trash_internal_message(uuid) from anon;
+revoke execute on function public.archive_internal_message(uuid) from anon;
+revoke execute on function public.mark_internal_message_read(uuid) from anon;
+revoke execute on function public.send_internal_message(uuid,text,text) from anon;
