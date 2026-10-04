@@ -10,10 +10,10 @@ const PLATFORM="9f3cb5cc-aa6f-44cb-8aa9-b0a7bc505142";
 export default async function MailPage(){
  const p=await requireProfile();if(p.organization_id!==PLATFORM||!["owner","admin","manager","staff"].includes(String(p.role||"").toLowerCase()))redirect("/app");
  const s=await createSupabaseServerClient();
- const [{data:directory},{data:inbox},{data:sent}]=await Promise.all([
+ const [{data:directory},{data:recipientRows},{data:sentRows}]=await Promise.all([
   s.from("profiles").select("id,first_name,last_name,email,role,title").eq("organization_id",PLATFORM).eq("access_status","active").neq("id",p.id).order("first_name"),
-  s.from("staff_message_recipients").select("id,read_at,archived_at,created_at,message:staff_messages!staff_message_recipients_message_id_fkey(id,subject,body,sent_at,sender:profiles!staff_messages_sender_id_fkey(first_name,last_name,email,title))").eq("recipient_id",p.id).is("deleted_at",null).is("archived_at",null).limit(100),
-  s.from("staff_messages").select("id,subject,body,sent_at,recipients:staff_message_recipients!staff_message_recipients_message_id_fkey(recipient:profiles!staff_message_recipients_recipient_id_fkey(first_name,last_name,email,title))").eq("sender_id",p.id).order("sent_at",{ascending:false}).limit(100)
+  s.from("staff_message_recipients").select("*").eq("recipient_id",p.id).is("deleted_at",null).is("archived_at",null).limit(100),
+  s.from("staff_messages").select("*").eq("sender_id",p.id).order("sent_at",{ascending:false}).limit(100)
  ]);
  return <><PageHeader eyebrow="Communication" title="Internal Mail" subtitle="Private staff-to-staff communication inside ReliefBridge. This is separate from survivor, partner, and public contact channels."/>
  <div className="space-y-6 px-6 py-8 md:px-10">
