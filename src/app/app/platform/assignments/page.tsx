@@ -8,18 +8,18 @@ import { assignmentControl } from "./actions";
 import { fullName,relativeDate } from "@/lib/format";
 const PLATFORM="9f3cb5cc-aa6f-44cb-8aa9-b0a7bc505142";
 export default async function AssignmentsPage(){
- const p=await requireProfile();if(p.organization_id!==PLATFORM||!["owner","admin"].includes(String(p.role||"").toLowerCase()))redirect("/app");
+ const p=await requireProfile();if(p.organization_id!==PLATFORM||String(p.role||"").toLowerCase()!=="owner")redirect("/app");
  const s=await createSupabaseServerClient();
  const [{data:staff},{data:cases},{data:survivors},{data:needs},{data:referrals},{data:assignments}]=await Promise.all([
   s.from("profiles").select("id,first_name,last_name,email,staff_id,role").eq("organization_id",PLATFORM).in("role",["manager","staff"]).eq("access_status","active").order("first_name"),
   s.from("recovery_cases").select("id,primary_need,status,opened_at,survivors:survivors!recovery_cases_survivor_id_fkey(first_name,last_name,state)").neq("organization_id",PLATFORM).order("opened_at",{ascending:false}).limit(100),
   s.from("survivors").select("id,first_name,last_name,state,created_at").neq("organization_id",PLATFORM).order("created_at",{ascending:false}).limit(100),
-  s.from("unmet_needs").select("id,need_type,status,created_at").order("created_at",{ascending:false}).limit(100),
+  s.from("unmet_needs").select("id,category,status,created_at").order("created_at",{ascending:false}).limit(100),
   s.from("referrals").select("id,status,created_at").order("created_at",{ascending:false}).limit(100),
   s.from("staff_work_assignments").select("id,staff_id,work_id,work_type,assigned_at,notes").is("unassigned_at",null).order("assigned_at",{ascending:false})
  ]);
  const staffMap=new Map((staff??[]).map(x=>[x.id,x]));const caseMap=new Map((cases??[]).map((x:any)=>[x.id,x]));
- const options=[...(cases??[]).map((x:any)=>({type:"recovery_case",id:x.id,label:"Recovery case · "+fullName(x.survivors?.first_name,x.survivors?.last_name)+" · "+(x.primary_need||"Recovery")})),...(survivors??[]).map((x:any)=>({type:"survivor",id:x.id,label:"Survivor · "+fullName(x.first_name,x.last_name)+" · "+(x.state||"No state")})),...(needs??[]).map((x:any)=>({type:"unmet_need",id:x.id,label:"Unmet need · "+(x.need_type||"Need")})),...(referrals??[]).map((x:any)=>({type:"referral",id:x.id,label:"Referral · "+(x.status||"Pending")}))];
+ const options=[...(cases??[]).map((x:any)=>({type:"recovery_case",id:x.id,label:"Recovery case · "+fullName(x.survivors?.first_name,x.survivors?.last_name)+" · "+(x.primary_need||"Recovery")})),...(survivors??[]).map((x:any)=>({type:"survivor",id:x.id,label:"Survivor · "+fullName(x.first_name,x.last_name)+" · "+(x.state||"No state")})),...(needs??[]).map((x:any)=>({type:"unmet_need",id:x.id,label:"Unmet need · "+(x.category||"Need")})),...(referrals??[]).map((x:any)=>({type:"referral",id:x.id,label:"Referral · "+(x.status||"Pending")}))];
  return <><PageHeader eyebrow="Operations" title="Work Assignments" subtitle="Assign operational records to active ReliefBridge Managers and Staff. Assignment scope controls what each worker can read."/>
  <div className="space-y-6 px-6 py-8 md:px-10">
  <Card><CardHeader title="Assign work" subtitle="Only active Manager and Staff accounts appear here. Customer and demo records remain governed by their existing data boundaries."/><CardBody>
