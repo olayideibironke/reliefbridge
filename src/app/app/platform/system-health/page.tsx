@@ -18,14 +18,14 @@ export default async function SystemHealthPage() {
   const [organizations, profiles, audit, demos] = await Promise.all([
     supabase.from("organizations").select("id", { count: "exact", head: true }),
     supabase.from("profiles").select("id", { count: "exact", head: true }),
-    supabase.from("platform_audit_log").select("id", { count: "exact", head: true }),
+    supabase.rpc("get_platform_audit_count"),
     supabase.from("demo_workspaces").select("id", { count: "exact", head: true }),
   ]);
 
   const checks = [
     { name: "Organization directory", ok: !organizations.error, detail: organizations.error?.message || `${organizations.count ?? 0} records readable` },
     { name: "Identity directory", ok: !profiles.error, detail: profiles.error?.message || `${profiles.count ?? 0} profiles readable` },
-    { name: "Administrative audit trail", ok: !audit.error, detail: audit.error?.message || `${audit.count ?? 0} events readable` },
+    { name: "Administrative audit trail", ok: !audit.error, detail: audit.error?.message || `${audit.data ?? 0} events readable` },
     { name: "Managed demo controls", ok: !demos.error, detail: demos.error?.message || `${demos.count ?? 0} workspaces readable` },
   ];
   const healthy = checks.filter((check) => check.ok).length;
