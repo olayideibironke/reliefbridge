@@ -14,7 +14,7 @@ import {
   ReferralNotesEdit,
 } from "./ReferralControls";
 
-export const dynamic = "force-dynamic";
+const PLATFORM = "9f3cb5cc-aa6f-44cb-8aa9-b0a7bc505142";\nexport const dynamic = "force-dynamic";
 
 type RelatedOrganization = {
   id: string;
@@ -165,7 +165,7 @@ export default async function ReferralDetailPage({
         </div>
 
         <div className="space-y-6">
-          {!isManagedDemo && (isSender || isReceiver) && (
+          {!isManagedDemo && !isPlatformStaff && (isSender || isReceiver) && (
             <ReferralStatusControl
               id={r.id}
               current={r.status}
@@ -173,7 +173,7 @@ export default async function ReferralDetailPage({
             />
           )}
 
-          {!isManagedDemo && isSender && (
+          {!isManagedDemo && !isPlatformStaff && isSender && (
             <ReferralNotesEdit id={r.id} notes={r.notes} />
           )}
         </div>
