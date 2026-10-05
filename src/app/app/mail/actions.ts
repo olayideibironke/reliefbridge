@@ -12,7 +12,7 @@ async function staff(){
 }
 export async function saveDraft(fd:FormData){
  const {s,p}=await staff();
- const values={owner_id:p.id,recipient_id:String(fd.get("recipient_id")||"")||null,subject:String(fd.get("subject")||""),body:String(fd.get("body")||""),updated_at:new Date().toISOString()},id=String(fd.get("draft_id")||"");
+ const values={owner_id:p.id,recipient_id:String(fd.get("recipient_id")||"")||null,subject:String(fd.get("subject")||""),body:String(fd.get("body")||""),priority:String(fd.get("priority")||"normal"),acknowledgment_requested:fd.get("acknowledgment_requested")==="on",reply_to_message_id:String(fd.get("reply_to_message_id")||"")||null,updated_at:new Date().toISOString()},id=String(fd.get("draft_id")||"");
  const {error}=id?await s.from("staff_message_drafts").update(values).eq("id",id):await s.from("staff_message_drafts").insert(values);
  if(error)throw new Error(error.message);
  revalidatePath("/app/mail");redirect("/app/mail?folder=drafts&notice=draft");
@@ -24,7 +24,7 @@ export async function deleteDraft(fd:FormData){
 }
 export async function messageAction(fd:FormData){
  const {s}=await staff(),action=String(fd.get("action")||""),id=String(fd.get("message_id")||"");
- const fn=action==="archive"?"archive_internal_message":action==="trash"?"trash_internal_message":action==="restore"?"restore_internal_message":"mark_internal_message_read";
+ const fn=action==="archive"?"archive_internal_message":action==="trash"?"trash_internal_message":action==="restore"?"restore_internal_message":action==="acknowledge"?"acknowledge_internal_message":"mark_internal_message_read";
  const {error}=await s.rpc(fn,{target_message:id});if(error)throw new Error(error.message);
  revalidatePath("/app/mail");redirect(action==="trash"?"/app/mail?folder=trash":action==="restore"?"/app/mail":action==="archive"?"/app/mail?folder=archive":"/app/mail?message="+id);
 }
