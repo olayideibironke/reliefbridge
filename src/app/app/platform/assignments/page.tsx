@@ -10,20 +10,18 @@ const PLATFORM="9f3cb5cc-aa6f-44cb-8aa9-b0a7bc505142";
 export default async function AssignmentsPage(){
  const p=await requireProfile();if(p.organization_id!==PLATFORM||String(p.role||"").toLowerCase()!=="owner")redirect("/app");
  const s=await createSupabaseServerClient();
- const [{data:staff},{data:cases},{data:survivors},{data:needs},{data:referrals},{data:assignments}]=await Promise.all([
+ const [{data:staff},{data:workItems,error:workError},{data:assignments}]=await Promise.all([
   s.from("profiles").select("id,first_name,last_name,email,staff_id,role").eq("organization_id",PLATFORM).in("role",["manager","staff"]).eq("access_status","active").order("first_name"),
-  s.from("recovery_cases").select("id,primary_need,status,opened_at,survivors:survivors!recovery_cases_survivor_id_fkey(first_name,last_name,state)").neq("organization_id",PLATFORM).order("opened_at",{ascending:false}).limit(100),
-  s.from("survivors").select("id,first_name,last_name,state,created_at").neq("organization_id",PLATFORM).order("created_at",{ascending:false}).limit(100),
-  s.from("unmet_needs").select("id,category,status,created_at").order("created_at",{ascending:false}).limit(100),
-  s.from("referrals").select("id,status,created_at").order("created_at",{ascending:false}).limit(100),
+  s.rpc("get_assignable_staff_work"),
   s.from("staff_work_assignments").select("id,staff_id,work_id,work_type,assigned_at,notes").is("unassigned_at",null).order("assigned_at",{ascending:false})
  ]);
- const staffMap=new Map((staff??[]).map(x=>[x.id,x]));const caseMap=new Map((cases??[]).map((x:any)=>[x.id,x]));const survivorMap=new Map((survivors??[]).map((x:any)=>[x.id,x]));const needMap=new Map((needs??[]).map((x:any)=>[x.id,x]));const referralMap=new Map((referrals??[]).map((x:any)=>[x.id,x]));
- const assignmentLabel=(a:any)=>{if(a.work_type==="recovery_case"){const x:any=caseMap.get(a.work_id);return x?fullName(x.survivors?.first_name,x.survivors?.last_name)+" · "+(x.primary_need||"Recovery case"):"Recovery case"}if(a.work_type==="survivor"){const x:any=survivorMap.get(a.work_id);return x?"Survivor · "+fullName(x.first_name,x.last_name):"Survivor"}if(a.work_type==="unmet_need"){const x:any=needMap.get(a.work_id);return "Unmet need · "+(x?.category||"Need")}const x:any=referralMap.get(a.work_id);return "Referral · "+(x?.status||"Pending")};
- const options=[...(cases??[]).map((x:any)=>({type:"recovery_case",id:x.id,label:"Recovery case · "+fullName(x.survivors?.first_name,x.survivors?.last_name)+" · "+(x.primary_need||"Recovery")})),...(survivors??[]).map((x:any)=>({type:"survivor",id:x.id,label:"Survivor · "+fullName(x.first_name,x.last_name)+" · "+(x.state||"No state")})),...(needs??[]).map((x:any)=>({type:"unmet_need",id:x.id,label:"Unmet need · "+(x.category||"Need")})),...(referrals??[]).map((x:any)=>({type:"referral",id:x.id,label:"Referral · "+(x.status||"Pending")}))];
+ const staffMap=new Map((staff??[]).map(x=>[x.id,x]));
+ const workMap=new Map((workItems??[]).map((x:any)=>[x.work_type+":"+x.work_id,x.label]));
+ const assignmentLabel=(a:any)=>workMap.get(a.work_type+":"+a.work_id)??a.work_type.replaceAll("_"," ");
+ const options=(workItems??[]).map((x:any)=>({type:x.work_type,id:x.work_id,label:x.label}));
  return <><PageHeader eyebrow="Operations" title="Work Assignments" subtitle="Assign operational records to active ReliefBridge Managers and Staff. Assignment scope controls what each worker can read."/>
  <div className="space-y-6 px-6 py-8 md:px-10">
- <Card><CardHeader title="Assign work" subtitle="Only active Manager and Staff accounts appear here. Customer and demo records remain governed by their existing data boundaries."/><CardBody>
+ <Card><CardHeader title="Assign work" subtitle="Only active Manager and Staff accounts appear here. Managed demo records are excluded from staff assignment."/><CardBody>\n {workError?<p className="mb-3 text-sm text-red">Could not load assignable work. {workError.message}</p>:null}
  {!(staff??[]).length?<p className="text-sm text-ink-2">There are no active Manager or Staff accounts yet. Activate a staff account before assigning work.</p>:
  <form action={assignmentControl} className="grid gap-3 lg:grid-cols-[1fr_2fr_auto]"><input type="hidden" name="action" value="assign"/><select name="staff_id" required className="h-11 rounded-sm border border-line bg-white px-3"><option value="">Select staff member</option>{(staff??[]).map(x=><option key={x.id} value={x.id}>{fullName(x.first_name,x.last_name)} · {x.staff_id||x.role}</option>)}</select><select name="work_key" required className="h-11 rounded-sm border border-line bg-white px-3"><option value="">Select work item</option>{options.map((x:any)=><option key={x.type+":"+x.id} value={x.type+":"+x.id}>{x.label}</option>)}</select><Button type="submit">Assign work</Button></form>}
  </CardBody></Card>
