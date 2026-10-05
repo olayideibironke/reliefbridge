@@ -65,7 +65,7 @@ export default async function AccessControlPage() {
                 <div key={member.id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
                   <div>
                     <div className="font-bold text-navy">{[member.first_name, member.last_name].filter(Boolean).join(" ") || member.email || "Platform user"}</div>
-                    <div className="mt-1 text-[12px] text-ink-3">{member.email || "No email"} · {String(member.role).toLowerCase() === "owner" ? "Super Admin" : "Admin"}</div>
+                    <div className="mt-1 text-[12px] text-ink-3">{member.email || "No email"} · {String(member.role).toLowerCase() === "owner" ? "Super Admin" : String(member.role).toLowerCase() === "admin" ? "Admin" : String(member.role).toLowerCase() === "manager" ? "Manager" : "Staff"}</div>
                   </div>
                   <div className="text-[11px] font-bold uppercase tracking-[.08em] text-ink-3">{member.access_status || "active"}</div>
                 </div>
