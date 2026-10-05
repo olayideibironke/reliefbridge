@@ -5,10 +5,12 @@ import { Card, CardBody } from "@/components/ui/Card";
 import { LinkButton } from "@/components/ui/Button";
 import { Icons } from "@/components/ui/Icons";
 import { OrganizationDashboard } from "./OrganizationDashboard";
+import { StaffDashboard } from "./StaffDashboard";
 const PLATFORM="9f3cb5cc-aa6f-44cb-8aa9-b0a7bc505142";
 export const dynamic="force-dynamic";
 export default async function DashboardPage(){
- const profile=await requireProfile();const isAdmin=profile.organization_id===PLATFORM&&["owner","admin"].includes((profile.role??"").toLowerCase());
+ const profile=await requireProfile();const platformRole=(profile.role??"").toLowerCase();const isAdmin=profile.organization_id===PLATFORM&&["owner","admin"].includes(platformRole);const isStaff=profile.organization_id===PLATFORM&&["manager","staff"].includes(platformRole);
+ if(isStaff)return <StaffDashboard profile={profile}/>;
  if(!isAdmin)return <OrganizationDashboard/>;
  const s=await createSupabaseServerClient();
  const [orgs,users,survivors,cases,needs,refs,demos,requests]=await Promise.all([

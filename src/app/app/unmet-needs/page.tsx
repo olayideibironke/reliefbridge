@@ -13,6 +13,7 @@ import { fullName, relativeDate } from "@/lib/format";
 import { LABELS, NEED_CATEGORIES, NEED_STATUSES } from "@/lib/constants";
 import type { NeedCategory, NeedStatus, Survivor, UnmetNeed } from "@/lib/types";
 
+const PLATFORM = "9f3cb5cc-aa6f-44cb-8aa9-b0a7bc505142";
 export const dynamic = "force-dynamic";
 
 type Row = UnmetNeed & {
@@ -25,6 +26,7 @@ export default async function UnmetNeedsPage({
   searchParams: Promise<{ category?: string; status?: string }>;
 }) {
   const profile = await requireProfile();
+  const isPlatformStaff = profile.organization_id === PLATFORM && ["manager", "staff"].includes(String(profile.role ?? "").toLowerCase());
   const sp = await searchParams;
 
   const category = NEED_CATEGORIES.includes(sp.category as NeedCategory)
@@ -45,9 +47,7 @@ export default async function UnmetNeedsPage({
     .order("created_at", { ascending: false })
     .limit(250);
 
-  if (profile.organization_id) {
-    query = query.eq("organization_id", profile.organization_id);
-  }
+  if (!isPlatformStaff && profile.organization_id) query = query.eq("organization_id", profile.organization_id);
 
   if (category) query = query.eq("category", category);
   if (status) query = query.eq("status", status);
@@ -84,7 +84,7 @@ export default async function UnmetNeedsPage({
         title="Unmet needs"
         subtitle="Captured survivor needs across housing, repair, legal aid, mental health, transportation, and more."
         breadcrumbs={[{ label: "Workspace", href: "/app" }, { label: "Unmet needs" }]}
-        actions={!isManagedDemo ? (
+        actions={!isManagedDemo && !isPlatformStaff ? (
           <LinkButton href="/app/unmet-needs/new">
             <Icons.Plus className="h-4 w-4" />
             Add need
@@ -153,7 +153,7 @@ export default async function UnmetNeedsPage({
                 ? "No needs match those filters. Try clearing them."
                 : "Add unmet needs against survivor records to coordinate referrals and partner outreach."
             }
-            action={!isManagedDemo ? (
+            action={!isManagedDemo && !isPlatformStaff ? (
               <LinkButton href="/app/unmet-needs/new">
                 <Icons.Plus className="h-4 w-4" />
                 Capture first need

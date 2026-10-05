@@ -101,7 +101,9 @@ export default async function AppLayout({
 
   const email = user.email ?? "";
   const role = formatRole(profile.role);
-  const isPlatformAdmin = profile.organization_id === "9f3cb5cc-aa6f-44cb-8aa9-b0a7bc505142" && ["owner", "admin"].includes((profile.role ?? "").toLowerCase());
+  const platformRole = (profile.role ?? "").toLowerCase();
+  const isPlatformAdmin = profile.organization_id === "9f3cb5cc-aa6f-44cb-8aa9-b0a7bc505142" && ["owner", "admin"].includes(platformRole);
+  const isPlatformStaff = profile.organization_id === "9f3cb5cc-aa6f-44cb-8aa9-b0a7bc505142" && ["manager", "staff"].includes(platformRole);
 
   return (
     <div className="flex min-h-screen bg-surface-2">
@@ -116,11 +118,12 @@ export default async function AppLayout({
         orgName={orgName}
         isManagedDemo={isManagedDemo}
         isPlatformAdmin={isPlatformAdmin}
+        isPlatformStaff={isPlatformStaff}
       />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <MobileHeader orgName={orgName} isManagedDemo={isManagedDemo} isPlatformAdmin={isPlatformAdmin} />
-        <TopBar orgName={orgName} isPlatformAdmin={isPlatformAdmin} />
+        <MobileHeader orgName={orgName} isManagedDemo={isManagedDemo} isPlatformAdmin={isPlatformAdmin} isPlatformStaff={isPlatformStaff} />
+        <TopBar orgName={orgName} isPlatformAdmin={isPlatformAdmin} isPlatformStaff={isPlatformStaff} />
 
         <main className="flex-1">
           {children}

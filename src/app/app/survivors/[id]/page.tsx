@@ -24,6 +24,7 @@ import type {
 } from "@/lib/types";
 import { SurvivorEdit } from "./SurvivorEdit";
 
+const PLATFORM = "9f3cb5cc-aa6f-44cb-8aa9-b0a7bc505142";
 export const dynamic = "force-dynamic";
 
 export default async function SurvivorDetailPage({
@@ -33,6 +34,7 @@ export default async function SurvivorDetailPage({
 }) {
   const { id } = await params;
   const profile = await requireProfile();
+  const isPlatformStaff = profile.organization_id === PLATFORM && ["manager", "staff"].includes(String(profile.role ?? "").toLowerCase());
   const supabase = await createSupabaseServerClient();
   const { data: demoAccess } = await supabase.rpc("get_my_demo_access");
   const isManagedDemo = Array.isArray(demoAccess) && Boolean(demoAccess[0]?.is_demo);
@@ -105,7 +107,7 @@ export default async function SurvivorDetailPage({
           { label: "Survivors", href: "/app/survivors" },
           { label: fullName(survivor.first_name, survivor.last_name) },
         ]}
-        actions={!isManagedDemo ? (
+        actions={!isManagedDemo && !isPlatformStaff ? (
           <>
             <LinkButton
               href={`/app/cases/new?survivor=${survivor.id}`}
@@ -162,7 +164,7 @@ export default async function SurvivorDetailPage({
           <Card>
             <CardHeader
               title="Recovery cases"
-              actions={!isManagedDemo ? (
+              actions={!isManagedDemo && !isPlatformStaff ? (
                 <Link
                   href={`/app/cases/new?survivor=${survivor.id}`}
                   className="text-[12.5px] font-semibold text-blue hover:text-navy-light hover:no-underline"
@@ -177,7 +179,7 @@ export default async function SurvivorDetailPage({
                 icon={<Icons.Cases className="h-6 w-6" />}
                 title="No cases open for this survivor"
                 description="Open a recovery case to track lifecycle, status, and notes."
-                action={!isManagedDemo ? (
+                action={!isManagedDemo && !isPlatformStaff ? (
                   <LinkButton href={`/app/cases/new?survivor=${survivor.id}`}>
                     Open first case
                   </LinkButton>
@@ -223,7 +225,7 @@ export default async function SurvivorDetailPage({
           <Card>
             <CardHeader
               title="Unmet needs"
-              actions={!isManagedDemo ? (
+              actions={!isManagedDemo && !isPlatformStaff ? (
                 <Link
                   href={`/app/unmet-needs/new?survivor=${survivor.id}`}
                   className="text-[12.5px] font-semibold text-blue hover:text-navy-light hover:no-underline"
@@ -267,7 +269,7 @@ export default async function SurvivorDetailPage({
           <Card>
             <CardHeader
               title="Referrals"
-              actions={!isManagedDemo ? (
+              actions={!isManagedDemo && !isPlatformStaff ? (
                 <Link
                   href={`/app/referrals/new?survivor=${survivor.id}`}
                   className="text-[12.5px] font-semibold text-blue hover:text-navy-light hover:no-underline"
@@ -314,7 +316,7 @@ export default async function SurvivorDetailPage({
           <Card>
             <CardHeader title="Coordination" />
             <CardBody padded={false}>
-              {!isManagedDemo ? <SurvivorEdit
+              {!isManagedDemo && !isPlatformStaff ? <SurvivorEdit
                 id={survivor.id}
                 defaults={{
                   status: survivor.status,

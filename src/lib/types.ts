@@ -36,7 +36,7 @@ export type ReferralStatus =
   | "Completed"
   | "Declined";
 
-export type ProfileRole = "owner" | "admin" | "member" | "viewer";
+export type ProfileRole = "owner" | "admin" | "manager" | "staff" | "member" | "viewer";
 
 export interface Organization {
   id: string;
@@ -58,6 +58,10 @@ export interface Profile {
   last_name: string | null;
   email: string | null;
   title: string | null;
+  personal_email?: string | null;
+  department?: string | null;
+  staff_id?: string | null;
+  must_set_password?: boolean;
   role: ProfileRole;
   phone: string | null;
   notification_settings: {
@@ -66,6 +70,10 @@ export interface Profile {
     referral_status_change: boolean;
     weekly_digest: boolean;
   };
+  access_status?: "invited" | "active" | "disabled";
+  last_access_at?: string | null;
+  invited_by?: string | null;
+  invited_at?: string | null;
   created_at: string;
   updated_at: string;
 }
