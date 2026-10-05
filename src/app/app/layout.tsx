@@ -119,6 +119,7 @@ export default async function AppLayout({
         isManagedDemo={isManagedDemo}
         isPlatformAdmin={isPlatformAdmin}
         isPlatformStaff={isPlatformStaff}
+        isPlatformOwner={platformRole === "owner"}
       />
 
       <div className="flex min-w-0 flex-1 flex-col">
