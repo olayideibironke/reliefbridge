@@ -14,7 +14,8 @@ import {
   ReferralNotesEdit,
 } from "./ReferralControls";
 
-const PLATFORM = "9f3cb5cc-aa6f-44cb-8aa9-b0a7bc505142";\nexport const dynamic = "force-dynamic";
+const PLATFORM = "9f3cb5cc-aa6f-44cb-8aa9-b0a7bc505142";
+export const dynamic = "force-dynamic";
 
 type RelatedOrganization = {
   id: string;
@@ -34,9 +35,13 @@ export default async function ReferralDetailPage({
 }) {
   const { id } = await params;
   const profile = await requireProfile();
+  const isPlatformStaff =
+    profile.organization_id === PLATFORM &&
+    ["manager", "staff"].includes(String(profile.role ?? "").toLowerCase());
   const supabase = await createSupabaseServerClient();
   const { data: demoAccess } = await supabase.rpc("get_my_demo_access");
-  const isManagedDemo = Array.isArray(demoAccess) && Boolean(demoAccess[0]?.is_demo);
+  const isManagedDemo =
+    Array.isArray(demoAccess) && Boolean(demoAccess[0]?.is_demo);
 
   const { data, error } = await supabase
     .from("referrals")
