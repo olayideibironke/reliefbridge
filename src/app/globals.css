@@ -76,11 +76,22 @@ a:hover {
   text-underline-offset: 3px;
 }
 
+/*
+ * Keep typography consistent without overriding component text-color utilities.
+ * The previous grouped rule applied color: inherit to buttons in the unlayered
+ * global stylesheet, which outranked Tailwind utilities such as text-white.
+ * That made text on navy/blue/red buttons render dark across ReliefBridge.
+ */
 button,
 input,
 select,
 textarea {
   font-family: inherit;
+}
+
+input,
+select,
+textarea {
   color: inherit;
 }
 
