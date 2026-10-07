@@ -52,6 +52,7 @@ export default async function AppLayout({
     Array.isArray(demoAccess) && Boolean(demoAccess[0]?.is_demo);
 
   let orgName = "ReliefBridge Workspace";
+  let communicationsMode = "off";
 
   if (profile.organization_id) {
     const { data: organization } =
@@ -67,6 +68,8 @@ export default async function AppLayout({
     if (organization?.name) {
       orgName = organization.name;
     }
+    const { data: capability } = await supabase.from("organization_capabilities").select("communications_mode").eq("organization_id", profile.organization_id).maybeSingle();
+    communicationsMode = capability?.communications_mode ?? "off";
   }
 
   const profileFullName =
@@ -120,10 +123,11 @@ export default async function AppLayout({
         isPlatformAdmin={isPlatformAdmin}
         isPlatformStaff={isPlatformStaff}
         isPlatformOwner={platformRole === "owner"}
+        communicationsMode={communicationsMode}
       />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <MobileHeader orgName={orgName} isManagedDemo={isManagedDemo} isPlatformAdmin={isPlatformAdmin} isPlatformStaff={isPlatformStaff} isPlatformOwner={platformRole === "owner"} />
+        <MobileHeader orgName={orgName} isManagedDemo={isManagedDemo} isPlatformAdmin={isPlatformAdmin} isPlatformStaff={isPlatformStaff} isPlatformOwner={platformRole === "owner"} communicationsMode={communicationsMode} />
         <TopBar orgName={orgName} isPlatformAdmin={isPlatformAdmin} isPlatformStaff={isPlatformStaff} />
 
         <main className="flex-1">
