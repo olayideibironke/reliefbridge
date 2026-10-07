@@ -1,20 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Public_Sans, Merriweather } from "next/font/google";
 import "./globals.css";
-
-const publicSans = Public_Sans({
-  subsets: ["latin"],
-  variable: "--font-public-sans",
-  display: "swap",
-  weight: ["300", "400", "500", "600", "700", "800"],
-});
-
-const merriweather = Merriweather({
-  subsets: ["latin"],
-  variable: "--font-merriweather",
-  display: "swap",
-  weight: ["400", "700"],
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://reliefbridge.net"),
@@ -77,10 +62,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${publicSans.variable} ${merriweather.variable}`}
-    >
+    <html lang="en">
       <body className="min-w-0 overflow-x-hidden bg-surface text-ink antialiased">
         {children}
       </body>
