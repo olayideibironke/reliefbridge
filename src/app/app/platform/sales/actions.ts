@@ -16,6 +16,6 @@ export async function updateSalesOpportunityAction(formData:FormData){
  const {data:current}=await supabase.from("sales_opportunities").select("stage,priority,temperature").eq("id",id).maybeSingle();
  const {error}=await supabase.from("sales_opportunities").update({stage,priority,temperature,updated_by:profile.id,last_activity_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq("id",id);
  if(error){console.error("Could not update sales opportunity",error);redirect("/app/platform/sales");}
- if(current&&current.stage!==stage)await supabase.from("sales_activities").insert({opportunity_id:id,activity_type:"Stage Change",summary:`Stage changed from ${current.stage} to ${stage}`,created_by:profile.id});
+ const previousStage = current && typeof (current as {stage?:unknown}).stage === "string" ? (current as {stage:string}).stage : null;\n if(previousStage&&previousStage!==stage)await supabase.from("sales_activities").insert({opportunity_id:id,activity_type:"Stage Change",summary:`Stage changed from ${previousStage} to ${stage}`,created_by:profile.id});
  revalidatePath("/app/platform/sales");redirect("/app/platform/sales?saved=1");
 }
