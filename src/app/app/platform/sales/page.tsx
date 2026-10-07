@@ -85,6 +85,6 @@ export default async function SalesPipelinePage({searchParams}:{searchParams:Pro
       <div className="mt-3 flex flex-wrap gap-4"><Link href={"/app/platform/sales/"+o.id} className="inline-flex text-[12px] font-bold text-blue hover:no-underline">Open opportunity →</Link>{o.demo_request_id&&<Link href={"/app/demo-requests/"+o.demo_request_id} className="inline-flex text-[12px] font-bold text-blue hover:no-underline">Open original demo request →</Link>}</div>
     </CardBody></Card>)}</div>}
 
-    {!error&&rows.length===0&&<Card><CardBody><div className="py-10 text-center text-[14px] text-ink-3">No opportunities match these filters.</div></Card>}
+    {!error&&rows.length===0&&<Card><CardBody><div className="py-10 text-center text-[14px] text-ink-3">No opportunities match these filters.</div></CardBody></Card>}
   </div></>;
 }
