@@ -21,11 +21,10 @@ export function SettingsNav() {
           <Link
             key={i.href}
             href={i.href}
+            aria-current={active ? "page" : undefined}
             className={cn(
               "rounded-sm px-3.5 py-2 text-[13px] font-semibold hover:no-underline",
-              active
-                ? "bg-blue text-white"
-                : "text-ink-2 hover:bg-surface-2 hover:text-navy"
+              active ? "bg-blue !text-white" : "text-ink-2 hover:bg-surface-2 hover:text-navy"
             )}
           >
             {i.label}
