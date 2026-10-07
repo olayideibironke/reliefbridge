@@ -8,7 +8,8 @@ import { Card,CardBody,CardHeader } from "@/components/ui/Card";
 import { addSalesActivityAction,updateSalesPlanAction } from "../actions";
 export const dynamic="force-dynamic";export const metadata:Metadata={title:"Sales Opportunity — ReliefBridge"};
 const PLATFORM_ORGANIZATION_ID="9f3cb5cc-aa6f-44cb-8aa9-b0a7bc505142";
-type OpportunityDetail={id:string;organization_name:string;contact_first_name:string|null;contact_last_name:string|null;contact_email:string;contact_phone:string|null;role_title:string|null;stage:string;source:string;recovery_focus:string|null;last_activity_at:string;next_action:string|null};\nfunction fmt(v:string|null){if(!v)return "Not recorded";const d=new Date(v);return Number.isNaN(d.getTime())?"Not recorded":new Intl.DateTimeFormat("en-US",{dateStyle:"medium",timeStyle:"short"}).format(d);}
+type OpportunityDetail={id:string;organization_name:string;contact_first_name:string|null;contact_last_name:string|null;contact_email:string;contact_phone:string|null;role_title:string|null;stage:string;source:string;recovery_focus:string|null;last_activity_at:string;next_action:string|null};
+function fmt(v:string|null){if(!v)return "Not recorded";const d=new Date(v);return Number.isNaN(d.getTime())?"Not recorded":new Intl.DateTimeFormat("en-US",{dateStyle:"medium",timeStyle:"short"}).format(d);}
 export default async function OpportunityPage({params,searchParams}:{params:Promise<{id:string}>;searchParams:Promise<{saved?:string}>}){
  const profile=await requireProfile(),role=typeof profile.role==="string"?profile.role.trim().toLowerCase():"";if(profile.organization_id!==PLATFORM_ORGANIZATION_ID||!(role==="owner"||role==="admin"))redirect("/app");
  const {id}=await params,sp=await searchParams,supabase=await createSupabaseServerClient();
