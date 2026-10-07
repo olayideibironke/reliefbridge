@@ -23,6 +23,7 @@ import type {
   UnmetNeed,
 } from "@/lib/types";
 import { SurvivorEdit } from "./SurvivorEdit";
+import { SurvivorMessageComposer } from "./SurvivorMessageComposer";
 
 const PLATFORM = "9f3cb5cc-aa6f-44cb-8aa9-b0a7bc505142";
 export const dynamic = "force-dynamic";
@@ -38,6 +39,8 @@ export default async function SurvivorDetailPage({
   const supabase = await createSupabaseServerClient();
   const { data: demoAccess } = await supabase.rpc("get_my_demo_access");
   const isManagedDemo = Array.isArray(demoAccess) && Boolean(demoAccess[0]?.is_demo);
+  const { data: capability } = profile.organization_id ? await supabase.from("organization_capabilities").select("communications_mode").eq("organization_id", profile.organization_id).maybeSingle() : { data: null };
+  const survivorMessagingEnabled = capability?.communications_mode === "staff_survivor";
 
   const { data: survivorRow } = await supabase
     .from("survivors")
@@ -86,6 +89,9 @@ export default async function SurvivorDetailPage({
     Profile,
     "id" | "first_name" | "last_name" | "email"
   >[];
+
+  const { data: communicationRows } = survivorMessagingEnabled ? await supabase.from("survivor_communications").select("id,subject,body,status,sent_at,created_at").eq("survivor_id", id).order("created_at", { ascending: false }).limit(25) : { data: [] };
+  const communications = communicationRows ?? [];
 
   const managerOptions = memberList.map((m) => ({
     id: m.id,
@@ -313,6 +319,16 @@ export default async function SurvivorDetailPage({
 
         {/* Right column: edit */}
         <div className="space-y-6">
+          {survivorMessagingEnabled ? <Card>
+            <CardHeader title="Survivor communication" />
+            <CardBody>
+              {!isManagedDemo ? <SurvivorMessageComposer survivorId={survivor.id} survivorEmail={survivor.email} consentGiven={Boolean(survivor.consent_given)} /> : <div className="mb-4 rounded-sm border border-line bg-surface px-3 py-2 text-[12px] text-ink-3">Read-only demonstration. Sending is disabled, but the communication history below shows how staff correspondence is tracked.</div>}
+              <div className="mt-5 border-t border-line pt-4">
+                <div className="mb-3 text-[11px] font-bold uppercase tracking-[.12em] text-ink-3">Communication history</div>
+                {communications.length ? <div className="space-y-3">{communications.map((c) => <div key={c.id} className="rounded-sm border border-line p-3"><div className="flex items-start justify-between gap-3"><div className="text-[13px] font-bold text-navy">{c.subject}</div><span className="text-[10px] font-bold uppercase tracking-wide text-ink-3">{c.status}</span></div><div className="mt-1 line-clamp-3 whitespace-pre-wrap text-[12.5px] leading-5 text-ink-2">{c.body}</div><div className="mt-2 text-[11px] text-ink-3">{relativeDate(c.sent_at ?? c.created_at)}</div></div>)}</div> : <div className="text-[12.5px] text-ink-3">No survivor communications yet.</div>}
+              </div>
+            </CardBody>
+          </Card> : null}
           <Card>
             <CardHeader title="Coordination" />
             <CardBody padded={false}>
