@@ -6,6 +6,7 @@ import { requireProfile } from "@/lib/session";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { addSalesActivityAction, updateSalesCommercialAction, updateSalesPlanAction } from "../actions";
+import { QuoteCalculator } from "./QuoteCalculator";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Sales Opportunity — ReliefBridge" };
@@ -81,6 +82,7 @@ export default async function OpportunityPage({params,searchParams}:{params:Prom
 
       <aside className="space-y-6">
         <Card><CardHeader title="Pipeline status" subtitle="Current internal qualification state."/><CardBody className="space-y-3"><div><b className="text-navy">Stage</b><div className="mt-1 text-sm text-ink-2">{opportunity.stage}</div></div><div><b className="text-navy">Priority</b><div className="mt-1 text-sm text-ink-2">{opportunity.priority}</div></div><div><b className="text-navy">Temperature</b><div className="mt-1 text-sm text-ink-2">{opportunity.temperature}</div></div></CardBody></Card>
+        <Card><CardHeader title="Quote calculator" subtitle="Instant ReliefBridge pricing for any organizational user count."/><CardBody><QuoteCalculator opportunityId={id} currentValue={opportunity.expected_value}/></CardBody></Card>
         <Card><CardHeader title="Next action" subtitle="Keep the opportunity moving without losing the follow-up."/><CardBody><form action={updateSalesPlanAction} className="space-y-4"><input type="hidden" name="opportunity_id" value={id}/><div><label className="mb-2 block text-[12.5px] font-bold text-navy">Next action</label><input name="next_action" defaultValue={opportunity.next_action??""} maxLength={500} className="h-11 w-full rounded-sm border border-line px-3 text-sm"/></div><div><label className="mb-2 block text-[12.5px] font-bold text-navy">Follow-up date/time</label><input type="datetime-local" name="next_action_at" defaultValue={datetimeLocal(opportunity.next_action_at)} className="h-11 w-full rounded-sm border border-line px-3 text-sm"/></div><button className="h-11 w-full rounded-sm bg-blue text-sm font-bold text-white">Save next action</button></form></CardBody></Card>
         <Card><CardHeader title="Add activity" subtitle="Record calls, emails, demos, quotes, evaluations, and internal notes."/><CardBody><form action={addSalesActivityAction} className="space-y-4"><input type="hidden" name="opportunity_id" value={id}/><select name="activity_type" className="h-11 w-full rounded-sm border border-line px-3 text-sm">{["Email","Phone","Demo","Evaluation","Quote","Note","Follow-Up","Other"].map(x=><option key={x}>{x}</option>)}</select><input name="summary" required maxLength={300} placeholder="Short activity summary" className="h-11 w-full rounded-sm border border-line px-3 text-sm"/><textarea name="details" maxLength={5000} rows={5} placeholder="Optional details" className="w-full rounded-sm border border-line px-3 py-3 text-sm"/><button className="h-11 w-full rounded-sm bg-navy text-sm font-bold text-white">Add to timeline</button></form></CardBody></Card>
       </aside>
