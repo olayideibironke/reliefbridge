@@ -8,6 +8,7 @@ const items = [
   { href: "/app/settings/organization", label: "Organization profile" },
   { href: "/app/settings/profile", label: "Your profile" },
   { href: "/app/settings/notifications", label: "Notifications" },
+  { href: "/app/settings/billing", label: "Billing" },
 ];
 
 export function SettingsNav() {
