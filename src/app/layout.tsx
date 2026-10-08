@@ -10,22 +10,14 @@ export const metadata: Metadata = {
   },
 
   description:
-    "ReliefBridge is the coordination platform for long-term disaster recovery. Helping nonprofits, churches, recovery groups, and case managers coordinate survivor cases, unmet needs, referrals, partner activity, and recovery outcomes. A Westforge Holdings platform.",
+    "ReliefBridge helps disaster recovery organizations coordinate survivor cases, unmet needs, referrals, partner activity, and recovery outcomes.",
 
   applicationName: "ReliefBridge",
 
-  authors: [
-    {
-      name: "Westforge Holdings",
-    },
-  ],
+  authors: [{ name: "ReliefBridge Team" }],
 
-  creator: "Westforge Holdings",
-  publisher: "Westforge Holdings",
-
-  alternates: {
-    canonical: "/",
-  },
+  creator: "ReliefBridge",
+  publisher: "ReliefBridge",
 
   openGraph: {
     type: "website",
