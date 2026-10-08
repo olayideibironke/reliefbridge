@@ -12,6 +12,23 @@ const TEMPERATURES = ["Cold","Warm","Hot"];
 const ACTIVITY_TYPES = ["Email","Phone","Demo","Evaluation","Quote","Note","Follow-Up","Other"];
 const read = (v: FormDataEntryValue | null) => typeof v === "string" ? v.trim() : "";
 
+function parseEasternDateTime(value: string): string | null {
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value)) return null;
+  const target = Date.parse(value + ":00Z");
+  if (!Number.isFinite(target)) return null;
+  const zone = "America/New_York";
+  const partsFor = (ms: number) => {
+    const parts = new Intl.DateTimeFormat("en-US", { timeZone: zone, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(new Date(ms));
+    const get = (type: string) => parts.find(p => p.type === type)?.value ?? "";
+    return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}`;
+  };
+  for (const offsetHours of [4, 5]) {
+    const candidate = target + offsetHours * 3600000;
+    if (partsFor(candidate) === value) return new Date(candidate).toISOString();
+  }
+  return null;
+}
+
 async function requireSalesManager() {
   const profile = await requireProfile();
   const role = typeof profile.role === "string" ? profile.role.trim().toLowerCase() : "";
@@ -77,9 +94,9 @@ export async function updateSalesPlanAction(formData: FormData) {
 
   let nextActionAt: string | null = null;
   if (at) {
-    const parsed = new Date(at);
-    if (Number.isNaN(parsed.getTime())) redirect(`/app/platform/sales/${id}?error=date`);
-    nextActionAt = parsed.toISOString();
+    const parsed = parseEasternDateTime(at);
+    if (!parsed) redirect(`/app/platform/sales/${id}?error=date`);
+    nextActionAt = parsed;
   }
 
   const supabase = await createSupabaseServerClient();
@@ -116,8 +133,8 @@ export async function updateSalesCommercialAction(formData: FormData) {
 
   const parseDate = (value: string) => {
     if (!value) return null;
-    const parsed = new Date(value);
-    return Number.isNaN(parsed.getTime()) ? undefined : parsed.toISOString();
+    const parsed = parseEasternDateTime(value);
+    return parsed ?? undefined;
   };
   const dates = [demoScheduled, demoCompleted, evaluationOffered, evaluationStarts, evaluationEnds].map(parseDate);
   if (dates.some(v => v === undefined)) redirect(`/app/platform/sales/${id}?error=date`);
