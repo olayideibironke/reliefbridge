@@ -37,7 +37,8 @@ export default async function FollowUpsPage({ searchParams }: { searchParams: Pr
   const overdue = open.filter(x => due(x) !== null && due(x)! < today);
   const todayRows = open.filter(x => due(x) === today);
   const weekRows = open.filter(x => due(x) !== null && due(x)! >= today && due(x)! <= today + 7);
-  const unscheduled = open.filter(x => !x.next_action_at);
+  const completedIds = new Set(completed.map(x => x.opportunity_id));
+  const unscheduled = open.filter(x => !x.next_action_at && !completedIds.has(x.id));
   const view = ["overdue", "today", "week", "unscheduled", "all", "completed"].includes(sp.view ?? "") ? sp.view : "week";
   const bucket = view === "overdue" ? overdue : view === "today" ? todayRows : view === "unscheduled" ? unscheduled : view === "all" ? open : weekRows;
   const q = (sp.q ?? "").trim().toLowerCase();
