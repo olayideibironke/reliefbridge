@@ -12,7 +12,7 @@ const PLATFORM_ORGANIZATION_ID = "9f3cb5cc-aa6f-44cb-8aa9-b0a7bc505142";
 const CLOSED = new Set(["Won", "Lost"]);
 type Lead = { id: string; organization_name: string; contact_first_name: string | null; contact_last_name: string | null; contact_email: string; stage: string; priority: string; next_action: string | null; next_action_at: string | null; last_activity_at: string; };
 const zone = "America/New_York";
-const dateKey = (d: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: zone, year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
+const dateKey = (d: Date) => { const parts = new Intl.DateTimeFormat("en-US", { timeZone: zone, year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(d); const get = (type: string) => parts.find(p => p.type === type)?.value ?? ""; return `${get("year")}-${get("month")}-${get("day")}`; };
 const formatDate = (value: string) => new Intl.DateTimeFormat("en-US", { timeZone: zone, dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
 const dayNumber = (key: string) => Math.floor(Date.parse(key + "T12:00:00Z") / 86400000);
 function Summary({ label, value, href }: { label: string; value: number; href: string }) {
