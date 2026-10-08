@@ -52,8 +52,8 @@ export async function createDemoAction(_previous: DemoHubState, formData: FormDa
   const contact_email = value(formData, "contact_email");
   const duration_days = Number(value(formData, "duration_days") || "7");
 
-  if (!organization_name || !/^[A-Z]{2}$/.test(state)) {
-    return { ok: false, message: "Organization name and two-letter state are required." };
+  if (!organization_name || !city || city.length > 100 || !/^[A-Z]{2}$/.test(state)) {
+    return { ok: false, message: "Organization name, valid city, and two-letter state are required." };
   }
 
   if (contact_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact_email)) {
