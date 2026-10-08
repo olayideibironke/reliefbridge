@@ -63,11 +63,30 @@ const US_LOCATIONS = {
 const STATE_NAMES: Record<keyof typeof US_LOCATIONS, string> = {
   AL:"Alabama", AK:"Alaska", AZ:"Arizona", AR:"Arkansas", CA:"California", CO:"Colorado", CT:"Connecticut", DE:"Delaware", DC:"District of Columbia", FL:"Florida", GA:"Georgia", HI:"Hawaii", ID:"Idaho", IL:"Illinois", IN:"Indiana", IA:"Iowa", KS:"Kansas", KY:"Kentucky", LA:"Louisiana", ME:"Maine", MD:"Maryland", MA:"Massachusetts", MI:"Michigan", MN:"Minnesota", MS:"Mississippi", MO:"Missouri", MT:"Montana", NE:"Nebraska", NV:"Nevada", NH:"New Hampshire", NJ:"New Jersey", NM:"New Mexico", NY:"New York", NC:"North Carolina", ND:"North Dakota", OH:"Ohio", OK:"Oklahoma", OR:"Oregon", PA:"Pennsylvania", RI:"Rhode Island", SC:"South Carolina", SD:"South Dakota", TN:"Tennessee", TX:"Texas", UT:"Utah", VT:"Vermont", VA:"Virginia", WA:"Washington", WV:"West Virginia", WI:"Wisconsin", WY:"Wyoming"
 };
+const CA_LOCATIONS: Record<string, string[]> = {
+  AB: ["Calgary", "Edmonton", "Lethbridge", "Red Deer", "Medicine Hat", "Grande Prairie", "Fort McMurray"],
+  BC: ["Vancouver", "Victoria", "Surrey", "Burnaby", "Richmond", "Kelowna", "Kamloops", "Nanaimo", "Prince George", "Abbotsford"],
+  MB: ["Winnipeg", "Brandon", "Steinbach", "Thompson", "Portage la Prairie"],
+  NB: ["Moncton", "Saint John", "Fredericton", "Dieppe", "Miramichi", "Edmundston"],
+  NL: ["St. John's", "Mount Pearl", "Corner Brook", "Gander", "Grand Falls-Windsor", "Labrador City"],
+  NS: ["Halifax", "Dartmouth", "Sydney", "Truro", "New Glasgow", "Kentville", "Bridgewater"],
+  NT: ["Yellowknife", "Hay River", "Inuvik", "Fort Smith"],
+  NU: ["Iqaluit", "Rankin Inlet", "Arviat", "Cambridge Bay"],
+  ON: ["Toronto", "Ottawa", "Mississauga", "Brampton", "Hamilton", "London", "Kitchener", "Waterloo", "Cambridge", "Windsor", "Kingston", "Barrie", "Niagara Falls", "Thunder Bay", "Sudbury", "Oshawa", "Markham", "Vaughan"],
+  PE: ["Charlottetown", "Summerside", "Stratford", "Cornwall"],
+  QC: ["Montréal", "Québec City", "Laval", "Gatineau", "Longueuil", "Sherbrooke", "Saguenay", "Trois-Rivières", "Lévis", "Terrebonne"],
+  SK: ["Saskatoon", "Regina", "Prince Albert", "Moose Jaw", "Swift Current", "Yorkton"],
+  YT: ["Whitehorse", "Dawson City", "Watson Lake"]
+};
+const CA_PROVINCES: Record<string,string> = {AB:"Alberta",BC:"British Columbia",MB:"Manitoba",NB:"New Brunswick",NL:"Newfoundland and Labrador",NS:"Nova Scotia",NT:"Northwest Territories",NU:"Nunavut",ON:"Ontario",PE:"Prince Edward Island",QC:"Quebec",SK:"Saskatchewan",YT:"Yukon"};
 const inputClass = "mt-1.5 h-11 w-full rounded-sm border border-line bg-white px-3 text-[14px] text-ink outline-none transition focus:border-blue focus:ring-2 focus:ring-blue/10";
 
 export function CreateDemoForm() {
   const [state, action, pending] = useActionState(createDemoAction, initialState);
-  const [selectedState, setSelectedState] = useState<keyof typeof US_LOCATIONS | "">("");
+  const [countryChoice, setCountryChoice] = useState("United States");
+  const [manualCountry, setManualCountry] = useState("");
+  const [selectedState, setSelectedState] = useState("");
+  const [manualState, setManualState] = useState("");
   const [selectedCity, setSelectedCity] = useState("");
   const [manualCity, setManualCity] = useState("");
   const [copied, setCopied] = useState<"password" | "all" | null>(null);
@@ -106,20 +125,36 @@ export function CreateDemoForm() {
             <option value="VOAD">VOAD</option><option value="COAD">COAD</option><option>Long-Term Recovery Group</option><option>Nonprofit</option><option>Faith-Based Organization</option><option>Government Agency</option><option>Other</option>
           </select>
         </label>
-        <label className="text-[12.5px] font-semibold text-ink-2">State
-          <select name="state" required value={selectedState} onChange={(event) => { setSelectedState(event.target.value as keyof typeof US_LOCATIONS | ""); setSelectedCity(""); setManualCity(""); }} className={inputClass}>
-            <option value="">Select state</option>
-            {Object.entries(STATE_NAMES).map(([code, name]) => <option key={code} value={code}>{name} ({code})</option>)}
+        <div className="text-[12.5px] font-semibold text-ink-2">
+          <label htmlFor="demo-country">Country</label>
+          <select id="demo-country" required className={inputClass} value={countryChoice} onChange={(e) => { setCountryChoice(e.target.value); setManualCountry(""); setSelectedState(""); setManualState(""); setSelectedCity(""); setManualCity(""); }}>
+            <option value="United States">United States</option>
+            <option value="Canada">Canada</option>
+            <option value="__other">Other (Enter country manually)</option>
           </select>
-        </label>
+          {countryChoice === "__other" && <input aria-label="Enter country name" required maxLength={100} placeholder="Enter country name" className={inputClass} value={manualCountry} onChange={(e) => setManualCountry(e.target.value)} />}
+          <input type="hidden" name="country" value={countryChoice === "__other" ? manualCountry.trim() : countryChoice} />
+        </div>
+        <div className="text-[12.5px] font-semibold text-ink-2">
+          <label htmlFor="demo-state">State / Province / Territory</label>
+          <select id="demo-state" required className={inputClass} value={selectedState} onChange={(e) => { setSelectedState(e.target.value); setManualState(""); setSelectedCity(""); setManualCity(""); }}>
+            <option value="">Select state / province</option>
+            {countryChoice === "United States" && Object.entries(STATE_NAMES).map(([code,name]) => <option key={code} value={code}>{name} ({code})</option>)}
+            {countryChoice === "Canada" && Object.entries(CA_PROVINCES).map(([code,name]) => <option key={code} value={code}>{name} ({code})</option>)}
+            <option value="__other">Other (Enter manually)</option>
+          </select>
+          {selectedState === "__other" && <input aria-label="Enter state or province" required maxLength={100} placeholder="Enter state / province / territory" className={inputClass} value={manualState} onChange={(e) => setManualState(e.target.value)} />}
+          <input type="hidden" name="state" value={selectedState === "__other" ? manualState.trim() : selectedState} />
+        </div>
         <div className="text-[12.5px] font-semibold text-ink-2">
           <label htmlFor="demo-city">City</label>
-          <select id="demo-city" value={selectedCity} onChange={(event) => { setSelectedCity(event.target.value); setManualCity(""); }} required disabled={!selectedState} className={inputClass}>
-            <option value="">{selectedState ? "Select city" : "Select state first"}</option>
-            {selectedState && US_LOCATIONS[selectedState].map((city) => <option key={city} value={city}>{city}</option>)}
+          <select id="demo-city" value={selectedCity} onChange={(e) => { setSelectedCity(e.target.value); setManualCity(""); }} required disabled={!selectedState} className={inputClass}>
+            <option value="">{selectedState ? "Select city" : "Select state / province first"}</option>
+            {selectedState !== "__other" && countryChoice === "United States" && (US_LOCATIONS[selectedState as keyof typeof US_LOCATIONS] ?? []).map(city => <option key={city} value={city}>{city}</option>)}
+            {selectedState !== "__other" && countryChoice === "Canada" && (CA_LOCATIONS[selectedState] ?? []).map(city => <option key={city} value={city}>{city}</option>)}
             {selectedState && <option value="__other">Other (Enter city manually)</option>}
           </select>
-          {selectedCity === "__other" && <input aria-label="Enter city name" placeholder="Enter city name" value={manualCity} onChange={(event) => setManualCity(event.target.value)} required maxLength={100} className={inputClass} />}
+          {selectedCity === "__other" && <input aria-label="Enter city name" placeholder="Enter city name" value={manualCity} onChange={(e) => setManualCity(e.target.value)} required maxLength={100} className={inputClass} />}
           <input type="hidden" name="city" value={selectedCity === "__other" ? manualCity.trim() : selectedCity} />
         </div>
         <label className="text-[12.5px] font-semibold text-ink-2">Client contact
