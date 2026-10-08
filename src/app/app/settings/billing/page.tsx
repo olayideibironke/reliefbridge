@@ -3,6 +3,7 @@ import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { requireProfile } from "@/lib/session";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { SettingsNav } from "../SettingsNav";
+import { SeatCheckoutForm } from "./SeatCheckoutForm";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Billing — ReliefBridge" };
@@ -62,7 +63,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
             <span className="rounded-full bg-surface-2 px-3 py-1 text-xs font-semibold text-ink-2">{status}</span>
           </div>
           <div className="mt-6 border-t border-line pt-6">
-            {billing ? (
+            {activeSubscription ? (
               <>
                 <p className="text-sm text-ink-2">Licensed organizational users: <strong className="text-navy">{billing.licensed_organizational_users}</strong></p>
                 {billing.current_period_end && <p className="mt-1 text-sm text-ink-2">Current period ends {new Date(billing.current_period_end).toLocaleDateString("en-US")}.</p>}
@@ -70,12 +71,10 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
                 {canManage && billing.stripe_customer_id && <form action="/api/billing/portal" method="post" className="mt-5"><button className="rounded-md bg-navy px-4 py-2.5 text-sm font-semibold text-white" type="submit">Manage billing</button></form>}
               </>
             ) : canManage ? (
-              <form action="/api/billing/checkout" method="post">
-                <label className="block text-sm font-semibold text-navy" htmlFor="licensed_users">Total licensed organizational users</label>
-                <p className="mt-1 text-sm text-ink-2">15 are included. Each additional organizational user is $49/month.</p>
-                <input id="licensed_users" name="licensed_users" type="number" min="15" max="500" defaultValue="15" className="mt-3 w-32 rounded-md border border-line bg-white px-3 py-2 text-sm text-navy" required />
-                <div className="mt-5"><button className="rounded-md bg-navy px-4 py-2.5 text-sm font-semibold text-white" type="submit">Continue to secure checkout</button></div>
-              </form>
+              <>
+                {status === "checkout_pending" && <p className="mb-4 text-sm text-ink-2">Your previous checkout was not completed. You can change the number of users and restart checkout without being charged.</p>}
+                <SeatCheckoutForm initialUsers={billing?.licensed_organizational_users ?? 15} />
+              </>
             ) : <p className="text-sm text-ink-2">An organization owner or administrator can manage billing.</p>}
           </div>
         </div>
