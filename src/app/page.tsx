@@ -1,4 +1,7 @@
 import type { ReactNode, SVGProps } from "react";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = { alternates: { canonical: "/" } };
 import Link from "next/link";
 
 const IMG = {
