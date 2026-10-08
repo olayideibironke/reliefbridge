@@ -65,10 +65,10 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
           <div className="mt-6 border-t border-line pt-6">
             {activeSubscription ? (
               <>
-                <p className="text-sm text-ink-2">Licensed organizational users: <strong className="text-navy">{billing.licensed_organizational_users}</strong></p>
-                {billing.current_period_end && <p className="mt-1 text-sm text-ink-2">Current period ends {new Date(billing.current_period_end).toLocaleDateString("en-US")}.</p>}
-                {billing.cancel_at_period_end && <p className="mt-2 text-sm font-semibold text-amber-700">Cancellation is scheduled for the end of the current billing period.</p>}
-                {canManage && billing.stripe_customer_id && <form action="/api/billing/portal" method="post" className="mt-5"><button className="rounded-md bg-navy px-4 py-2.5 text-sm font-semibold text-white" type="submit">Manage billing</button></form>}
+                <p className="text-sm text-ink-2">Licensed organizational users: <strong className="text-navy">{billing?.licensed_organizational_users ?? 15}</strong></p>
+                {billing?.current_period_end && <p className="mt-1 text-sm text-ink-2">Current period ends {new Date(billing!.current_period_end).toLocaleDateString("en-US")}.</p>}
+                {billing?.cancel_at_period_end && <p className="mt-2 text-sm font-semibold text-amber-700">Cancellation is scheduled for the end of the current billing period.</p>}
+                {canManage && billing?.stripe_customer_id && <form action="/api/billing/portal" method="post" className="mt-5"><button className="rounded-md bg-navy px-4 py-2.5 text-sm font-semibold text-white" type="submit">Manage billing</button></form>}
               </>
             ) : canManage ? (
               <>
