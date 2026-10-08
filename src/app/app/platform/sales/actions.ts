@@ -199,3 +199,35 @@ export async function addSalesActivityAction(formData: FormData) {
   revalidatePath(`/app/platform/sales/${id}`);
   redirect(`/app/platform/sales/${id}?saved=1`);
 }
+
+export async function completeSalesFollowUpAction(formData: FormData) {
+  const profile = await requireSalesManager();
+  const id = read(formData.get("opportunity_id"));
+  if (!/^[0-9a-f-]{36}$/i.test(id)) redirect("/app/platform/sales/follow-ups?error=invalid");
+  const supabase = await createSupabaseServerClient();
+  const { data: current, error: readError } = await supabase.from("sales_opportunities")
+    .select("id,organization_name,next_action,next_action_at,is_test").eq("id", id).eq("is_test", false).maybeSingle();
+  if (readError || !current || !current.next_action_at) redirect("/app/platform/sales/follow-ups?error=missing");
+  const now = new Date().toISOString();
+  const { data: updated, error: updateError } = await supabase.from("sales_opportunities")
+    .update({ next_action_at: null, next_action: null, last_activity_at: now, updated_by: profile.id, updated_at: now })
+    .eq("id", id).eq("next_action_at", current.next_action_at).select("id").maybeSingle();
+  if (updateError || !updated) redirect("/app/platform/sales/follow-ups?error=update");
+  const { error: activityError } = await supabase.from("sales_activities").insert({
+    opportunity_id: id, activity_type: "Follow-Up", summary: "Follow-up completed",
+    details: JSON.stringify({ action: current.next_action || "Follow up", scheduled_at: current.next_action_at }),
+    created_by: profile.id, occurred_at: now,
+  });
+  if (activityError) {
+    console.error("Follow-up completion audit insert failed", activityError);
+    const { error: rollbackError } = await supabase.from("sales_opportunities").update({
+      next_action: current.next_action, next_action_at: current.next_action_at, updated_by: profile.id, updated_at: new Date().toISOString(),
+    }).eq("id", id).is("next_action_at", null);
+    if (rollbackError) console.error("Follow-up completion rollback failed", rollbackError);
+    redirect("/app/platform/sales/follow-ups?error=activity");
+  }
+  revalidatePath("/app/platform/sales/follow-ups");
+  revalidatePath("/app/platform/sales");
+  revalidatePath(`/app/platform/sales/${id}`);
+  redirect("/app/platform/sales/follow-ups?view=completed&saved=1");
+}
