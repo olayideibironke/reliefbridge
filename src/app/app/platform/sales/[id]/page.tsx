@@ -19,7 +19,7 @@ type OpportunityDetail = {
   evaluation_offered_at:string|null; evaluation_starts_at:string|null; evaluation_ends_at:string|null; quote_status:string|null; expected_value:number|null; notes:string|null; outcome_reason:string|null;
 };
 function fmt(v:string|null) { if(!v)return "Not recorded"; const d=new Date(v); return Number.isNaN(d.getTime())?"Not recorded":new Intl.DateTimeFormat("en-US",{dateStyle:"medium",timeStyle:"short"}).format(d); }
-function datetimeLocal(v:string|null) { if(!v)return ""; const d=new Date(v); if(Number.isNaN(d.getTime()))return ""; const offset=d.getTimezoneOffset()*60000; return new Date(d.getTime()-offset).toISOString().slice(0,16); }
+function datetimeLocal(v:string|null) { if(!v)return ""; const d=new Date(v); if(Number.isNaN(d.getTime()))return ""; const parts=new Intl.DateTimeFormat("en-US",{timeZone:"America/New_York",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).formatToParts(d); const get=(type:string)=>parts.find(p=>p.type===type)?.value??""; return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}`; }
 
 export default async function OpportunityPage({params,searchParams}:{params:Promise<{id:string}>;searchParams:Promise<{saved?:string;error?:string}>}) {
   const profile=await requireProfile();
