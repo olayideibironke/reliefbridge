@@ -66,7 +66,7 @@ export async function POST(request: Request) {
     const customer = await stripePost("/customers", customerParams);
     customerId = customer.id;
 
-    await admin.from("organization_billing").upsert({
+    const { error: customerSaveError } = await admin.from("organization_billing").upsert({
       organization_id: profile.organization_id,
       stripe_customer_id: customerId,
       stripe_subscription_status: "checkout_pending",
@@ -75,7 +75,18 @@ export async function POST(request: Request) {
       stripe_additional_user_price_id: STRIPE_ADDITIONAL_USER_PRICE_ID,
       updated_at: new Date().toISOString(),
     });
+    if (customerSaveError) throw customerSaveError;
   }
+
+  // Checkout is not a subscription. Keep the seat choice editable until payment completes.
+  const { error: pendingError } = await admin.from("organization_billing").update({
+    stripe_subscription_status: "checkout_pending",
+    licensed_organizational_users: requestedUsers,
+    stripe_base_price_id: STRIPE_COMPLETE_PRICE_ID,
+    stripe_additional_user_price_id: STRIPE_ADDITIONAL_USER_PRICE_ID,
+    updated_at: new Date().toISOString(),
+  }).eq("organization_id", profile.organization_id).is("stripe_subscription_id", null);
+  if (pendingError) throw pendingError;
 
   const origin = new URL(request.url).origin;
   const params = new URLSearchParams();
