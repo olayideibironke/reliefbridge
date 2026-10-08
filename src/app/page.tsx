@@ -14,11 +14,11 @@ const IMG = {
 };
 
 const navigationItems = [
-  { label: "Disasters & Recovery", href: "#platform" },
-  { label: "Case Management", href: "/app/cases" },
-  { label: "Referral Exchange", href: "/app/referrals" },
-  { label: "Partner Organizations", href: "/app/partners" },
-  { label: "Reports", href: "/app/reports" },
+  { label: "Disasters & Recovery", href: "/disaster-recovery" },
+  { label: "Case Management", href: "/case-management" },
+  { label: "Features", href: "/features" },
+  { label: "Partner Organizations", href: "/partners" },
+  { label: "Pricing", href: "/pricing" },
 ];
 
 type IconProps = SVGProps<SVGSVGElement>;
