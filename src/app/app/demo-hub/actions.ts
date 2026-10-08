@@ -46,14 +46,15 @@ async function invoke(body: Record<string, unknown>) {
 export async function createDemoAction(_previous: DemoHubState, formData: FormData): Promise<DemoHubState> {
   const organization_name = value(formData, "organization_name");
   const organization_type = value(formData, "organization_type") || "VOAD";
+  const country = value(formData, "country") || "United States";
   const city = value(formData, "city");
-  const state = value(formData, "state").toUpperCase();
+  const state = value(formData, "state");
   const contact_name = value(formData, "contact_name");
   const contact_email = value(formData, "contact_email");
   const duration_days = Number(value(formData, "duration_days") || "7");
 
-  if (!organization_name || !city || city.length > 100 || !/^[A-Z]{2}$/.test(state)) {
-    return { ok: false, message: "Organization name, valid city, and two-letter state are required." };
+  if (!organization_name || !country || country.length > 100 || !city || city.length > 100 || !state || state.length > 100) {
+    return { ok: false, message: "Organization name, country, state/province, and city are required." };
   }
 
   if (contact_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact_email)) {
@@ -64,7 +65,7 @@ export async function createDemoAction(_previous: DemoHubState, formData: FormDa
   }
 
   try {
-    const data = await invoke({ action: "create", organization_name, organization_type, city, state, contact_name, contact_email, duration_days });
+    const data = await invoke({ action: "create", organization_name, organization_type, country, city, state, contact_name, contact_email, duration_days });
     revalidatePath("/app/demo-hub");
     return {
       ok: true,
