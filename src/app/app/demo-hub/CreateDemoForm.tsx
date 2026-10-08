@@ -40,7 +40,7 @@ const US_LOCATIONS = {
   NJ: ["Atlantic City", "Camden", "Elizabeth", "Jersey City", "Newark", "Paterson", "Trenton"],
   NM: ["Albuquerque", "Las Cruces", "Rio Rancho", "Roswell", "Santa Fe"],
   NY: ["Albany", "Buffalo", "New York", "Rochester", "Syracuse", "Yonkers"],
-  NC: ["Asheville", "Charlotte", "Durham", "Fayetteville", "Greensboro", "Raleigh", "Wilmington", "Winston-Salem"],
+  NC: ["Asheville", "Brevard", "Charlotte", "Durham", "Fayetteville", "Greensboro", "Raleigh", "Wilmington", "Winston-Salem"],
   ND: ["Bismarck", "Fargo", "Grand Forks", "Minot"],
   OH: ["Akron", "Cincinnati", "Cleveland", "Columbus", "Dayton", "Toledo"],
   OK: ["Broken Arrow", "Edmond", "Norman", "Oklahoma City", "Tulsa"],
@@ -68,6 +68,8 @@ const inputClass = "mt-1.5 h-11 w-full rounded-sm border border-line bg-white px
 export function CreateDemoForm() {
   const [state, action, pending] = useActionState(createDemoAction, initialState);
   const [selectedState, setSelectedState] = useState<keyof typeof US_LOCATIONS | "">("");
+  const [selectedCity, setSelectedCity] = useState("");
+  const [manualCity, setManualCity] = useState("");
   const [copied, setCopied] = useState<"password" | "all" | null>(null);
   const [passwordVisible, setPasswordVisible] = useState(true);
 
@@ -105,17 +107,21 @@ export function CreateDemoForm() {
           </select>
         </label>
         <label className="text-[12.5px] font-semibold text-ink-2">State
-          <select name="state" required value={selectedState} onChange={(event) => setSelectedState(event.target.value as keyof typeof US_LOCATIONS | "")} className={inputClass}>
+          <select name="state" required value={selectedState} onChange={(event) => { setSelectedState(event.target.value as keyof typeof US_LOCATIONS | ""); setSelectedCity(""); setManualCity(""); }} className={inputClass}>
             <option value="">Select state</option>
             {Object.entries(STATE_NAMES).map(([code, name]) => <option key={code} value={code}>{name} ({code})</option>)}
           </select>
         </label>
-        <label className="text-[12.5px] font-semibold text-ink-2">City
-          <select name="city" required disabled={!selectedState} defaultValue="" key={selectedState} className={inputClass}>
+        <div className="text-[12.5px] font-semibold text-ink-2">
+          <label htmlFor="demo-city">City</label>
+          <select id="demo-city" value={selectedCity} onChange={(event) => { setSelectedCity(event.target.value); setManualCity(""); }} required disabled={!selectedState} className={inputClass}>
             <option value="">{selectedState ? "Select city" : "Select state first"}</option>
             {selectedState && US_LOCATIONS[selectedState].map((city) => <option key={city} value={city}>{city}</option>)}
+            {selectedState && <option value="__other">Other (Enter city manually)</option>}
           </select>
-        </label>
+          {selectedCity === "__other" && <input aria-label="Enter city name" placeholder="Enter city name" value={manualCity} onChange={(event) => setManualCity(event.target.value)} required maxLength={100} className={inputClass} />}
+          <input type="hidden" name="city" value={selectedCity === "__other" ? manualCity.trim() : selectedCity} />
+        </div>
         <label className="text-[12.5px] font-semibold text-ink-2">Client contact
           <input name="contact_name" required className={inputClass} />
         </label>
