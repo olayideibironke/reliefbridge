@@ -7,7 +7,7 @@ import { SettingsNav } from "../SettingsNav";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Billing — ReliefBridge" };
 
-export default async function BillingPage({ searchParams }: { searchParams: Promise<{ service_suspended?: string }> }) {
+export default async function BillingPage({ searchParams }: { searchParams: Promise<{ service_suspended?: string; portal_error?: string }> }) {
   const profile = await requireProfile();
   const sp = await searchParams;
   const supabase = await createSupabaseServerClient();
@@ -33,6 +33,17 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
       <PageHeader eyebrow="Settings" title="Billing" subtitle="Manage your ReliefBridge Complete subscription and licensed organizational users." breadcrumbs={[{ label: "Settings", href: "/app/settings/organization" }, { label: "Billing" }]} />
       <div className="px-6 py-8 md:px-10">
         <SettingsNav />
+        {sp.portal_error && (
+          <div role="alert" className="mb-6 max-w-3xl rounded-md border border-red bg-red-soft p-4">
+            <p className="font-bold text-red">Billing management could not be opened</p>
+            <p className="mt-1 text-sm text-ink-2">
+              {sp.portal_error === "session" ? "Your session has expired. Please sign in again."
+                : sp.portal_error === "permission" ? "An active organization owner or administrator is required."
+                : sp.portal_error === "customer" ? "This organization does not have a linked Stripe customer yet."
+                : "Stripe could not open your billing portal. Your subscription has not been changed. Please try again shortly or contact ReliefBridge support."}
+            </p>
+          </div>
+        )}
         {(suspended || sp.service_suspended === "1") && (
           <div className="mb-6 max-w-3xl rounded-md border border-red bg-red-soft p-4">
             <p className="font-bold text-red">Service suspended for non-payment</p>
