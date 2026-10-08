@@ -1,5 +1,8 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = { robots: { index: false, follow: false } };
 import { Logo } from "@/components/brand/Logo";
 import { Icons } from "@/components/ui/Icons";
 
