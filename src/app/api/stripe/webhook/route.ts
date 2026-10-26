@@ -56,12 +56,13 @@ export async function POST(request: Request) {
 
   const event = JSON.parse(payload) as StripeEvent;
   const admin = createSupabaseAdminClient();
-  const { data: alreadyProcessed } = await admin
+  const { data: alreadyProcessed, error: lookupError } = await admin
     .from("stripe_webhook_events")
     .select("event_id")
     .eq("event_id", event.id)
     .maybeSingle();
 
+  if (lookupError) throw lookupError;
   if (alreadyProcessed) return NextResponse.json({ received: true });
 
   if (event.type === "checkout.session.completed") {
