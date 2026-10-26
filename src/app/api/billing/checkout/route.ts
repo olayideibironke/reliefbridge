@@ -43,11 +43,11 @@ export async function POST(request: Request) {
   const admin = createSupabaseAdminClient();
   const { data: existing } = await admin
     .from("organization_billing")
-    .select("stripe_customer_id, stripe_subscription_id")
+    .select("stripe_customer_id, stripe_subscription_id, stripe_subscription_status")
     .eq("organization_id", profile.organization_id)
     .maybeSingle();
 
-  if (existing?.stripe_subscription_id) {
+  if (existing?.stripe_subscription_id && existing.stripe_subscription_status !== "canceled") {
     return NextResponse.redirect(new URL("/app/settings/billing?already_subscribed=1", request.url), 303);
   }
 
@@ -78,6 +78,7 @@ export async function POST(request: Request) {
     if (customerSaveError) throw customerSaveError;
   }
 
+  // A canceled subscription may be replaced by a new Checkout subscription.
   // Checkout is not a subscription. Keep the seat choice editable until payment completes.
   const { error: pendingError } = await admin.from("organization_billing").update({
     stripe_subscription_status: "checkout_pending",
@@ -85,7 +86,7 @@ export async function POST(request: Request) {
     stripe_base_price_id: STRIPE_COMPLETE_PRICE_ID,
     stripe_additional_user_price_id: STRIPE_ADDITIONAL_USER_PRICE_ID,
     updated_at: new Date().toISOString(),
-  }).eq("organization_id", profile.organization_id).is("stripe_subscription_id", null);
+  }).eq("organization_id", profile.organization_id);
   if (pendingError) throw pendingError;
 
   const origin = new URL(request.url).origin;
