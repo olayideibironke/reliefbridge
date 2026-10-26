@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Billing — ReliefBridge" };
 
 export default async function BillingPage({ searchParams }: { searchParams: Promise<{ service_suspended?: string; portal_error?: string }> }) {
-  const profile = await requireProfile();
+  const profile = await requireProfile(true);
   const sp = await searchParams;
   const supabase = await createSupabaseServerClient();
   const { data: demoAccess } = await supabase.rpc("get_my_demo_access");
@@ -25,7 +25,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
     : { data: null };
 
   const status = String(billing?.stripe_subscription_status ?? "not_configured").toLowerCase();
-  const activeSubscription = Boolean(billing && !["not_configured", "checkout_pending", "canceled"].includes(status));
+  const activeSubscription = ["active", "trialing", "past_due", "incomplete", "unpaid"].includes(status);
   const suspended = ["unpaid", "canceled", "incomplete_expired", "paused"].includes(status);
   const paymentAttention = ["past_due", "incomplete"].includes(status);
 
@@ -47,8 +47,8 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
         )}
         {(suspended || sp.service_suspended === "1") && (
           <div className="mb-6 max-w-3xl rounded-md border border-red bg-red-soft p-4">
-            <p className="font-bold text-red">Service suspended for non-payment</p>
-            <p className="mt-1 text-sm text-ink-2">Your organization data is preserved. An owner or administrator can use Manage billing below to resolve payment. Service restores automatically after Stripe confirms an active subscription.</p>
+            <p className="font-bold text-red">Subscription requires attention</p>
+            <p className="mt-1 text-sm text-ink-2">Your organization data is preserved. An owner or administrator can resolve unpaid invoices through Stripe or restart an ended subscription below.</p>
           </div>
         )}
         {paymentAttention && (

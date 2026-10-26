@@ -23,6 +23,7 @@ async function enforceDemoAccess(supabase: Awaited<ReturnType<typeof createSupab
 async function enforceBillingAccess(
   supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
   profile: Profile,
+  allowBillingPage = false,
 ) {
   if (!profile.organization_id || profile.organization_id === PLATFORM_ORGANIZATION_ID) return;
 
@@ -37,14 +38,18 @@ async function enforceBillingAccess(
     .maybeSingle();
 
   // Existing/pre-billing organizations continue unchanged until a billing record exists.
-  if (error || !billing) return;
+  if (error) throw error;
+  if (!billing) return;
 
   const status = String(billing.stripe_subscription_status ?? "").toLowerCase();
-  if (BILLING_ALLOWED_STATUSES.has(status) || BILLING_RECOVERY_STATUSES.has(status) || status === "checkout_pending") return;
+  if (BILLING_ALLOWED_STATUSES.has(status)) return;
 
-  if (BILLING_BLOCKED_STATUSES.has(status)) {
+  if (BILLING_BLOCKED_STATUSES.has(status) || BILLING_RECOVERY_STATUSES.has(status) || status === "checkout_pending") {
     const role = String(profile.role ?? "").toLowerCase();
-    if (["owner", "admin"].includes(role)) redirect("/app/settings/billing?service_suspended=1");
+    if (["owner", "admin"].includes(role)) {
+      if (allowBillingPage) return;
+      redirect("/app/settings/billing?service_suspended=1");
+    }
     await supabase.auth.signOut();
     redirect("/login?billing_suspended=1");
   }
@@ -58,7 +63,7 @@ export async function getSessionUser() {
   return user;
 }
 
-export async function getProfile(): Promise<Profile | null> {
+export async function getProfile(allowBillingPage = false): Promise<Profile | null> {
   const supabase = await createSupabaseServerClient();
   const { data: { user }, error: userError } = await supabase.auth.getUser();
   if (userError || !user) return null;
@@ -88,12 +93,12 @@ export async function getProfile(): Promise<Profile | null> {
     await supabase.rpc("touch_my_platform_access");
   }
 
-  await enforceBillingAccess(supabase, profile as unknown as Profile);
+  await enforceBillingAccess(supabase, profile as unknown as Profile, allowBillingPage);
   return profile as unknown as Profile;
 }
 
-export async function requireProfile(): Promise<Profile> {
-  const profile = await getProfile();
+export async function requireProfile(allowBillingPage = false): Promise<Profile> {
+  const profile = await getProfile(allowBillingPage);
   if (!profile) throw new Error("This signed-in account does not have a ReliefBridge profile.");
   if (!profile.organization_id) throw new Error("This ReliefBridge profile is not connected to an organization.");
   return profile;

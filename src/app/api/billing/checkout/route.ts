@@ -41,13 +41,16 @@ export async function POST(request: Request) {
   }
 
   const admin = createSupabaseAdminClient();
-  const { data: existing } = await admin
+  const { data: existing, error: existingError } = await admin
     .from("organization_billing")
-    .select("stripe_customer_id, stripe_subscription_id")
+    .select("stripe_customer_id, stripe_subscription_id, stripe_subscription_status")
     .eq("organization_id", profile.organization_id)
     .maybeSingle();
 
-  if (existing?.stripe_subscription_id) {
+  if (existingError) throw existingError;
+  const endedStatuses = new Set(["canceled", "incomplete_expired"]);
+  const endedSubscription = endedStatuses.has(String(existing?.stripe_subscription_status ?? "").toLowerCase());
+  if (existing?.stripe_subscription_id && !endedSubscription) {
     return NextResponse.redirect(new URL("/app/settings/billing?already_subscribed=1", request.url), 303);
   }
 
@@ -78,14 +81,16 @@ export async function POST(request: Request) {
     if (customerSaveError) throw customerSaveError;
   }
 
+  // A canceled subscription may be replaced by a new Checkout subscription.
   // Checkout is not a subscription. Keep the seat choice editable until payment completes.
   const { error: pendingError } = await admin.from("organization_billing").update({
     stripe_subscription_status: "checkout_pending",
+    stripe_subscription_id: endedSubscription ? null : existing?.stripe_subscription_id ?? null,
     licensed_organizational_users: requestedUsers,
     stripe_base_price_id: STRIPE_COMPLETE_PRICE_ID,
     stripe_additional_user_price_id: STRIPE_ADDITIONAL_USER_PRICE_ID,
     updated_at: new Date().toISOString(),
-  }).eq("organization_id", profile.organization_id).is("stripe_subscription_id", null);
+  }).eq("organization_id", profile.organization_id);
   if (pendingError) throw pendingError;
 
   const origin = new URL(request.url).origin;

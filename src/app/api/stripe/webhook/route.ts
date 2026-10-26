@@ -16,7 +16,15 @@ type StripeEvent = {
 async function syncSubscription(subscription: Record<string, any>, fallbackOrgId?: string) {
   const admin = createSupabaseAdminClient();
   const orgId = subscription.metadata?.organization_id || fallbackOrgId;
-  if (!orgId) return;
+  if (!orgId) throw new Error("Stripe subscription is missing organization metadata.");
+
+  const { data: current, error: currentError } = await admin.from("organization_billing")
+    .select("stripe_subscription_id, stripe_subscription_status")
+    .eq("organization_id", orgId).maybeSingle();
+  if (currentError) throw currentError;
+  if (current?.stripe_subscription_id && current.stripe_subscription_id !== subscription.id) return;
+  if (!current?.stripe_subscription_id && current?.stripe_subscription_status === "checkout_pending" &&
+      subscription.status === "canceled") return;
 
   const items = subscription.items?.data ?? [];
   const additionalItem = items.find(
@@ -27,7 +35,7 @@ async function syncSubscription(subscription: Record<string, any>, fallbackOrgId
   );
   const licensedUsers = 15 + Number(additionalItem?.quantity ?? 0);
 
-  await admin.from("organization_billing").upsert({
+  const { error: billingError } = await admin.from("organization_billing").upsert({
     organization_id: orgId,
     stripe_customer_id:
       typeof subscription.customer === "string"
@@ -45,6 +53,7 @@ async function syncSubscription(subscription: Record<string, any>, fallbackOrgId
     cancel_at_period_end: Boolean(subscription.cancel_at_period_end),
     updated_at: new Date().toISOString(),
   });
+  if (billingError) throw billingError;
 }
 
 export async function POST(request: Request) {
@@ -55,12 +64,13 @@ export async function POST(request: Request) {
 
   const event = JSON.parse(payload) as StripeEvent;
   const admin = createSupabaseAdminClient();
-  const { data: alreadyProcessed } = await admin
+  const { data: alreadyProcessed, error: lookupError } = await admin
     .from("stripe_webhook_events")
     .select("event_id")
     .eq("event_id", event.id)
     .maybeSingle();
 
+  if (lookupError) throw lookupError;
   if (alreadyProcessed) return NextResponse.json({ received: true });
 
   if (event.type === "checkout.session.completed") {
@@ -78,13 +88,29 @@ export async function POST(request: Request) {
     event.type === "customer.subscription.updated" ||
     event.type === "customer.subscription.deleted"
   ) {
-    await syncSubscription(event.data.object);
+    const subscription = await stripeGet(`/subscriptions/${event.data.object.id}`);
+    await syncSubscription(subscription);
+  } else if (
+    event.type === "invoice.paid" ||
+    event.type === "invoice.payment_failed"
+  ) {
+    const invoice = event.data.object;
+    const subscriptionId =
+      typeof invoice.subscription === "string"
+        ? invoice.subscription
+        : invoice.subscription?.id ||
+          invoice.parent?.subscription_details?.subscription;
+    if (typeof subscriptionId === "string" && subscriptionId.startsWith("sub_")) {
+      const subscription = await stripeGet(`/subscriptions/${subscriptionId}`);
+      await syncSubscription(subscription);
+    }
   }
 
-  await admin.from("stripe_webhook_events").insert({
+  const { error: eventError } = await admin.from("stripe_webhook_events").insert({
     event_id: event.id,
     event_type: event.type,
   });
+  if (eventError && eventError.code !== "23505") throw eventError;
 
   return NextResponse.json({ received: true });
 }

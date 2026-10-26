@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { requireProfile } from "@/lib/session";
@@ -47,8 +48,9 @@ export default async function AppLayout({
     redirect("/login");
   }
 
+  const allowBillingPage = (await headers()).get("x-reliefbridge-billing-recovery") === "1";
   const profile =
-    (await requireProfile()) as ProfileWithFullName;
+    (await requireProfile(allowBillingPage)) as ProfileWithFullName;
 
   const { data: demoAccess } = await supabase.rpc("get_my_demo_access");
   const isManagedDemo =
