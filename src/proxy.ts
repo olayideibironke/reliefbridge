@@ -12,7 +12,9 @@ function isProtected(pathname: string) {
 }
 
 export async function proxy(request: NextRequest) {
-  let response = NextResponse.next({ request });
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-reliefbridge-billing-recovery", request.nextUrl.pathname === "/app/settings/billing" ? "1" : "0");
+  let response = NextResponse.next({ request: { headers: requestHeaders } });
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -27,7 +29,7 @@ export async function proxy(request: NextRequest) {
         for (const { name, value } of items) {
           request.cookies.set(name, value);
         }
-        response = NextResponse.next({ request });
+        response = NextResponse.next({ request: { headers: requestHeaders } });
         for (const { name, value, options } of items) {
           response.cookies.set(name, value, options);
         }
