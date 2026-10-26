@@ -22,8 +22,9 @@ async function syncSubscription(subscription: Record<string, any>, fallbackOrgId
     .select("stripe_subscription_id, stripe_subscription_status")
     .eq("organization_id", orgId).maybeSingle();
   if (currentError) throw currentError;
-  if (current?.stripe_subscription_id && current.stripe_subscription_id !== subscription.id &&
-      current.stripe_subscription_status !== "canceled") return;
+  if (current?.stripe_subscription_id && current.stripe_subscription_id !== subscription.id) return;
+  if (!current?.stripe_subscription_id && current?.stripe_subscription_status === "checkout_pending" &&
+      subscription.status === "canceled") return;
 
   const items = subscription.items?.data ?? [];
   const additionalItem = items.find(
