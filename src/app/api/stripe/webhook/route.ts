@@ -27,7 +27,7 @@ async function syncSubscription(subscription: Record<string, any>, fallbackOrgId
   );
   const licensedUsers = 15 + Number(additionalItem?.quantity ?? 0);
 
-  await admin.from("organization_billing").upsert({
+  const { error: billingError } = await admin.from("organization_billing").upsert({
     organization_id: orgId,
     stripe_customer_id:
       typeof subscription.customer === "string"
@@ -45,6 +45,7 @@ async function syncSubscription(subscription: Record<string, any>, fallbackOrgId
     cancel_at_period_end: Boolean(subscription.cancel_at_period_end),
     updated_at: new Date().toISOString(),
   });
+  if (billingError) throw billingError;
 }
 
 export async function POST(request: Request) {
@@ -81,10 +82,11 @@ export async function POST(request: Request) {
     await syncSubscription(event.data.object);
   }
 
-  await admin.from("stripe_webhook_events").insert({
+  const { error: eventError } = await admin.from("stripe_webhook_events").insert({
     event_id: event.id,
     event_type: event.type,
   });
+  if (eventError && eventError.code !== "23505") throw eventError;
 
   return NextResponse.json({ received: true });
 }
