@@ -82,6 +82,7 @@ export async function POST(request: Request) {
   // Checkout is not a subscription. Keep the seat choice editable until payment completes.
   const { error: pendingError } = await admin.from("organization_billing").update({
     stripe_subscription_status: "checkout_pending",
+    stripe_subscription_id: existing?.stripe_subscription_status === "canceled" ? null : existing?.stripe_subscription_id ?? null,
     licensed_organizational_users: requestedUsers,
     stripe_base_price_id: STRIPE_COMPLETE_PRICE_ID,
     stripe_additional_user_price_id: STRIPE_ADDITIONAL_USER_PRICE_ID,
