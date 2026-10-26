@@ -90,7 +90,7 @@ export async function POST(request: Request) {
   ) {
     const subscription = await stripeGet(`/subscriptions/${event.data.object.id}`);
     await syncSubscription(subscription);
-  }   else if (
+  } else if (
     event.type === "invoice.paid" ||
     event.type === "invoice.payment_failed"
   ) {
