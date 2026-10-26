@@ -16,7 +16,14 @@ type StripeEvent = {
 async function syncSubscription(subscription: Record<string, any>, fallbackOrgId?: string) {
   const admin = createSupabaseAdminClient();
   const orgId = subscription.metadata?.organization_id || fallbackOrgId;
-  if (!orgId) return;
+  if (!orgId) throw new Error("Stripe subscription is missing organization metadata.");
+
+  const { data: current, error: currentError } = await admin.from("organization_billing")
+    .select("stripe_subscription_id, stripe_subscription_status")
+    .eq("organization_id", orgId).maybeSingle();
+  if (currentError) throw currentError;
+  if (current?.stripe_subscription_id && current.stripe_subscription_id !== subscription.id &&
+      current.stripe_subscription_status !== "canceled") return;
 
   const items = subscription.items?.data ?? [];
   const additionalItem = items.find(
@@ -80,7 +87,8 @@ export async function POST(request: Request) {
     event.type === "customer.subscription.updated" ||
     event.type === "customer.subscription.deleted"
   ) {
-    await syncSubscription(event.data.object);
+    const subscription = await stripeGet(`/subscriptions/${event.data.object.id}`);
+    await syncSubscription(subscription);
   }
 
   const { error: eventError } = await admin.from("stripe_webhook_events").insert({
