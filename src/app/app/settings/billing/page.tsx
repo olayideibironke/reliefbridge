@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Billing — ReliefBridge" };
 
 export default async function BillingPage({ searchParams }: { searchParams: Promise<{ service_suspended?: string; portal_error?: string }> }) {
-  const profile = await requireProfile();
+  const profile = await requireProfile(true);
   const sp = await searchParams;
   const supabase = await createSupabaseServerClient();
   const { data: demoAccess } = await supabase.rpc("get_my_demo_access");
