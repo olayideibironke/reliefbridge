@@ -38,12 +38,13 @@ async function enforceBillingAccess(
     .maybeSingle();
 
   // Existing/pre-billing organizations continue unchanged until a billing record exists.
-  if (error || !billing) return;
+  if (error) throw error;
+  if (!billing) return;
 
   const status = String(billing.stripe_subscription_status ?? "").toLowerCase();
-  if (BILLING_ALLOWED_STATUSES.has(status) || BILLING_RECOVERY_STATUSES.has(status)) return;
+  if (BILLING_ALLOWED_STATUSES.has(status)) return;
 
-  if (BILLING_BLOCKED_STATUSES.has(status) || status === "checkout_pending") {
+  if (BILLING_BLOCKED_STATUSES.has(status) || BILLING_RECOVERY_STATUSES.has(status) || status === "checkout_pending") {
     const role = String(profile.role ?? "").toLowerCase();
     if (["owner", "admin"].includes(role)) {
       if (allowBillingPage) return;
