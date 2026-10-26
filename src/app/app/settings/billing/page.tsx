@@ -25,7 +25,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
     : { data: null };
 
   const status = String(billing?.stripe_subscription_status ?? "not_configured").toLowerCase();
-  const activeSubscription = ["active", "trialing", "past_due", "incomplete", "unpaid"].includes(status);
+  const activeSubscription = ["active", "trialing", "past_due", "incomplete", "unpaid", "paused"].includes(status);
   const suspended = ["unpaid", "canceled", "incomplete_expired", "paused"].includes(status);
   const paymentAttention = ["past_due", "incomplete"].includes(status);
 
@@ -48,7 +48,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
         {(suspended || sp.service_suspended === "1") && (
           <div className="mb-6 max-w-3xl rounded-md border border-red bg-red-soft p-4">
             <p className="font-bold text-red">Subscription requires attention</p>
-            <p className="mt-1 text-sm text-ink-2">Your organization data is preserved. An owner or administrator can resolve unpaid invoices through Stripe or restart an ended subscription below.</p>
+            <p className="mt-1 text-sm text-ink-2">Your organization data is preserved. An owner or administrator can manage payment recovery through Stripe or restart a canceled or expired subscription below.</p>
           </div>
         )}
         {paymentAttention && (
