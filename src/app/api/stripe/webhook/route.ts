@@ -90,6 +90,20 @@ export async function POST(request: Request) {
   ) {
     const subscription = await stripeGet(`/subscriptions/${event.data.object.id}`);
     await syncSubscription(subscription);
+  }   else if (
+    event.type === "invoice.paid" ||
+    event.type === "invoice.payment_failed"
+  ) {
+    const invoice = event.data.object;
+    const subscriptionId =
+      typeof invoice.subscription === "string"
+        ? invoice.subscription
+        : invoice.subscription?.id ||
+          invoice.parent?.subscription_details?.subscription;
+    if (typeof subscriptionId === "string" && subscriptionId.startsWith("sub_")) {
+      const subscription = await stripeGet(`/subscriptions/${subscriptionId}`);
+      await syncSubscription(subscription);
+    }
   }
 
   const { error: eventError } = await admin.from("stripe_webhook_events").insert({
