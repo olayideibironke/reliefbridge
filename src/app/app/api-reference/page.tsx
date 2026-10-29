@@ -1,5 +1,6 @@
 import { requireProfile } from "@/lib/session";
 import { redirect } from "next/navigation";
+import { EndpointExplorer } from "./EndpointExplorer";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Internal API Reference | ReliefBridge" };
@@ -46,24 +47,8 @@ export default async function InternalApiReferencePage() {
           Documentation access does not grant API permissions. Do not use production survivor data for testing.
           External partner access, scoped API credentials, and cross-organization sharing are not enabled here.</p>
       </section>
-      <section className="space-y-4" aria-label="Documented endpoints">
-        {endpoints.map((endpoint) => (
-          <article key={endpoint.path} className="rounded-xl border border-slate-200 p-5">
-            <div className="flex flex-wrap items-center gap-3">
-              <span className="rounded bg-teal-100 px-2 py-1 text-xs font-bold text-teal-900">{endpoint.method}</span>
-              <code className="break-all text-sm font-semibold">{endpoint.path}</code>
-            </div>
-            <p className="mt-3 text-sm">{endpoint.purpose}</p>
-            <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
-              <div><dt className="font-semibold">Authorization</dt><dd className="text-slate-600">{endpoint.access}</dd></div>
-              <div><dt className="font-semibold">Request</dt><dd className="text-slate-600">{endpoint.request}</dd></div>
-              <div><dt className="font-semibold">Responses</dt><dd className="text-slate-600">{endpoint.responses}</dd></div>
-              <div><dt className="font-semibold">Operational notes</dt><dd className="text-slate-600">{endpoint.notes}</dd></div>
-            </dl>
-          </article>
-        ))}
-      </section>
-      <p className="text-sm text-slate-500">Phase 1: read-only documentation. Additional verified routes and OpenAPI schemas can be added after endpoint-by-endpoint review.</p>
+      <EndpointExplorer endpoints={endpoints} />
+      <p className="text-sm text-slate-500">Read-only endpoint explorer. OpenAPI 3.1 specification is maintained in docs/internal-openapi.json. No live requests are executed.</p>
     </main>
   );
 }
