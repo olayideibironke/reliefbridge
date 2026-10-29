@@ -1,0 +1,191 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "ReliefBridge Internal API Reference",
+    "version": "0.1.0",
+    "description": "Read-only documentation of verified existing endpoints. Not a public integration API. Do not execute production billing or webhook operations for testing."
+  },
+  "servers": [
+    {
+      "url": "https://reliefbridge.net",
+      "description": "Production (documentation only; do not run test payments)"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Billing"
+    },
+    {
+      "name": "Stripe webhook"
+    }
+  ],
+  "paths": {
+    "/api/billing/checkout": {
+      "post": {
+        "tags": [
+          "Billing"
+        ],
+        "summary": "Begin organization subscription checkout",
+        "description": "Requires an authenticated active organization owner/admin, and disallows demo accounts. This operation can create Stripe customer and Checkout objects and must not be invoked as a documentation test.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "licensed_users": {
+                    "type": "integer",
+                    "minimum": 15,
+                    "maximum": 500,
+                    "default": 15
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "303": {
+            "description": "Redirect to Stripe Checkout or existing-subscription billing page",
+            "headers": {
+              "Location": {
+                "schema": {
+                  "type": "string",
+                  "format": "uri-reference"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid licensed user count",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Inactive organization, insufficient permissions, or demo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Billing prices not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/stripe/webhook": {
+      "post": {
+        "tags": [
+          "Stripe webhook"
+        ],
+        "summary": "Process Stripe-signed subscription events",
+        "description": "Stripe-only endpoint. Validates the Stripe-Signature header; events are deduplicated using stored event IDs. Never send fabricated events to production.",
+        "parameters": [
+          {
+            "name": "Stripe-Signature",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "Stripe event payload (validated by signature against raw body)",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Event accepted or previously processed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "received": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid signature",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "sessionCookie": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "sb-<project-ref>-auth-token",
+        "description": "Conceptual Supabase session cookie. Actual cookie names may vary; use the application's authenticated session, not a manually fabricated credential."
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "error"
+        ]
+      }
+    }
+  }
+}
