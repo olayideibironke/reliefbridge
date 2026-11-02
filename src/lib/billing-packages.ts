@@ -86,7 +86,7 @@ export function checkCapacity(current: number, requestedAdditional: number, limi
   if (limit === null || !Number.isSafeInteger(limit) || limit < 0) {
     return { allowed: false, reason: "not_configured" };
   }
-  return current + requestedAdditional <= limit
+  return requestedAdditional <= limit - current
     ? { allowed: true }
     : { allowed: false, reason: "capacity_exceeded" };
 }
