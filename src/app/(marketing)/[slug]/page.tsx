@@ -131,7 +131,7 @@ export default async function MarketingPage({ params }: { params: Promise<{ slug
             <h1 className="max-w-4xl text-4xl font-black leading-tight tracking-tight sm:text-6xl">{page.heading}</h1>
             <p className="mt-7 max-w-3xl text-lg leading-8 text-white/80">{page.intro}</p>
             <div className="mt-9 flex flex-wrap gap-4">
-              <Link href={slug === "pricing" ? "mailto:info@reliefbridge.net?subject=ReliefBridge%20organizational%20quote" : "/request-demo"} className="rounded bg-gold px-6 py-3 font-bold text-navy hover:bg-white hover:no-underline">{slug === "pricing" ? "Request a quote" : "Request a demo →"}</Link>
+              <Link href={slug === "pricing" ? "/request-quote" : "/request-demo"} className="rounded bg-gold px-6 py-3 font-bold text-navy hover:bg-white hover:no-underline">{slug === "pricing" ? "Request a quote" : "Request a demo →"}</Link>
               <Link href="/features" className="rounded border border-white/40 px-6 py-3 font-semibold text-white hover:bg-white/10 hover:no-underline">Explore features</Link>
             </div>
           </div>
@@ -144,7 +144,7 @@ export default async function MarketingPage({ params }: { params: Promise<{ slug
                 <h2 className="text-2xl font-black text-navy">{section.heading}</h2>
                 <p className="mt-4 leading-7 text-ink-2">{section.description}</p>
                 <ul className="mt-6 space-y-3">{section.bullets.map(bullet => <li key={bullet} className="flex gap-3 text-sm leading-6 text-ink-2"><span className="font-bold text-blue" aria-hidden="true">✓</span><span>{bullet}</span></li>)}</ul>
-                {slug === "pricing" && <a href={`mailto:info@reliefbridge.net?subject=${encodeURIComponent("ReliefBridge quote request: " + section.heading)}`} className="mt-7 inline-flex rounded-md bg-navy px-5 py-3 text-sm font-bold text-white hover:bg-blue hover:no-underline">Request a quote</a>}
+                {slug === "pricing" && <a href={`/request-quote?plan=${encodeURIComponent(section.heading)}`} className="mt-7 inline-flex rounded-md bg-navy px-5 py-3 text-sm font-bold text-white hover:bg-blue hover:no-underline">Request a quote</a>}
               </article>
             ))}
           </div>
@@ -152,7 +152,7 @@ export default async function MarketingPage({ params }: { params: Promise<{ slug
         <section className="bg-blue-pale py-14">
           <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-6 px-5 md:flex-row md:items-center md:px-8">
             <div><h2 className="text-3xl font-black text-navy">See ReliefBridge in action.</h2><p className="mt-3 max-w-2xl text-ink-2">Explore a demonstration tailored to your organization's recovery operations.</p></div>
-            <Link href={slug === "pricing" ? "mailto:info@reliefbridge.net?subject=ReliefBridge%20organizational%20quote" : "/request-demo"} className="shrink-0 rounded bg-navy px-6 py-3 font-bold text-white hover:bg-navy-light hover:no-underline">{slug === "pricing" ? "Request a written quote" : "Request a no-obligation demo →"}</Link>
+            <Link href={slug === "pricing" ? "/request-quote" : "/request-demo"} className="shrink-0 rounded bg-navy px-6 py-3 font-bold text-white hover:bg-navy-light hover:no-underline">{slug === "pricing" ? "Request a written quote" : "Request a no-obligation demo →"}</Link>
           </div>
         </section>
       </main>
