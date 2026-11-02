@@ -67,15 +67,16 @@ const pages: Record<string, Page> = {
     ],
   },
   pricing: {
-    title: "ReliefBridge Pricing",
-    description: "ReliefBridge organizational pricing starts at $749 per month including 15 licensed users, with additional users at $49 per month.",
-    eyebrow: "Straightforward organizational pricing",
-    heading: "A predictable foundation for your recovery team.",
-    intro: "Start with an organizational subscription that supports your core team. Survivor access is free. Request a demonstration to review the workflow and determine fit before subscribing.",
+    title: "ReliefBridge Service Packages",
+    description: "Explore ReliefBridge packages for small recovery teams, growing organizations and multi-agency programs. Request a tailored quote.",
+    eyebrow: "Organizational service packages",
+    heading: "A better fit for every stage of recovery.",
+    intro: "Choose the right foundation for your staff and active caseload. Survivor-facing access is not billed as a staff seat. Receive a clear written quote before subscribing.",
     sections: [
-      { heading: "$749 per month", description: "Base organizational subscription with up to 15 licensed organizational users. The base subscription applies even when fewer than 15 seats are used.", bullets: ["Up to 15 licensed organizational users included", "Survivors are free", "No-obligation product demonstration"] },
-      { heading: "$49 per additional user per month", description: "Add organizational users beyond the included 15 as your team grows.", bullets: ["16 users: $798/month", "20 users: $994/month", "30 users: $1,484/month"] },
-      { heading: "See the platform first", description: "We can walk through your organization's recovery workflows and answer questions about licensing.", bullets: ["Personalized demonstration", "Review of relevant features", "Direct conversation with the ReliefBridge team"] },
+      { heading: "Recovery Starter", description: "Focused coordination for smaller recovery teams.", bullets: ["Designed for up to 2 staff users", "Proposed capacity: up to 25 active cases", "Survivor-facing access included", "Written organizational quote"] },
+      { heading: "Recovery Growth", description: "More capacity for lean teams with growing caseloads.", bullets: ["Designed for up to 3 staff users", "Proposed capacity: up to 100 active cases", "Survivor-facing access included", "Written organizational quote"] },
+      { heading: "ReliefBridge Standard", description: "An established foundation for larger recovery teams.", bullets: ["Up to 15 staff users included", "Active-case capacity confirmed in quote", "Survivor-facing access included", "Additional staff options"] },
+      { heading: "Enterprise & Multi-agency", description: "Tailored coordination for complex recovery networks.", bullets: ["Custom staff capacity", "Custom active-case capacity", "Multi-organization scope reviewed", "Tailored implementation quote"] },
     ],
   },
   contact: {
@@ -136,13 +137,14 @@ export default async function MarketingPage({ params }: { params: Promise<{ slug
           </div>
         </section>
         <section className="mx-auto max-w-7xl px-5 py-16 md:px-8 md:py-20">
-          <div className="grid gap-6 md:grid-cols-3">
+          <div className={slug === "pricing" ? "grid gap-6 md:grid-cols-2 xl:grid-cols-4" : "grid gap-6 md:grid-cols-3"}>
             {page.sections.map((section, index) => (
               <article key={section.heading} className="rounded-xl border border-line bg-white p-7 shadow-card">
                 <div className="mb-6 flex h-11 w-11 items-center justify-center rounded-lg bg-blue-pale text-lg font-black text-navy">{String(index + 1).padStart(2, "0")}</div>
                 <h2 className="text-2xl font-black text-navy">{section.heading}</h2>
                 <p className="mt-4 leading-7 text-ink-2">{section.description}</p>
                 <ul className="mt-6 space-y-3">{section.bullets.map(bullet => <li key={bullet} className="flex gap-3 text-sm leading-6 text-ink-2"><span className="font-bold text-blue" aria-hidden="true">✓</span><span>{bullet}</span></li>)}</ul>
+                {slug === "pricing" && <a href={`mailto:info@reliefbridge.net?subject=${encodeURIComponent("ReliefBridge quote request: " + section.heading)}`} className="mt-7 inline-flex rounded-md bg-navy px-5 py-3 text-sm font-bold text-white hover:bg-blue hover:no-underline">Request a quote</a>}
               </article>
             ))}
           </div>
