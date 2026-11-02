@@ -73,8 +73,8 @@ const pages: Record<string, Page> = {
     heading: "A better fit for every stage of recovery.",
     intro: "Choose the right foundation for your staff and active caseload. Survivor-facing access is not billed as a staff seat. Receive a clear written quote before subscribing.",
     sections: [
-      { heading: "Recovery Starter", description: "Focused coordination for smaller recovery teams.", bullets: ["Designed for up to 2 staff users", "Proposed capacity: up to 25 active cases", "Survivor-facing access included", "Written organizational quote"] },
-      { heading: "Recovery Growth", description: "More capacity for lean teams with growing caseloads.", bullets: ["Designed for up to 3 staff users", "Proposed capacity: up to 100 active cases", "Survivor-facing access included", "Written organizational quote"] },
+      { heading: "Recovery Starter", description: "Focused coordination for smaller recovery teams.", bullets: ["Designed for up to 2 staff users", "Active-case capacity confirmed in quote", "Survivor-facing access included", "Written organizational quote"] },
+      { heading: "Recovery Growth", description: "More capacity for lean teams with growing caseloads.", bullets: ["Designed for up to 3 staff users", "Active-case capacity confirmed in quote", "Survivor-facing access included", "Written organizational quote"] },
       { heading: "ReliefBridge Standard", description: "An established foundation for larger recovery teams.", bullets: ["Up to 15 staff users included", "Active-case capacity confirmed in quote", "Survivor-facing access included", "Additional staff options"] },
       { heading: "Enterprise & Multi-agency", description: "Tailored coordination for complex recovery networks.", bullets: ["Custom staff capacity", "Custom active-case capacity", "Multi-organization scope reviewed", "Tailored implementation quote"] },
     ],
@@ -131,7 +131,7 @@ export default async function MarketingPage({ params }: { params: Promise<{ slug
             <h1 className="max-w-4xl text-4xl font-black leading-tight tracking-tight sm:text-6xl">{page.heading}</h1>
             <p className="mt-7 max-w-3xl text-lg leading-8 text-white/80">{page.intro}</p>
             <div className="mt-9 flex flex-wrap gap-4">
-              <Link href="/request-demo" className="rounded bg-gold px-6 py-3 font-bold text-navy hover:bg-white hover:no-underline">Request a demo →</Link>
+              <Link href={slug === "pricing" ? "mailto:info@reliefbridge.net?subject=ReliefBridge%20organizational%20quote" : "/request-demo"} className="rounded bg-gold px-6 py-3 font-bold text-navy hover:bg-white hover:no-underline">{slug === "pricing" ? "Request a quote" : "Request a demo →"}</Link>
               <Link href="/features" className="rounded border border-white/40 px-6 py-3 font-semibold text-white hover:bg-white/10 hover:no-underline">Explore features</Link>
             </div>
           </div>
@@ -152,7 +152,7 @@ export default async function MarketingPage({ params }: { params: Promise<{ slug
         <section className="bg-blue-pale py-14">
           <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-6 px-5 md:flex-row md:items-center md:px-8">
             <div><h2 className="text-3xl font-black text-navy">See ReliefBridge in action.</h2><p className="mt-3 max-w-2xl text-ink-2">Explore a demonstration tailored to your organization's recovery operations.</p></div>
-            <Link href="/request-demo" className="shrink-0 rounded bg-navy px-6 py-3 font-bold text-white hover:bg-navy-light hover:no-underline">Request a no-obligation demo →</Link>
+            <Link href={slug === "pricing" ? "mailto:info@reliefbridge.net?subject=ReliefBridge%20organizational%20quote" : "/request-demo"} className="shrink-0 rounded bg-navy px-6 py-3 font-bold text-white hover:bg-navy-light hover:no-underline">{slug === "pricing" ? "Request a written quote" : "Request a no-obligation demo →"}</Link>
           </div>
         </section>
       </main>
