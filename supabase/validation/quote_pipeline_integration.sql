@@ -274,8 +274,8 @@ begin
   if (select count(*) from public.demo_requests
       where work_email='quote@example.test'
         and organization_name='Fixture Recovery Agency'
-        and left(coalesce(message,''),13)<>'QUOTE REQUEST') <> 1
-  then raise exception 'Ordinary demo request was blocked by quote cooldown'; end if;
+        and left(coalesce(message,''),13)<>'QUOTE REQUEST') <> 2
+  then raise exception 'Ordinary demo requests were not both preserved'; end if;
 end
 $demo_compatibility$;
 
