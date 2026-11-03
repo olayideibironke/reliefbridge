@@ -22,7 +22,9 @@ The existing `demo_request_sales_sync` trigger is installed on demo_requests (AF
 - [x] Disposable PostgreSQL tests: quote classification, ordinary demo compatibility, updates and existing-lead deduplication.
 - [x] Production read-only inspection: public INSERT policy, table grants, sales RLS, trigger presence, stage/activity constraints.
 - [ ] Validate a real anonymous quote form submission in a **nonproduction** environment and inspect the resulting demo request, opportunity and activity.
-- [ ] Verify spam/rate limiting and operational abuse handling before exposing the form publicly.
+- [x] Test quote-only duplicate cooldown, expiry, and concurrent identical submissions in disposable PostgreSQL.
+- [x] Provide a user-friendly acknowledgement when the database rejects a repeated quote request.
+- [ ] Verify broader spam/rate limiting and operational abuse handling before exposing the form publicly.
 - [ ] Confirm production migration rollout and rollback steps, including a snapshot of the existing sales-sync function definition.
 - [ ] Human QA: mobile, keyboard, screen reader, success and validation states.
 - [ ] Explicit approval for any customer-facing rollout; never enable numeric case/staff enforcement without approved caps.
