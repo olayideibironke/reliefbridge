@@ -180,6 +180,29 @@ begin
 end
 $custom_action_preservation$;
 
+-- Preserve original attribution for an existing sales opportunity.
+insert into public.sales_opportunities
+(organization_name,contact_first_name,contact_last_name,contact_email,source,stage,priority,temperature)
+values ('Referral Agency','Referral','Contact','referral@example.test','Partner Referral','Qualified','High','Warm');
+insert into public.demo_requests(first_name,last_name,work_email,organization_name,organization_type,role_title,message)
+values ('Referral','Contact','referral@example.test','Referral Agency','Other','Director',
+'QUOTE REQUEST\nRequested package: Recovery Growth');
+do $original_source_attribution$
+begin
+  if (select count(*) from public.sales_opportunities
+      where contact_email='referral@example.test' and organization_name='Referral Agency') <> 1
+  then raise exception 'Referral opportunity duplicated'; end if;
+  if (select source from public.sales_opportunities
+      where contact_email='referral@example.test' and organization_name='Referral Agency')
+      <> 'Partner Referral'
+  then raise exception 'Original referral attribution was overwritten'; end if;
+  if (select stage from public.sales_opportunities
+      where contact_email='referral@example.test' and organization_name='Referral Agency')
+      <> 'Quote/Proposal'
+  then raise exception 'Referral opportunity failed to advance to quote'; end if;
+end
+$original_source_attribution$;
+
 -- Won opportunities must not regress when the same contact requests another quote.
 insert into public.sales_opportunities
 (organization_name,contact_first_name,contact_last_name,contact_email,stage,priority,temperature)
