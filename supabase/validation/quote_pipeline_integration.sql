@@ -140,6 +140,10 @@ $custom_action_preservation$;
 insert into public.sales_opportunities
 (organization_name,contact_first_name,contact_last_name,contact_email,stage,priority,temperature)
 values ('Won Agency','Won','Contact','won@example.test','Won','High','Hot');
+update public.sales_opportunities
+set next_action='Management: coordinate existing customer renewal',
+    notes='Management: signed agreement and customer onboarding complete'
+where contact_email='won@example.test' and organization_name='Won Agency';
 insert into public.demo_requests(first_name,last_name,work_email,organization_name,organization_type,role_title,message)
 values ('Won','Contact','won@example.test','Won Agency','Other','Director',
 'QUOTE REQUEST\nRequested package: Enterprise & Multi-agency');
@@ -151,6 +155,14 @@ begin
   if (select stage from public.sales_opportunities
       where contact_email='won@example.test' and organization_name='Won Agency') <> 'Won'
   then raise exception 'Won opportunity regressed after quote request'; end if;
+  if (select next_action from public.sales_opportunities
+      where contact_email='won@example.test' and organization_name='Won Agency')
+      <> 'Management: coordinate existing customer renewal'
+  then raise exception 'Won opportunity management action was overwritten'; end if;
+  if (select position('Management: signed agreement and customer onboarding complete' in coalesce(notes,'')) > 0
+      from public.sales_opportunities
+      where contact_email='won@example.test' and organization_name='Won Agency') is not true
+  then raise exception 'Won opportunity management notes were lost'; end if;
 end
 $won_stage_preservation$;
 
