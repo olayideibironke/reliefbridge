@@ -54,4 +54,36 @@ begin
  then raise exception 'Incorrect sales activity classification'; end if;
 end
 $quote_test$;
+-- Repeated updates must not generate duplicate sales activities or opportunities.
+update public.demo_requests set role_title='Recovery Director'
+where work_email='quote@example.test';
+do $quote_update$
+begin
+ if (select count(*) from public.sales_opportunities where contact_email='quote@example.test') <> 1
+ then raise exception 'Quote update duplicated an opportunity'; end if;
+ if (select count(*) from public.sales_activities where activity_type='Quote') <> 1
+ then raise exception 'Quote update duplicated an activity'; end if;
+ if (select role_title from public.sales_opportunities where contact_email='quote@example.test') <> 'Recovery Director'
+ then raise exception 'Quote update did not synchronize the role'; end if;
+end
+$quote_update$;
+
+-- Existing prospect should be upgraded in place, not cloned.
+insert into public.sales_opportunities
+(organization_name,contact_first_name,contact_last_name,contact_email,stage,priority,temperature)
+values ('Existing Agency','Existing','Lead','existing@example.test','Prospect','Low','Cold');
+insert into public.demo_requests(first_name,last_name,work_email,organization_name,organization_type,role_title,message)
+values ('Existing','Lead','existing@example.test','Existing Agency','Other','Coordinator',
+'QUOTE REQUEST\nRequested package: Recovery Starter\nOrganizational staff: 2\nActive cases: 10');
+do $quote_existing$
+begin
+ if (select count(*) from public.sales_opportunities where contact_email='existing@example.test') <> 1
+ then raise exception 'Existing lead was duplicated'; end if;
+ if (select stage from public.sales_opportunities where contact_email='existing@example.test') <> 'Quote/Proposal'
+ then raise exception 'Existing lead was not promoted to quote stage'; end if;
+ if (select count(*) from public.sales_activities where activity_type='Quote') <> 2
+ then raise exception 'Existing lead quote activity missing'; end if;
+end
+$quote_existing$;
+
 select 'quote pipeline integration passed' as result;
