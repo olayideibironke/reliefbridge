@@ -1,6 +1,7 @@
-/** Safe classification of errors returned from the quote intake insert. */
+/** Database SQLSTATE reserved for the quote-only cooldown guard. */
+export const DUPLICATE_QUOTE_SQLSTATE = "RB001";
+
+/** Recognize only the dedicated quote cooldown error, never arbitrary database errors. */
 export function isDuplicateQuoteError(error: {code?: string; message?: string} | null): boolean {
-  return error?.code === "P0001" &&
-    typeof error.message === "string" &&
-    error.message.includes("A recent quote request has already been received");
+  return error?.code === DUPLICATE_QUOTE_SQLSTATE;
 }
