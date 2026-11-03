@@ -34,3 +34,19 @@ export function canActivateCaseLimit(
     Number.isSafeInteger(approvedLimit) &&
     approvedLimit >= 0;
 }
+
+/**
+ * An organization transfer of an already-active case consumes capacity in
+ * the destination organization, even when the case status stays unchanged.
+ */
+export function increasesOrganizationActiveCaseCount(
+  previousStatus: string | null,
+  nextStatus: string,
+  previousOrganizationId: string | null,
+  nextOrganizationId: string
+): boolean {
+  return countsTowardActiveCaseLimit(nextStatus) &&
+    (previousStatus === null ||
+      !countsTowardActiveCaseLimit(previousStatus) ||
+      previousOrganizationId !== nextOrganizationId);
+}
