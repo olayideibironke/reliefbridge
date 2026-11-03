@@ -151,4 +151,23 @@ values ('Quote','Lead','quote@example.test','Different Organization','Other','Di
 insert into public.demo_requests(first_name,last_name,work_email,organization_name,organization_type,role_title,message)
 values ('Quote','Lead','quote@example.test','Fixture Recovery Agency','Other','Director','Ordinary demo inquiry');
 
+-- A quote request outside the cooldown must be accepted.
+update public.demo_requests
+set created_at = now() - interval '11 minutes'
+where work_email = 'quote@example.test'
+  and organization_name = 'Fixture Recovery Agency'
+  and left(coalesce(message,''),13) = 'QUOTE REQUEST';
+insert into public.demo_requests(first_name,last_name,work_email,organization_name,organization_type,role_title,message)
+values ('Quote','Lead','quote@example.test','Fixture Recovery Agency','Other','Director',
+'QUOTE REQUEST after cooldown');
+do $cooldown_expiry$
+begin
+ if (select count(*) from public.demo_requests
+     where work_email='quote@example.test'
+       and organization_name='Fixture Recovery Agency'
+       and left(coalesce(message,''),13)='QUOTE REQUEST') <> 2
+ then raise exception 'Expired cooldown incorrectly blocked a new request'; end if;
+end
+$cooldown_expiry$;
+
 select 'quote pipeline integration passed' as result;
