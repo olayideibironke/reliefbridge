@@ -31,10 +31,11 @@ begin
   if new.organization_id is null or new.access_status <> 'active' then
     return new;
   end if;
-  if tg_op = 'UPDATE'
-     and old.access_status = 'active'
-     and old.organization_id is not distinct from new.organization_id then
-    return new;
+  if tg_op = 'UPDATE' then
+    if old.access_status = 'active'
+       and old.organization_id is not distinct from new.organization_id then
+      return new;
+    end if;
   end if;
 
   -- Serialize staff activations and transfers into the destination organization.
