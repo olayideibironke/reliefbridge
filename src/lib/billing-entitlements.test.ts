@@ -77,3 +77,32 @@ test("capacity validation rejects invalid counts and respects exact limits", () 
     existingStandardPriceId: STANDARD_PRICE,
   }), "standard");
 });
+
+test("staff capacity uses purchased seats rather than package included seats", () => {
+  const result = resolveEntitlements({ ...standard, licensedOrganizationalUsers: 18 }, STANDARD_PRICE);
+  assert.equal(result.kind, "configured");
+  if (result.kind !== "configured") return;
+  assert.equal(result.staffLimit, 18);
+  assert.deepEqual(checkStaffEntitlement(result, 17), { allowed: true });
+  assert.deepEqual(checkStaffEntitlement(result, 18), { allowed: false, reason: "capacity_exceeded" });
+});
+
+test("no subscription status normalization can activate an unknown status", () => {
+  for (const status of ["checkout_pending", "incomplete", "unpaid", "paused", "not_configured", ""]) {
+    assert.equal(resolveEntitlements({ ...standard, stripeSubscriptionStatus: status }, STANDARD_PRICE).kind, "unconfigured");
+  }
+});
+
+test("case cap zero prohibits new active cases", () => {
+  const result = resolveEntitlements({ ...standard, contractedActiveCaseLimit: 0 }, STANDARD_PRICE);
+  assert.equal(result.kind, "configured");
+  if (result.kind !== "configured") return;
+  assert.deepEqual(checkActiveCaseEntitlement(result, 0), { allowed: false, reason: "capacity_exceeded" });
+});
+
+test("capacity comparison stays safe at maximum integer boundaries", () => {
+  assert.deepEqual(checkCapacity(Number.MAX_SAFE_INTEGER, 1, Number.MAX_SAFE_INTEGER), {
+    allowed: false, reason: "capacity_exceeded",
+  });
+  assert.deepEqual(checkCapacity(Number.MAX_SAFE_INTEGER - 1, 1, Number.MAX_SAFE_INTEGER), { allowed: true });
+});
