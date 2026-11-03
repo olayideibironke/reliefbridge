@@ -145,6 +145,18 @@ begin
   end;
 end
 $repeat_guard_test$;
+-- Normalization: capitalization and surrounding spaces must not bypass cooldown.
+do $normalized_repeat$
+begin
+  begin
+    insert into public.demo_requests(first_name,last_name,work_email,organization_name,organization_type,role_title,message)
+    values ('Quote','Lead',' QUOTE@EXAMPLE.TEST ',' Fixture Recovery Agency ','Other','Director','QUOTE REQUEST normalized duplicate');
+    raise exception 'FAIL: normalized duplicate quote was accepted';
+  exception when sqlstate 'RB001' then null;
+  end;
+end
+$normalized_repeat$;
+
 insert into public.demo_requests(first_name,last_name,work_email,organization_name,organization_type,role_title,message)
 values ('Quote','Lead','quote@example.test','Different Organization','Other','Director','QUOTE REQUEST for another organization');
 insert into public.demo_requests(first_name,last_name,work_email,organization_name,organization_type,role_title,message)
