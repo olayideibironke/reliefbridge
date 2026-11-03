@@ -71,20 +71,23 @@ $quote_update$;
 
 -- Editing an existing demo into a quote must update the opportunity without
 -- inventing a second submission activity (the trigger records activities on INSERT only).
+insert into public.demo_requests(first_name,last_name,work_email,organization_name,organization_type,role_title,message)
+values ('Edited','Demo','edited-demo@example.test','Edited Demo Agency','Other','Director',
+'Initial demo inquiry to be edited');
 update public.demo_requests
 set message='QUOTE REQUEST\nRequested package: Recovery Starter\nOrganizational staff: 2'
-where work_email='demo@example.test' and organization_name='Fixture Demo Agency';
+where work_email='edited-demo@example.test' and organization_name='Edited Demo Agency';
 do $edited_demo_classification$
 begin
   if (select count(*) from public.sales_opportunities
-      where contact_email='demo@example.test' and organization_name='Fixture Demo Agency') <> 1
+      where contact_email='edited-demo@example.test' and organization_name='Edited Demo Agency') <> 1
   then raise exception 'Edited demo duplicated an opportunity'; end if;
   if (select stage from public.sales_opportunities
-      where contact_email='demo@example.test' and organization_name='Fixture Demo Agency') <> 'Quote/Proposal'
+      where contact_email='edited-demo@example.test' and organization_name='Edited Demo Agency') <> 'Quote/Proposal'
   then raise exception 'Edited demo did not update quote classification'; end if;
   if (select count(*) from public.sales_activities sa
       join public.sales_opportunities so on so.id=sa.opportunity_id
-      where so.contact_email='demo@example.test') <> 1
+      where so.contact_email='edited-demo@example.test') <> 1
   then raise exception 'Editing demo created a false new submission activity'; end if;
 end
 $edited_demo_classification$;
