@@ -98,7 +98,7 @@ update public.profiles set access_status='inactive'
 where id='20000000-0000-0000-0000-000000000003';
 insert into public.profiles values
  ('20000000-0000-0000-0000-000000000005','00000000-0000-0000-0000-000000000001','active');
-do $
+do $capacity_extra$
 begin
   begin
     update public.profiles set access_status='active'
@@ -115,7 +115,7 @@ begin
   exception when sqlstate 'P0001' then
     if sqlerrm <> 'Organization active staff limit reached' then raise; end if;
   end;
-end $;
+end $capacity_extra$;
 
 -- Disabling enforcement immediately restores unrestricted writes.
 update public.organization_capacity_policies
@@ -127,7 +127,7 @@ insert into public.profiles values
  ('20000000-0000-0000-0000-000000000008','00000000-0000-0000-0000-000000000001','active');
 
 -- Configuration cannot enable enforcement without an approved numeric limit.
-do $
+do $capacity_extra$
 begin
   begin
     update public.organization_capacity_policies
@@ -143,6 +143,6 @@ begin
     raise exception 'FAIL: missing staff limit unexpectedly accepted';
   exception when check_violation then null;
   end;
-end $;
+end $capacity_extra$;
 
 select 'capacity integration smoke tests passed' as result;
