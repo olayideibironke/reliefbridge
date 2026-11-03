@@ -92,6 +92,27 @@ begin
 end
 $edited_demo_classification$;
 
+-- Repeated edits to the same inquiry must remain idempotent for sales activity history.
+update public.demo_requests set role_title='Edited Recovery Director'
+where work_email='edited-demo@example.test' and organization_name='Edited Demo Agency';
+update public.demo_requests set role_title='Edited Recovery Program Director'
+where work_email='edited-demo@example.test' and organization_name='Edited Demo Agency';
+do $repeat_edit_history$
+begin
+  if (select count(*) from public.sales_opportunities
+      where contact_email='edited-demo@example.test' and organization_name='Edited Demo Agency') <> 1
+  then raise exception 'Repeated edits duplicated the opportunity'; end if;
+  if (select count(*) from public.sales_activities sa
+      join public.sales_opportunities so on so.id=sa.opportunity_id
+      where so.contact_email='edited-demo@example.test') <> 1
+  then raise exception 'Repeated edits fabricated submission history'; end if;
+  if (select role_title from public.sales_opportunities
+      where contact_email='edited-demo@example.test' and organization_name='Edited Demo Agency')
+      <> 'Edited Recovery Program Director'
+  then raise exception 'Repeated edits did not synchronize current contact details'; end if;
+end
+$repeat_edit_history$;
+
 -- Existing prospect should be upgraded in place, not cloned.
 insert into public.sales_opportunities
 (organization_name,contact_first_name,contact_last_name,contact_email,stage,priority,temperature)
