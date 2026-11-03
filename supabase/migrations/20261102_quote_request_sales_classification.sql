@@ -50,6 +50,7 @@ begin
         preferred_contact = new.preferred_contact,
         source = coalesce(nullif(new.source,''),so.source),
         stage = case when so.stage in ('Prospect','Contacted','Engaged','Qualified')
+                       or (is_quote and so.stage = 'Demo Requested')
                      then target_stage else so.stage end,
         priority = case when so.priority in ('Low','Medium') then 'High' else so.priority end,
         temperature = 'Hot',
