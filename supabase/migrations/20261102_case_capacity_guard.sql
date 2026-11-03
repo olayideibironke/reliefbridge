@@ -8,9 +8,13 @@ declare
   active_count bigint;
 begin
   if new.status = 'closed' then return new; end if;
-  if tg_op = 'UPDATE' and old.status <> 'closed'\n     and old.organization_id is not distinct from new.organization_id then\n    return new;\n  end if;
+  if tg_op = 'UPDATE' and old.status <> 'closed'
+     and old.organization_id is not distinct from new.organization_id then
+    return new;
+  end if;
 
-  -- Serialize creations, reopenings, and transfers into an organization.\n  -- A transfer of an already-active case must also consume destination capacity.
+  -- Serialize creations, reopenings, and transfers into an organization.
+  -- A transfer of an already-active case must also consume destination capacity.
   perform 1 from public.organizations where id = new.organization_id for update;
 
   select active_case_limit, enforce_case_limit into cap, enabled
