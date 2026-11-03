@@ -39,6 +39,10 @@ export async function requestQuoteAction(_previous: QuoteState, form: FormData):
     message,status:"New",source:"Website"
   });
   if (error) {
+    // The database duplicate guard uses P0001. Do not expose database internals.
+    if (error.code === "P0001" && error.message.includes("A recent quote request has already been received")) {
+      return {ok:true,message:"We recently received a quote request from your organization. There is no need to submit it again right now. Our team will review it and respond by email."};
+    }
     console.error("Quote request persistence failed",error);
     return {ok:false,message:"We could not save your request. Please try again."};
   }
