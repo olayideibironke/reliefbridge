@@ -2,6 +2,7 @@
 
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { isEmail } from "@/lib/utils";
+import { isDuplicateQuoteError } from "@/lib/quote-intake-errors";
 
 export type QuoteState = { ok: boolean; message: string; errors?: Record<string,string> };
 const packages = ["Recovery Starter","Recovery Growth","ReliefBridge Standard","Enterprise & Multi-agency"] as const;
@@ -40,7 +41,7 @@ export async function requestQuoteAction(_previous: QuoteState, form: FormData):
   });
   if (error) {
     // The database duplicate guard uses P0001. Do not expose database internals.
-    if (error.code === "P0001" && error.message.includes("A recent quote request has already been received")) {
+    if (isDuplicateQuoteError(error)) {
       return {ok:true,message:"We recently received a quote request from your organization. There is no need to submit it again right now. Our team will review it and respond by email."};
     }
     console.error("Quote request persistence failed",error);
