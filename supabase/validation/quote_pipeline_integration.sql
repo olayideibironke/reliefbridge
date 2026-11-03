@@ -87,6 +87,26 @@ begin
 end
 $quote_existing$;
 
+-- A prospect who previously requested a demo can later request a written quote.
+-- Reuse the existing opportunity and promote its stage without duplicating it.
+insert into public.demo_requests(first_name,last_name,work_email,organization_name,organization_type,role_title,message)
+values ('Demo','Lead','demo@example.test','Fixture Demo Agency','Other','Director',
+'QUOTE REQUEST\nRequested package: ReliefBridge Standard\nOrganizational staff: 15\nActive cases: 50');
+do $demo_to_quote$
+begin
+  if (select count(*) from public.sales_opportunities
+      where contact_email='demo@example.test' and organization_name='Fixture Demo Agency') <> 1
+  then raise exception 'Demo-to-quote transition duplicated opportunity'; end if;
+  if (select stage from public.sales_opportunities
+      where contact_email='demo@example.test' and organization_name='Fixture Demo Agency') <> 'Quote/Proposal'
+  then raise exception 'Existing demo opportunity was not promoted to quote stage'; end if;
+  if (select count(*) from public.sales_activities sa
+      join public.sales_opportunities so on so.id=sa.opportunity_id
+      where so.contact_email='demo@example.test' and sa.activity_type='Quote') <> 1
+  then raise exception 'Demo-to-quote activity missing'; end if;
+end
+$demo_to_quote$;
+
 -- Security fixture: mirror production's public intake permissions and RLS.
 alter table public.demo_requests add column status text not null default 'New';
 alter table public.demo_requests enable row level security;
