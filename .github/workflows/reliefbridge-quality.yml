@@ -21,6 +21,8 @@ jobs:
       - run: npm ci
       - name: Billing and case-capacity tests
         run: npm run test:billing
+      - name: Capacity SQL static safety checks
+        run: node scripts/check-capacity-migrations.cjs
       - name: TypeScript typecheck
         run: npm run typecheck
       - name: Feature ESLint (required)
