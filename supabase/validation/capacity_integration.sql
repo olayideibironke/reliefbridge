@@ -2,14 +2,14 @@
 \set ON_ERROR_STOP on
 create schema if not exists public;
 -- Supabase provides these roles; create fixture-only NOLOGIN equivalents.
-do $ begin
+do $capacity_test$ begin
   if not exists (select 1 from pg_roles where rolname = 'anon') then
     create role anon nologin;
   end if;
   if not exists (select 1 from pg_roles where rolname = 'authenticated') then
     create role authenticated nologin;
   end if;
-end $;
+end $capacity_test$;
 create table public.organizations (id uuid primary key);
 create table public.recovery_cases (
   id uuid primary key,
