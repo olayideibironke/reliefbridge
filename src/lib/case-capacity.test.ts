@@ -4,7 +4,8 @@ import {
   ACTIVE_CASE_STATUSES,
   canActivateCaseLimit,
   countsTowardActiveCaseLimit,
-  increasesActiveCaseCount,\n  increasesOrganizationActiveCaseCount,
+  increasesActiveCaseCount,
+  increasesOrganizationActiveCaseCount,
 } from "./case-capacity";
 
 test("all operational case statuses count as active", () => {
