@@ -25,4 +25,9 @@ assert.match(staff, /check\s*\(not enforce_staff_limit or staff_limit is not nul
 assert.match(staff, /before insert or update of access_status, organization_id/i);
 assert.match(staff, /access_status = 'active'/i);
 assert.match(staff, /for update/i);
+assert.match(staff, /pg_catalog\.pg_constraint/i);
+assert.match(staff, /staff_limit_required_when_enabled/i);
+assert.match(staff, /if not exists\s*\(/i);
+assert.match(staff, /revoke all on function public\.check_staff_capacity\(\) from public, anon, authenticated/i);
+assert.match(guard, /revoke all on function public\.check_case_capacity\(\) from public, anon, authenticated/i);
 console.log("Staged case and staff capacity SQL static guards passed. Database execution remains unverified.");
