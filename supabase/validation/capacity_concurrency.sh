@@ -26,9 +26,9 @@ run_race() {
   ) &
   local locker=$!
   sleep 0.5
-  (psql -X -v ON_ERROR_STOP=1 -c "$query1" >"$dir/one.log" 2>&1; echo $? >"$dir/one.rc") &
+  (if psql -X -v ON_ERROR_STOP=1 -c "$query1" >"$dir/one.log" 2>&1; then echo 0 >"$dir/one.rc"; else echo 1 >"$dir/one.rc"; fi) &
   local one=$!
-  (psql -X -v ON_ERROR_STOP=1 -c "$query2" >"$dir/two.log" 2>&1; echo $? >"$dir/two.rc") &
+  (if psql -X -v ON_ERROR_STOP=1 -c "$query2" >"$dir/two.log" 2>&1; then echo 0 >"$dir/two.rc"; else echo 1 >"$dir/two.rc"; fi) &
   local two=$!
   wait "$locker"
   wait "$one" || true
