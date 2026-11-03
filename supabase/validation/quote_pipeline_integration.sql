@@ -111,6 +111,31 @@ begin
 end
 $demo_to_quote$;
 
+-- Management-authored next actions must survive automated demo-to-quote progression.
+insert into public.demo_requests(first_name,last_name,work_email,organization_name,organization_type,role_title,message)
+values ('Custom','Followup','custom@example.test','Custom Followup Agency','Other','Director',
+'Please schedule a demo');
+update public.sales_opportunities
+set next_action='Management: confirm procurement requirements before proposing terms'
+where contact_email='custom@example.test' and organization_name='Custom Followup Agency';
+insert into public.demo_requests(first_name,last_name,work_email,organization_name,organization_type,role_title,message)
+values ('Custom','Followup','custom@example.test','Custom Followup Agency','Other','Director',
+'QUOTE REQUEST\nRequested package: Enterprise & Multi-agency');
+do $custom_action_preservation$
+begin
+  if (select count(*) from public.sales_opportunities
+      where contact_email='custom@example.test' and organization_name='Custom Followup Agency') <> 1
+  then raise exception 'Custom follow-up opportunity duplicated'; end if;
+  if (select stage from public.sales_opportunities
+      where contact_email='custom@example.test' and organization_name='Custom Followup Agency') <> 'Quote/Proposal'
+  then raise exception 'Custom follow-up opportunity did not advance'; end if;
+  if (select next_action from public.sales_opportunities
+      where contact_email='custom@example.test' and organization_name='Custom Followup Agency')
+      <> 'Management: confirm procurement requirements before proposing terms'
+  then raise exception 'Management custom follow-up action was overwritten'; end if;
+end
+$custom_action_preservation$;
+
 -- Won opportunities must not regress when the same contact requests another quote.
 insert into public.sales_opportunities
 (organization_name,contact_first_name,contact_last_name,contact_email,stage,priority,temperature)
