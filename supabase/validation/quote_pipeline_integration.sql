@@ -157,6 +157,27 @@ begin
 end
 $normalized_repeat$;
 
+-- A rejected duplicate must not create an intake row, sales activity, or new opportunity.
+do $rejected_quote_atomicity$
+begin
+  if (select count(*) from public.demo_requests
+      where lower(btrim(work_email))='quote@example.test'
+        and lower(btrim(organization_name))='fixture recovery agency'
+        and left(coalesce(message,''),13)='QUOTE REQUEST') <> 1
+  then raise exception 'Rejected quote created an unexpected intake record'; end if;
+  if (select count(*) from public.sales_opportunities
+      where lower(contact_email)='quote@example.test'
+        and lower(organization_name)='fixture recovery agency') <> 1
+  then raise exception 'Rejected quote created an unexpected sales opportunity'; end if;
+  if (select count(*) from public.sales_activities sa
+      join public.sales_opportunities so on so.id=sa.opportunity_id
+      where lower(so.contact_email)='quote@example.test'
+        and lower(so.organization_name)='fixture recovery agency'
+        and sa.activity_type='Quote') <> 1
+  then raise exception 'Rejected quote created an unexpected sales activity'; end if;
+end
+$rejected_quote_atomicity$;
+
 insert into public.demo_requests(first_name,last_name,work_email,organization_name,organization_type,role_title,message)
 values ('Quote','Lead','quote@example.test','Different Organization','Other','Director','QUOTE REQUEST for another organization');
 insert into public.demo_requests(first_name,last_name,work_email,organization_name,organization_type,role_title,message)
