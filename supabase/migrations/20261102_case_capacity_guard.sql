@@ -8,9 +8,9 @@ declare
   active_count bigint;
 begin
   if new.status = 'closed' then return new; end if;
-  if tg_op = 'UPDATE' and old.status <> 'closed' then return new; end if;
+  if tg_op = 'UPDATE' and old.status <> 'closed'\n     and old.organization_id is not distinct from new.organization_id then\n    return new;\n  end if;
 
-  -- Serialize competing case creations and reopenings per organization.
+  -- Serialize creations, reopenings, and transfers into an organization.\n  -- A transfer of an already-active case must also consume destination capacity.
   perform 1 from public.organizations where id = new.organization_id for update;
 
   select active_case_limit, enforce_case_limit into cap, enabled
@@ -35,5 +35,5 @@ $$;
 revoke all on function public.check_case_capacity() from public, anon, authenticated;
 drop trigger if exists check_case_capacity_trigger on public.recovery_cases;
 create trigger check_case_capacity_trigger
-before insert or update of status on public.recovery_cases
+before insert or update of status, organization_id on public.recovery_cases
 for each row execute function public.check_case_capacity();
