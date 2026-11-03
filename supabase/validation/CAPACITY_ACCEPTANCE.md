@@ -1,6 +1,6 @@
 # Capacity enforcement database acceptance plan
 
-**Status:** Not executed. Use a disposable database with the current ReliefBridge schema and migrations. Never run these scenarios against customer records.
+**Status:** Disposable PostgreSQL 16 CI fixtures and concurrency checks passed on 2026-11-03. Full-schema staging integration and human end-to-end acceptance remain pending. Never run these scenarios against customer records.
 
 ## Prerequisites
 1. Apply staged migrations to an isolated test database, in order.
@@ -39,4 +39,4 @@
 - Leave all capacity enforcement flags disabled after testing.
 - Do not merge or apply migrations to production until results are recorded and reviewed.
 
-**Important:** GitHub Actions static SQL checks do not execute PostgreSQL. Passing CI is not evidence that the concurrency scenarios above passed.
+**Important:** GitHub Actions now runs the staged capacity migrations against disposable PostgreSQL 16 fixtures, including independent-session concurrency tests. These fixtures are intentionally minimal, so a passing CI run does **not** prove compatibility with every existing production trigger, RLS policy, or customer workflow. Full-schema staging and human acceptance remain required.
