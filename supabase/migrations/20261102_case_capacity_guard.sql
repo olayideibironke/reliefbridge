@@ -8,9 +8,11 @@ declare
   active_count bigint;
 begin
   if new.status = 'closed' then return new; end if;
-  if tg_op = 'UPDATE' and old.status <> 'closed'
-     and old.organization_id is not distinct from new.organization_id then
-    return new;
+  if tg_op = 'UPDATE' then
+    if old.status <> 'closed'
+       and old.organization_id is not distinct from new.organization_id then
+      return new;
+    end if;
   end if;
 
   -- Serialize creations, reopenings, and transfers into an organization.
