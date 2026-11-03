@@ -15,6 +15,7 @@ export async function requestQuoteAction(_previous: QuoteState, form: FormData):
   const staffRaw = read(form,"staff_count"), casesRaw = read(form,"active_cases");
   const staff = Number(staffRaw), cases = Number(casesRaw);
   const notes = read(form,"notes");
+  const containsControl = (value: string) => /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/.test(value);
   const errors: Record<string,string> = {};
   if (!first || first.length > 80) errors.first_name = "Enter a first name (up to 80 characters).";
   if (!last || last.length > 80) errors.last_name = "Enter a last name (up to 80 characters).";
@@ -25,6 +26,9 @@ export async function requestQuoteAction(_previous: QuoteState, form: FormData):
   if (!/^\d+$/.test(staffRaw) || !Number.isSafeInteger(staff) || staff < 1 || staff > 100000) errors.staff_count = "Enter a valid staff count.";
   if (!/^\d+$/.test(casesRaw) || !Number.isSafeInteger(cases) || cases < 0 || cases > 10000000) errors.active_cases = "Enter a valid active case count.";
   if (notes.length > 1500) errors.notes = "Keep additional details under 1,500 characters.";
+  for (const [key, value] of Object.entries({first_name:first,last_name:last,work_email:email,organization_name:organization,role_title:role,notes})) {
+    if (containsControl(value)) errors[key] = "Remove unsupported control characters.";
+  }
   if (Object.keys(errors).length) return {ok:false,message:"Please correct the highlighted fields.",errors};
 
   const message = ["QUOTE REQUEST", "Requested package: "+plan, "Organizational staff: "+staff, "Active cases: "+cases, "Notes: "+(notes || "None")].join("\n");
