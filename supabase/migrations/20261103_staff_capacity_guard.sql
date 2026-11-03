@@ -3,9 +3,22 @@ alter table public.organization_capacity_policies
   add column if not exists staff_limit integer check (staff_limit >= 1),
   add column if not exists enforce_staff_limit boolean not null default false;
 
-alter table public.organization_capacity_policies
-  add constraint staff_limit_required_when_enabled
-  check (not enforce_staff_limit or staff_limit is not null);
+-- PostgreSQL does not support ADD CONSTRAINT IF NOT EXISTS.
+-- Guard the constraint explicitly so a repeated preflight application is safe.
+do $constraint$
+begin
+  if not exists (
+    select 1
+    from pg_catalog.pg_constraint c
+    where c.conrelid = 'public.organization_capacity_policies'::pg_catalog.regclass
+      and c.conname = 'staff_limit_required_when_enabled'
+  ) then
+    alter table public.organization_capacity_policies
+      add constraint staff_limit_required_when_enabled
+      check (not enforce_staff_limit or staff_limit is not null);
+  end if;
+end;
+$constraint$;
 
 create or replace function public.check_staff_capacity()
 returns trigger language plpgsql security definer set search_path = ''
