@@ -55,7 +55,10 @@ begin
         priority = case when so.priority in ('Low','Medium') then 'High' else so.priority end,
         temperature = 'Hot',
         last_activity_at = case when tg_op='INSERT' then new.created_at else so.last_activity_at end,
-        next_action = case when so.next_action is null or btrim(so.next_action)=''
+        next_action = case when is_quote and so.stage = 'Demo Requested'
+                           and so.next_action = 'Review demo request and contact prospect'
+                           then target_action
+                           when so.next_action is null or btrim(so.next_action)=''
                            then target_action else so.next_action end,
         notes = case when is_quote and tg_op='INSERT'
                      then concat_ws(E'\n\n',so.notes,new.message)
