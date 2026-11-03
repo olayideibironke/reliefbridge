@@ -100,6 +100,10 @@ begin
   if (select stage from public.sales_opportunities
       where contact_email='demo@example.test' and organization_name='Fixture Demo Agency') <> 'Quote/Proposal'
   then raise exception 'Existing demo opportunity was not promoted to quote stage'; end if;
+  if (select next_action from public.sales_opportunities
+      where contact_email='demo@example.test' and organization_name='Fixture Demo Agency')
+      <> 'Review organizational quote request and respond by email'
+  then raise exception 'Demo-to-quote transition retained outdated demo next action'; end if;
   if (select count(*) from public.sales_activities sa
       join public.sales_opportunities so on so.id=sa.opportunity_id
       where so.contact_email='demo@example.test' and sa.activity_type='Quote') <> 1
