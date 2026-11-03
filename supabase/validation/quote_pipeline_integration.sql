@@ -126,6 +126,33 @@ begin
   end;
 end
 $anon_negative$;
+-- Negative permissions checks execute as the actual anonymous role.
+do $anon_access_denied$
+begin
+  begin
+    perform count(*) from public.demo_requests;
+    raise exception 'FAIL: anonymous intake SELECT was allowed';
+  exception when insufficient_privilege then null;
+  end;
+  begin
+    update public.demo_requests set role_title='Tampered'
+    where work_email='anonymous@example.test';
+    raise exception 'FAIL: anonymous intake UPDATE was allowed';
+  exception when insufficient_privilege then null;
+  end;
+  begin
+    perform count(*) from public.sales_opportunities;
+    raise exception 'FAIL: anonymous sales SELECT was allowed';
+  exception when insufficient_privilege then null;
+  end;
+  begin
+    insert into public.sales_activities(opportunity_id,activity_type,summary)
+    values (gen_random_uuid(),'Quote','Forged');
+    raise exception 'FAIL: anonymous sales activity INSERT was allowed';
+  exception when insufficient_privilege then null;
+  end;
+end
+$anon_access_denied$;
 reset role;
 do $security_result$
 begin
