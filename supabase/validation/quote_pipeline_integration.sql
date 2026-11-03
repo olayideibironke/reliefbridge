@@ -141,8 +141,7 @@ begin
     insert into public.demo_requests(first_name,last_name,work_email,organization_name,organization_type,role_title,message)
     values ('Quote','Lead','quote@example.test','Fixture Recovery Agency','Other','Director','QUOTE REQUEST again');
     raise exception 'FAIL: duplicate quote was accepted';
-  exception when sqlstate 'P0001' then
-    if sqlerrm = 'FAIL: duplicate quote was accepted' then raise; end if;
+  exception when sqlstate 'RB001' then null;
   end;
 end
 $repeat_guard_test$;
