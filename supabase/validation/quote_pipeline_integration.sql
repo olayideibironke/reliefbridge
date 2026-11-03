@@ -27,6 +27,7 @@ create table public.sales_activities (
  summary text, details text, occurred_at timestamptz
 );
 \ir ../migrations/20261102_quote_request_sales_classification.sql
+\ir ../migrations/20261103_quote_repeat_guard.sql
 create trigger demo_request_sales_sync after insert or update on public.demo_requests
 for each row execute function public.sync_demo_request_to_sales();
 
@@ -132,5 +133,22 @@ begin
  then raise exception 'Anonymous quote did not create a classified opportunity'; end if;
 end
 $security_result$;
+
+-- Repeated identical quote requests are blocked, but different organizations and demos remain allowed.
+do $repeat_guard_test$
+begin
+  begin
+    insert into public.demo_requests(first_name,last_name,work_email,organization_name,organization_type,role_title,message)
+    values ('Quote','Lead','quote@example.test','Fixture Recovery Agency','Other','Director','QUOTE REQUEST again');
+    raise exception 'FAIL: duplicate quote was accepted';
+  exception when sqlstate 'P0001' then
+    if sqlerrm = 'FAIL: duplicate quote was accepted' then raise; end if;
+  end;
+end
+$repeat_guard_test$;
+insert into public.demo_requests(first_name,last_name,work_email,organization_name,organization_type,role_title,message)
+values ('Quote','Lead','quote@example.test','Different Organization','Other','Director','QUOTE REQUEST for another organization');
+insert into public.demo_requests(first_name,last_name,work_email,organization_name,organization_type,role_title,message)
+values ('Quote','Lead','quote@example.test','Fixture Recovery Agency','Other','Director','Ordinary demo inquiry');
 
 select 'quote pipeline integration passed' as result;
