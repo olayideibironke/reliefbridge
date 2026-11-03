@@ -48,7 +48,7 @@ begin
         organization_size = new.organization_size,
         recovery_focus = new.recovery_focus,
         preferred_contact = new.preferred_contact,
-        source = coalesce(nullif(new.source,''),so.source),
+        source = coalesce(nullif(so.source,''),nullif(new.source,'')),
         stage = case when so.stage in ('Prospect','Contacted','Engaged','Qualified')
                        or (is_quote and so.stage = 'Demo Requested')
                      then target_stage else so.stage end,
