@@ -108,6 +108,23 @@ set role anon;
 insert into public.demo_requests(first_name,last_name,work_email,organization_name,organization_type,role_title,message)
 values ('Anonymous','Lead','anonymous@example.test','Anonymous Fixture','Other','Director',
 'QUOTE REQUEST: Recovery Growth');
+-- Anonymous callers cannot spoof privileged intake status or source.
+do $anon_negative$
+begin
+  begin
+    insert into public.demo_requests(first_name,last_name,work_email,organization_name,organization_type,role_title,status,message)
+    values ('Spoof','Status','spoof-status@example.test','Spoof Agency','Other','Director','Approved','QUOTE REQUEST');
+    raise exception 'FAIL: anonymous status spoof was accepted';
+  exception when insufficient_privilege then null;
+  end;
+  begin
+    insert into public.demo_requests(first_name,last_name,work_email,organization_name,organization_type,role_title,source,message)
+    values ('Spoof','Source','spoof-source@example.test','Spoof Agency','Other','Director','Internal','QUOTE REQUEST');
+    raise exception 'FAIL: anonymous source spoof was accepted';
+  exception when insufficient_privilege then null;
+  end;
+end
+$anon_negative$;
 reset role;
 do $security_result$
 begin
