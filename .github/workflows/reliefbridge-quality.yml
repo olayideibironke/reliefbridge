@@ -58,3 +58,11 @@ jobs:
           PGPASSWORD: local_test_only
           PGDATABASE: reliefbridge_capacity_test
         run: psql -X -v ON_ERROR_STOP=1 -f supabase/validation/capacity_integration.sql
+      - name: Test concurrent case creation and staff activation
+        env:
+          PGHOST: localhost
+          PGPORT: '5432'
+          PGUSER: reliefbridge_test
+          PGPASSWORD: local_test_only
+          PGDATABASE: reliefbridge_capacity_test
+        run: bash supabase/validation/capacity_concurrency.sh
