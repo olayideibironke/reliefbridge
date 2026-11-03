@@ -27,7 +27,7 @@ begin
       and d.created_at >= pg_catalog.now() - interval '10 minutes'
   ) then
     raise exception 'A recent quote request has already been received'
-      using errcode = 'P0001';
+      using errcode = 'RB001';
   end if;
   return new;
 end
