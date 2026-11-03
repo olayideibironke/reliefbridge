@@ -4,7 +4,7 @@ import {
   ACTIVE_CASE_STATUSES,
   canActivateCaseLimit,
   countsTowardActiveCaseLimit,
-  increasesActiveCaseCount,
+  increasesActiveCaseCount,\n  increasesOrganizationActiveCaseCount,
 } from "./case-capacity";
 
 test("all operational case statuses count as active", () => {
@@ -36,4 +36,12 @@ test("capacity activation requires an explicit approved safe integer", () => {
   for (const invalid of [-1, 1.5, Number.NaN, Number.MAX_SAFE_INTEGER + 1]) {
     assert.equal(canActivateCaseLimit(invalid, true), false);
   }
+});
+
+test("moving an active case to another organization consumes destination capacity", () => {
+  assert.equal(increasesOrganizationActiveCaseCount("open", "open", "org-a", "org-b"), true);
+  assert.equal(increasesOrganizationActiveCaseCount("in_review", "follow_up", "org-a", "org-b"), true);
+  assert.equal(increasesOrganizationActiveCaseCount("open", "in_review", "org-a", "org-a"), false);
+  assert.equal(increasesOrganizationActiveCaseCount("open", "closed", "org-a", "org-b"), false);
+  assert.equal(increasesOrganizationActiveCaseCount("closed", "open", "org-a", "org-a"), true);
 });
