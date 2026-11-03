@@ -92,4 +92,57 @@ begin
     if sqlerrm <> 'Organization active case limit reached' then raise; end if;
   end;
 end $$;
+
+-- Staff deactivation frees a seat; activation at the cap is rejected.
+update public.profiles set access_status='inactive'
+where id='20000000-0000-0000-0000-000000000003';
+insert into public.profiles values
+ ('20000000-0000-0000-0000-000000000005','00000000-0000-0000-0000-000000000001','active');
+do $
+begin
+  begin
+    update public.profiles set access_status='active'
+    where id='20000000-0000-0000-0000-000000000003';
+    raise exception 'FAIL: over-cap staff reactivation unexpectedly succeeded';
+  exception when sqlstate 'P0001' then
+    if sqlerrm <> 'Organization active staff limit reached' then raise; end if;
+  end;
+  begin
+    update public.profiles
+    set organization_id='00000000-0000-0000-0000-000000000001'
+    where id='20000000-0000-0000-0000-000000000001';
+    raise exception 'FAIL: over-cap staff transfer unexpectedly succeeded';
+  exception when sqlstate 'P0001' then
+    if sqlerrm <> 'Organization active staff limit reached' then raise; end if;
+  end;
+end $;
+
+-- Disabling enforcement immediately restores unrestricted writes.
+update public.organization_capacity_policies
+set enforce_case_limit=false, enforce_staff_limit=false
+where organization_id='00000000-0000-0000-0000-000000000001';
+insert into public.recovery_cases values
+ ('10000000-0000-0000-0000-000000000008','00000000-0000-0000-0000-000000000001','open');
+insert into public.profiles values
+ ('20000000-0000-0000-0000-000000000008','00000000-0000-0000-0000-000000000001','active');
+
+-- Configuration cannot enable enforcement without an approved numeric limit.
+do $
+begin
+  begin
+    update public.organization_capacity_policies
+    set active_case_limit=null, enforce_case_limit=true
+    where organization_id='00000000-0000-0000-0000-000000000001';
+    raise exception 'FAIL: missing case limit unexpectedly accepted';
+  exception when check_violation then null;
+  end;
+  begin
+    update public.organization_capacity_policies
+    set staff_limit=null, enforce_staff_limit=true
+    where organization_id='00000000-0000-0000-0000-000000000001';
+    raise exception 'FAIL: missing staff limit unexpectedly accepted';
+  exception when check_violation then null;
+  end;
+end $;
+
 select 'capacity integration smoke tests passed' as result;
