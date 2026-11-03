@@ -86,4 +86,34 @@ begin
 end
 $quote_existing$;
 
+-- Security fixture: mirror production's public intake permissions and RLS.
+alter table public.demo_requests add column status text not null default 'New';
+alter table public.demo_requests enable row level security;
+alter table public.sales_opportunities enable row level security;
+alter table public.sales_activities enable row level security;
+grant usage on schema public to anon;
+grant insert on public.demo_requests to anon;
+create policy public_intake_insert on public.demo_requests
+  for insert to anon with check (status='New' and source='Website');
+do $security_checks$
+begin
+ if has_table_privilege('anon','public.demo_requests','SELECT')
+ or has_table_privilege('anon','public.demo_requests','UPDATE')
+ or has_table_privilege('anon','public.sales_opportunities','SELECT')
+ or has_table_privilege('anon','public.sales_activities','SELECT')
+ then raise exception 'Anonymous read or update privilege detected'; end if;
+end
+$security_checks$;
+set role anon;
+insert into public.demo_requests(first_name,last_name,work_email,organization_name,organization_type,role_title,message)
+values ('Anonymous','Lead','anonymous@example.test','Anonymous Fixture','Other','Director',
+'QUOTE REQUEST: Recovery Growth');
+reset role;
+do $security_result$
+begin
+ if (select count(*) from public.sales_opportunities where contact_email='anonymous@example.test' and stage='Quote/Proposal') <> 1
+ then raise exception 'Anonymous quote did not create a classified opportunity'; end if;
+end
+$security_result$;
+
 select 'quote pipeline integration passed' as result;
