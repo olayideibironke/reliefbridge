@@ -94,3 +94,12 @@ jobs:
           PGPASSWORD: local_test_only
           PGDATABASE: reliefbridge_quote_test
         run: psql -X -v ON_ERROR_STOP=1 -f supabase/validation/quote_pipeline_integration.sql
+
+      - name: Verify simultaneous duplicate quote requests serialize safely
+        env:
+          PGHOST: localhost
+          PGPORT: '5432'
+          PGUSER: reliefbridge_test
+          PGPASSWORD: local_test_only
+          PGDATABASE: reliefbridge_quote_test
+        run: bash supabase/validation/quote_concurrency.sh
