@@ -66,3 +66,31 @@ jobs:
           PGPASSWORD: local_test_only
           PGDATABASE: reliefbridge_capacity_test
         run: bash supabase/validation/capacity_concurrency.sh
+
+  postgres-quote:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: reliefbridge_test
+          POSTGRES_PASSWORD: local_test_only
+          POSTGRES_DB: reliefbridge_quote_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U reliefbridge_test -d reliefbridge_quote_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify quote requests enter sales pipeline without breaking demo requests
+        env:
+          PGHOST: localhost
+          PGPORT: '5432'
+          PGUSER: reliefbridge_test
+          PGPASSWORD: local_test_only
+          PGDATABASE: reliefbridge_quote_test
+        run: psql -X -v ON_ERROR_STOP=1 -f supabase/validation/quote_pipeline_integration.sql
