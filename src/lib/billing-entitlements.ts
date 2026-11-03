@@ -2,7 +2,6 @@ import {
   checkCapacity,
   classifyLegacySubscription,
   getPackage,
-  isPackageId,
   type CapacityDecision,
   type PackageId,
 } from "./billing-packages";
@@ -16,7 +15,6 @@ export type VerifiedBillingRecord = {
   stripeSubscriptionStatus: string | null;
   stripeBasePriceId: string | null;
   licensedOrganizationalUsers: number | null;
-  packageId?: string | null;
   contractedActiveCaseLimit?: number | null;
 };
 
@@ -51,18 +49,12 @@ export function resolveEntitlements(
     existingStandardPriceId,
   });
 
-  // Future package mappings must be verified against Stripe price IDs by
-  // the server before being passed here. Do not trust a client package choice.
-  const packageId = legacy ?? (isPackageId(billing.packageId) ? billing.packageId : null);
-  if (!packageId) {
-    return { kind: "unconfigured", reason: "Subscription package could not be verified" };
-  }
-
-  // A declared package without a verified price mapping is not sufficient
-  // to activate a new package.
+  // Only the existing verified Standard price is recognized until new
+  // Stripe price mappings have been explicitly approved and implemented.
   if (!legacy) {
-    return { kind: "unconfigured", reason: "New package Stripe mapping not enabled" };
+    return { kind: "unconfigured", reason: "Subscription price is not a verified package" };
   }
+  const packageId = legacy;
 
   const packageDefinition = getPackage(packageId);
   const seats = billing.licensedOrganizationalUsers;
