@@ -69,6 +69,26 @@ begin
 end
 $quote_update$;
 
+-- Editing an existing demo into a quote must update the opportunity without
+-- inventing a second submission activity (the trigger records activities on INSERT only).
+update public.demo_requests
+set message='QUOTE REQUEST\nRequested package: Recovery Starter\nOrganizational staff: 2'
+where work_email='demo@example.test' and organization_name='Fixture Demo Agency';
+do $edited_demo_classification$
+begin
+  if (select count(*) from public.sales_opportunities
+      where contact_email='demo@example.test' and organization_name='Fixture Demo Agency') <> 1
+  then raise exception 'Edited demo duplicated an opportunity'; end if;
+  if (select stage from public.sales_opportunities
+      where contact_email='demo@example.test' and organization_name='Fixture Demo Agency') <> 'Quote/Proposal'
+  then raise exception 'Edited demo did not update quote classification'; end if;
+  if (select count(*) from public.sales_activities sa
+      join public.sales_opportunities so on so.id=sa.opportunity_id
+      where so.contact_email='demo@example.test') <> 1
+  then raise exception 'Editing demo created a false new submission activity'; end if;
+end
+$edited_demo_classification$;
+
 -- Existing prospect should be upgraded in place, not cloned.
 insert into public.sales_opportunities
 (organization_name,contact_first_name,contact_last_name,contact_email,stage,priority,temperature)
