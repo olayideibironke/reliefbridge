@@ -162,6 +162,22 @@ values ('Quote','Lead','quote@example.test','Different Organization','Other','Di
 insert into public.demo_requests(first_name,last_name,work_email,organization_name,organization_type,role_title,message)
 values ('Quote','Lead','quote@example.test','Fixture Recovery Agency','Other','Director','Ordinary demo inquiry');
 
+-- A different email at the same organization must not be blocked by another person's request.
+insert into public.demo_requests(first_name,last_name,work_email,organization_name,organization_type,role_title,message)
+values ('Second','Contact','another@example.test','Fixture Recovery Agency','Other','Coordinator',
+'QUOTE REQUEST from a different contact');
+
+-- An ordinary demo submission is not subject to the quote-only cooldown.
+do $demo_compatibility$
+begin
+  if (select count(*) from public.demo_requests
+      where work_email='quote@example.test'
+        and organization_name='Fixture Recovery Agency'
+        and left(coalesce(message,''),13)<>'QUOTE REQUEST') <> 1
+  then raise exception 'Ordinary demo request was blocked by quote cooldown'; end if;
+end
+$demo_compatibility$;
+
 -- A quote request outside the cooldown must be accepted.
 update public.demo_requests
 set created_at = now() - interval '11 minutes'
