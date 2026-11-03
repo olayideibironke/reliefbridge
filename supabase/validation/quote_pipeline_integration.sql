@@ -125,6 +125,21 @@ begin
 end
 $won_stage_preservation$;
 
+-- An ordinary demo request after a quote must not downgrade the existing opportunity.
+insert into public.demo_requests(first_name,last_name,work_email,organization_name,organization_type,role_title,message)
+values ('Quote','Lead','quote@example.test','Fixture Recovery Agency','Other','Director',
+'Following up with a demo request after receiving a quote');
+do $quote_to_demo_no_regression$
+begin
+  if (select count(*) from public.sales_opportunities
+      where contact_email='quote@example.test' and organization_name='Fixture Recovery Agency') <> 1
+  then raise exception 'Quote-stage opportunity duplicated on demo request'; end if;
+  if (select stage from public.sales_opportunities
+      where contact_email='quote@example.test' and organization_name='Fixture Recovery Agency') <> 'Quote/Proposal'
+  then raise exception 'Quote-stage opportunity regressed after demo request'; end if;
+end
+$quote_to_demo_no_regression$;
+
 -- Security fixture: mirror production's public intake permissions and RLS.
 alter table public.demo_requests add column status text not null default 'New';
 alter table public.demo_requests enable row level security;
