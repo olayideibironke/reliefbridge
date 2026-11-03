@@ -32,6 +32,7 @@ for (const testFile of [
   "billing-entitlements.test.ts",
   "case-capacity.test.ts",
   "quote-intake-errors.test.ts",
+  "quote-form-validation.test.ts",
 ]) {
   require(path.resolve(__dirname, "../src/lib", testFile));
 }
