@@ -107,6 +107,24 @@ begin
 end
 $demo_to_quote$;
 
+-- Won opportunities must not regress when the same contact requests another quote.
+insert into public.sales_opportunities
+(organization_name,contact_first_name,contact_last_name,contact_email,stage,priority,temperature)
+values ('Won Agency','Won','Contact','won@example.test','Won','High','Hot');
+insert into public.demo_requests(first_name,last_name,work_email,organization_name,organization_type,role_title,message)
+values ('Won','Contact','won@example.test','Won Agency','Other','Director',
+'QUOTE REQUEST\nRequested package: Enterprise & Multi-agency');
+do $won_stage_preservation$
+begin
+  if (select count(*) from public.sales_opportunities
+      where contact_email='won@example.test' and organization_name='Won Agency') <> 1
+  then raise exception 'Won opportunity duplicated on quote request'; end if;
+  if (select stage from public.sales_opportunities
+      where contact_email='won@example.test' and organization_name='Won Agency') <> 'Won'
+  then raise exception 'Won opportunity regressed after quote request'; end if;
+end
+$won_stage_preservation$;
+
 -- Security fixture: mirror production's public intake permissions and RLS.
 alter table public.demo_requests add column status text not null default 'New';
 alter table public.demo_requests enable row level security;
