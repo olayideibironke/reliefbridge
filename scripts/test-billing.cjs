@@ -31,6 +31,7 @@ require.extensions[".ts"] = (module, filename) => {
 for (const testFile of [
   "billing-entitlements.test.ts",
   "case-capacity.test.ts",
+  "quote-intake-errors.test.ts",
 ]) {
   require(path.resolve(__dirname, "../src/lib", testFile));
 }
