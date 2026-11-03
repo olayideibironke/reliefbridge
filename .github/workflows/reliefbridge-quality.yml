@@ -30,3 +30,31 @@ jobs:
       - name: Repository ESLint (existing backlog, informational)
         continue-on-error: true
         run: npm run lint
+
+  postgres-capacity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: reliefbridge_test
+          POSTGRES_PASSWORD: local_test_only
+          POSTGRES_DB: reliefbridge_capacity_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U reliefbridge_test -d reliefbridge_capacity_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Execute capacity migrations and integration assertions in disposable PostgreSQL
+        env:
+          PGHOST: localhost
+          PGPORT: '5432'
+          PGUSER: reliefbridge_test
+          PGPASSWORD: local_test_only
+          PGDATABASE: reliefbridge_capacity_test
+        run: psql -X -v ON_ERROR_STOP=1 -f supabase/validation/capacity_integration.sql
