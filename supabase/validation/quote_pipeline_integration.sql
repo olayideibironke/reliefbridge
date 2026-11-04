@@ -409,6 +409,29 @@ begin
 end
 $won_stage_preservation$;
 
+-- A demo from an already-Won customer must not reopen the sales opportunity.
+insert into public.demo_requests(first_name,last_name,work_email,organization_name,organization_type,role_title,message)
+values ('Won','Contact','won@example.test','Won Agency','Other','Director',
+'Requesting a refresher demo for our existing customer team');
+do $won_demo_preservation$
+begin
+  if (select count(*) from public.sales_opportunities
+      where contact_email='won@example.test' and organization_name='Won Agency') <> 1
+  then raise exception 'Won opportunity duplicated on later demo request'; end if;
+  if (select stage from public.sales_opportunities
+      where contact_email='won@example.test' and organization_name='Won Agency') <> 'Won'
+  then raise exception 'Won opportunity reopened by later demo request'; end if;
+  if (select next_action from public.sales_opportunities
+      where contact_email='won@example.test' and organization_name='Won Agency')
+      <> 'Management: coordinate existing customer renewal'
+  then raise exception 'Won opportunity action overwritten by later demo'; end if;
+  if (select count(*) from public.sales_activities a
+      join public.sales_opportunities o on o.id=a.opportunity_id
+      where o.contact_email='won@example.test') <> 2
+  then raise exception 'Won customer quote and demo history not both recorded'; end if;
+end
+$won_demo_preservation$;
+
 -- An ordinary demo request after a quote must not downgrade the existing opportunity.
 insert into public.demo_requests(first_name,last_name,work_email,organization_name,organization_type,role_title,message)
 values ('Quote','Lead','quote@example.test','Fixture Recovery Agency','Other','Director',
