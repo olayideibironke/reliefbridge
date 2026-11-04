@@ -74,6 +74,21 @@ echo 'PASS: disabled sales-sync trigger rejected'
 psql -X -v ON_ERROR_STOP=1 <<'SQL'
 alter table public.demo_requests enable trigger demo_request_sales_sync;
 SQL
+psql -X -v ON_ERROR_STOP=1 <<'SQL'
+drop trigger demo_request_sales_sync on public.demo_requests;
+create trigger demo_request_sales_sync
+before insert on public.demo_requests
+for each row execute function public.sync_demo_request_to_sales();
+SQL
+expect_failure 'Premium staging preflight: original demo_request_sales_sync trigger missing'
+echo 'PASS: wrong trigger timing and events rejected'
+
+psql -X -v ON_ERROR_STOP=1 <<'SQL'
+drop trigger demo_request_sales_sync on public.demo_requests;
+create trigger demo_request_sales_sync
+after insert or update on public.demo_requests
+for each row execute function public.sync_demo_request_to_sales();
+SQL
 psql -X -v ON_ERROR_STOP=1 -f "$preflight" > "$output" 2>&1
 grep -Fq 'PASS: required schema objects, RLS and original sales sync exist' "$output"
 echo 'PASS: complete synthetic schema accepted'
