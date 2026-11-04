@@ -288,6 +288,31 @@ begin
 end
 $managed_opportunity_preservation$;
 
+-- Updating the email of a linked inquiry must reuse its existing opportunity by request ID.
+insert into public.demo_requests(first_name,last_name,work_email,organization_name,organization_type,role_title,message)
+values ('Contact','Change','old-contact@example.test','Contact Change Agency','Other','Director',
+'QUOTE REQUEST\nRequested package: Recovery Growth');
+update public.demo_requests
+set work_email='new-contact@example.test', role_title='Executive Director'
+where work_email='old-contact@example.test' and organization_name='Contact Change Agency';
+do $linked_contact_change$
+begin
+  if (select count(*) from public.sales_opportunities
+      where organization_name='Contact Change Agency') <> 1
+  then raise exception 'Changing a linked email duplicated the sales opportunity'; end if;
+  if (select contact_email from public.sales_opportunities
+      where organization_name='Contact Change Agency') <> 'new-contact@example.test'
+  then raise exception 'Linked opportunity did not reflect updated email'; end if;
+  if (select role_title from public.sales_opportunities
+      where organization_name='Contact Change Agency') <> 'Executive Director'
+  then raise exception 'Linked opportunity did not reflect updated role'; end if;
+  if (select count(*) from public.sales_activities sa
+      join public.sales_opportunities so on so.id=sa.opportunity_id
+      where so.organization_name='Contact Change Agency') <> 1
+  then raise exception 'Changing a linked email fabricated a submission activity'; end if;
+end
+$linked_contact_change$;
+
 -- Won opportunities must not regress when the same contact requests another quote.
 insert into public.sales_opportunities
 (organization_name,contact_first_name,contact_last_name,contact_email,stage,priority,temperature)
