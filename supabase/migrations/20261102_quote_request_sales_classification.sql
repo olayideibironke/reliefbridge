@@ -15,8 +15,8 @@ begin
   select so.id into opportunity
   from public.sales_opportunities so
   where so.demo_request_id = new.id
-     or (lower(so.contact_email) = lower(new.work_email)
-         and lower(so.organization_name) = lower(new.organization_name))
+     or (lower(btrim(so.contact_email)) = lower(btrim(new.work_email))
+         and lower(btrim(so.organization_name)) = lower(btrim(new.organization_name)))
   order by (so.demo_request_id = new.id) desc
   limit 1;
 
