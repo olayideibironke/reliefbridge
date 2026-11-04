@@ -56,7 +56,7 @@ begin
       and (t.tgtype::int & 2) = 0 -- AFTER, not BEFORE
       and (t.tgtype::int & 4) = 4 -- INSERT
       and (t.tgtype::int & 16) = 16 -- UPDATE
-      and t.tgfoid = 'public.sync_demo_request_to_sales()'::regprocedure
+      and t.tgfoid = to_regprocedure('public.sync_demo_request_to_sales()')
   ) then
     raise exception 'Premium staging preflight: original demo_request_sales_sync trigger missing';
   end if;
