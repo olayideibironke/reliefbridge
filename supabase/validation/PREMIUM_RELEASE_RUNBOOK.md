@@ -18,6 +18,7 @@
 3. Capture the current `public.sync_demo_request_to_sales()` function definition and `demo_request_sales_sync` trigger definition as a reviewed, access-controlled rollback artifact. Do not overwrite this snapshot with the staged replacement.
 4. Back up staging and verify a restore procedure before applying changes.
 5. Confirm the existing `demo_requests`, `sales_opportunities`, and `sales_activities` structures and their CHECK constraints match the staged migrations.
+6. Run `supabase/validation/premium_staging_schema_preflight_readonly.sql` in staging. Review missing tables/columns, RLS flags, existing triggers and CHECK constraints against the actual migration requirements. Secure the function-definition output because it is rollback-sensitive; this query is not a substitute for the controlled original-function snapshot.
 
 ## Staging migration order
 
