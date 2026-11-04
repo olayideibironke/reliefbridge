@@ -51,6 +51,7 @@ begin
     join pg_namespace n on n.oid=c.relnamespace
     where n.nspname='public' and c.relname='demo_requests'
       and t.tgname='demo_request_sales_sync' and not t.tgisinternal
+      and t.tgenabled in ('O','A')
   ) then
     raise exception 'Premium staging preflight: original demo_request_sales_sync trigger missing';
   end if;
