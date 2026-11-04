@@ -43,6 +43,26 @@ Review all migrations against the current schema before execution. Do not blindl
 - Validate verified Stripe Standard subscriptions still resolve to the correct existing entitlements.
 - Review operational abuse controls and monitoring. The 10-minute email+organization cooldown is **not** a replacement for edge-level rate limiting.
 
+## Sales-pipeline integrity acceptance matrix
+
+Run these against the **real staging schema and application**, not just the disposable CI fixture. Use synthetic contacts and capture redacted query evidence.
+
+| Scenario | Required outcome |
+| --- | --- |
+| Existing prospect submits another quote | One opportunity; new intake and activity only when outside the quote cooldown |
+| Same contact submits demo and quote concurrently | Two intake records, one opportunity, two correctly typed activities, final stage **Quote/Proposal** |
+| Quote arrives before a later demo | Quote/Proposal stage and written-quote follow-up remain intact |
+| Existing opportunity originated from a partner referral | Original attribution is retained, not overwritten with Website |
+| Legacy attribution is empty or whitespace-only | Source falls back to Website |
+| Legacy email/organization differs only by case or surrounding spaces | Existing opportunity is matched without duplication |
+| Existing inquiry changes email, organization name, or role | Linked opportunity updates in place; no fabricated new activity |
+| Management has edited next action or notes | Management instructions remain intact and new quote details are recorded |
+| Existing customer opportunity is Won | Later demo/quote cannot reopen or downgrade it |
+| Simultaneous identical quote submissions | Exactly one accepted intake, opportunity, and activity |
+| Anonymous visitor attempts to read or modify internal sales data | Denied by RLS/grants |
+
+Also verify the audit trail after each scenario: no orphaned activities, no duplicate opportunity for a normalized contact/organization pair, and no unintended modification to a different organization's records. If any scenario fails on the real staging schema, stop the release and investigate before another deployment.
+
 ## Go/no-go
 
 Do not proceed if any required test fails, if staging schema differs unexpectedly, if the rollback snapshot is missing, if the abuse protection is inadequate, or if written customer-facing approval has not been granted.
