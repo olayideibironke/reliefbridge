@@ -63,6 +63,8 @@ Run these against the **real staging schema and application**, not just the disp
 
 Also verify the audit trail after each scenario: no orphaned activities, no duplicate opportunity for a normalized contact/organization pair, and no unintended modification to a different organization's records. If any scenario fails on the real staging schema, stop the release and investigate before another deployment.
 
+Run `supabase/validation/quote_pipeline_staging_audit_readonly.sql` **before and after** the staging smoke tests. Record aggregate counts and any duplicate/orphan findings. The audit is read-only and may expose historical pre-existing anomalies; distinguish baseline findings from new regressions rather than assuming every returned row was introduced by this release. Do not export real customer identifiers or use the audit to modify production data.
+
 ## Go/no-go
 
 Do not proceed if any required test fails, if staging schema differs unexpectedly, if the rollback snapshot is missing, if the abuse protection is inadequate, or if written customer-facing approval has not been granted.
