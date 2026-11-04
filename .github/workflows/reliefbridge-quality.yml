@@ -23,6 +23,8 @@ jobs:
         run: npm run test:billing
       - name: Capacity SQL static safety checks
         run: node scripts/check-capacity-migrations.cjs
+      - name: Premium release evidence safety gate
+        run: node scripts/check-premium-release-evidence.cjs
       - name: TypeScript typecheck
         run: npm run typecheck
       - name: Feature ESLint (required)
