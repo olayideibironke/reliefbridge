@@ -313,6 +313,28 @@ begin
 end
 $linked_contact_change$;
 
+-- Renaming an organization on an already-linked inquiry must preserve the opportunity.
+insert into public.demo_requests(first_name,last_name,work_email,organization_name,organization_type,role_title,message)
+values ('Agency','Rename','rename@example.test','Old Agency Name','Other','Director',
+'QUOTE REQUEST\nRequested package: Recovery Starter');
+update public.demo_requests
+set organization_name='New Agency Name'
+where work_email='rename@example.test' and organization_name='Old Agency Name';
+do $linked_organization_rename$
+begin
+  if (select count(*) from public.sales_opportunities
+      where contact_email='rename@example.test') <> 1
+  then raise exception 'Renaming a linked organization duplicated the opportunity'; end if;
+  if (select organization_name from public.sales_opportunities
+      where contact_email='rename@example.test') <> 'New Agency Name'
+  then raise exception 'Linked opportunity did not reflect the organization rename'; end if;
+  if (select count(*) from public.sales_activities sa
+      join public.sales_opportunities so on so.id=sa.opportunity_id
+      where so.contact_email='rename@example.test') <> 1
+  then raise exception 'Renaming an organization fabricated a submission activity'; end if;
+end
+$linked_organization_rename$;
+
 -- Won opportunities must not regress when the same contact requests another quote.
 insert into public.sales_opportunities
 (organization_name,contact_first_name,contact_last_name,contact_email,stage,priority,temperature)
