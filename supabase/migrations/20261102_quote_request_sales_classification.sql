@@ -12,6 +12,14 @@ begin
   target_stage := case when is_quote then 'Quote/Proposal' else 'Demo Requested' end;
   target_action := case when is_quote then 'Review organizational quote request and respond by email' else 'Review demo request and contact prospect' end;
 
+  -- Serialize opportunity matching across different inquiry types for the same prospect.
+  -- The quote-only cooldown cannot protect a concurrent demo + quote pair.
+  perform pg_catalog.pg_advisory_xact_lock(
+    pg_catalog.hashtextextended(
+      'sales:' || lower(btrim(new.work_email)) || ':' || lower(btrim(new.organization_name)), 0
+    )
+  );
+
   select so.id into opportunity
   from public.sales_opportunities so
   where so.demo_request_id = new.id
