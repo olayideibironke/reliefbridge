@@ -223,6 +223,22 @@ begin
 end
 $missing_source_fallback$;
 
+-- Whitespace-only legacy source is missing attribution, not a meaningful source.
+insert into public.sales_opportunities
+(organization_name,contact_first_name,contact_last_name,contact_email,source,stage,priority,temperature)
+values ('Whitespace Agency','Blank','Source','whitespace@example.test','   ','Prospect','Low','Cold');
+insert into public.demo_requests(first_name,last_name,work_email,organization_name,organization_type,role_title,message)
+values ('Blank','Source','whitespace@example.test','Whitespace Agency','Other','Director',
+'QUOTE REQUEST\nRequested package: Recovery Starter');
+do $whitespace_source_fallback$
+begin
+  if (select source from public.sales_opportunities
+      where contact_email='whitespace@example.test' and organization_name='Whitespace Agency')
+      <> 'Website'
+  then raise exception 'Whitespace-only attribution was not treated as missing'; end if;
+end
+$whitespace_source_fallback$;
+
 -- Won opportunities must not regress when the same contact requests another quote.
 insert into public.sales_opportunities
 (organization_name,contact_first_name,contact_last_name,contact_email,stage,priority,temperature)
