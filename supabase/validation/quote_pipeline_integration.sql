@@ -335,6 +335,28 @@ begin
 end
 $linked_organization_rename$;
 
+-- A later demo submission must not downgrade an existing quote-stage opportunity.
+insert into public.demo_requests(first_name,last_name,work_email,organization_name,organization_type,role_title,message)
+values ('Quote','First','quote-first@example.test','Quote First Agency','Other','Director',
+'QUOTE REQUEST\nRequested package: Recovery Growth');
+insert into public.demo_requests(first_name,last_name,work_email,organization_name,organization_type,role_title,message)
+values ('Quote','First','quote-first@example.test','Quote First Agency','Other','Director',
+'Please also provide a product demonstration');
+do $quote_before_demo_stage$
+begin
+  if (select count(*) from public.sales_opportunities
+      where contact_email='quote-first@example.test') <> 1
+  then raise exception 'Later demo duplicated quote-first opportunity'; end if;
+  if (select stage from public.sales_opportunities
+      where contact_email='quote-first@example.test') <> 'Quote/Proposal'
+  then raise exception 'Later demo regressed quote-first opportunity stage'; end if;
+  if (select count(*) from public.sales_activities a
+      join public.sales_opportunities o on o.id=a.opportunity_id
+      where o.contact_email='quote-first@example.test') <> 2
+  then raise exception 'Quote-first and later demo activities not both retained'; end if;
+end
+$quote_before_demo_stage$;
+
 -- Won opportunities must not regress when the same contact requests another quote.
 insert into public.sales_opportunities
 (organization_name,contact_first_name,contact_last_name,contact_email,stage,priority,temperature)
