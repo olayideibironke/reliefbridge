@@ -89,6 +89,27 @@ create trigger demo_request_sales_sync
 after insert or update on public.demo_requests
 for each row execute function public.sync_demo_request_to_sales();
 SQL
+psql -X -v ON_ERROR_STOP=1 <<'SQL'
+create function public.unrelated_sales_trigger()
+returns trigger language plpgsql as $$
+begin
+  return new;
+end
+$$;
+drop trigger demo_request_sales_sync on public.demo_requests;
+create trigger demo_request_sales_sync
+after insert or update on public.demo_requests
+for each row execute function public.unrelated_sales_trigger();
+SQL
+expect_failure 'Premium staging preflight: original demo_request_sales_sync trigger missing'
+echo 'PASS: trigger targeting wrong function rejected'
+
+psql -X -v ON_ERROR_STOP=1 <<'SQL'
+drop trigger demo_request_sales_sync on public.demo_requests;
+create trigger demo_request_sales_sync
+after insert or update on public.demo_requests
+for each row execute function public.sync_demo_request_to_sales();
+SQL
 psql -X -v ON_ERROR_STOP=1 -f "$preflight" > "$output" 2>&1
 grep -Fq 'PASS: required schema objects, RLS and original sales sync exist' "$output"
 echo 'PASS: complete synthetic schema accepted'
