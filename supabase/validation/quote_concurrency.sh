@@ -25,4 +25,10 @@ if [[ "$success" != 1 || "$count" != 1 ]]; then
   cat "$dir/1.log" "$dir/2.log"
   exit 1
 fi
-echo "PASS: concurrent identical quote requests result in exactly one stored row"
+opportunities="$(psql -X -At -v ON_ERROR_STOP=1 -c "select count(*) from public.sales_opportunities where lower(btrim(contact_email))='$email' and lower(btrim(organization_name))=lower('$org')")"
+activities="$(psql -X -At -v ON_ERROR_STOP=1 -c "select count(*) from public.sales_activities a join public.sales_opportunities o on o.id=a.opportunity_id where lower(btrim(o.contact_email))='$email' and lower(btrim(o.organization_name))=lower('$org')")"
+if [[ "$opportunities" != 1 || "$activities" != 1 ]]; then
+  echo "FAIL: concurrent quote race produced $opportunities sales opportunities and $activities activities (expected 1 each)"
+  exit 1
+fi
+echo "PASS: concurrent identical quote requests result in one intake, one opportunity and one activity"
