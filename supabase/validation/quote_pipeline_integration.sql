@@ -263,6 +263,31 @@ begin
 end
 $legacy_identity_normalization$;
 
+-- A returning prospect must retain a management-owned action and existing notes.
+insert into public.sales_opportunities
+(organization_name,contact_first_name,contact_last_name,contact_email,source,stage,priority,temperature,next_action,notes)
+values ('Managed Agency','Managed','Contact','managed@example.test','Partner Referral','Qualified','High','Warm',
+'Await procurement committee decision','Original management notes must remain intact');
+insert into public.demo_requests(first_name,last_name,work_email,organization_name,organization_type,role_title,message)
+values ('Managed','Contact','managed@example.test','Managed Agency','Other','Director',
+'QUOTE REQUEST\nRequested package: Enterprise');
+do $managed_opportunity_preservation$
+begin
+  if (select count(*) from public.sales_opportunities
+      where contact_email='managed@example.test' and organization_name='Managed Agency') <> 1
+  then raise exception 'Managed opportunity duplicated'; end if;
+  if (select next_action from public.sales_opportunities
+      where contact_email='managed@example.test') <> 'Await procurement committee decision'
+  then raise exception 'Management-owned next action was overwritten'; end if;
+  if position('Original management notes must remain intact' in
+      (select notes from public.sales_opportunities where contact_email='managed@example.test')) = 0
+  then raise exception 'Management notes were lost'; end if;
+  if position('Requested package: Enterprise' in
+      (select notes from public.sales_opportunities where contact_email='managed@example.test')) = 0
+  then raise exception 'Latest quote details were not appended'; end if;
+end
+$managed_opportunity_preservation$;
+
 -- Won opportunities must not regress when the same contact requests another quote.
 insert into public.sales_opportunities
 (organization_name,contact_first_name,contact_last_name,contact_email,stage,priority,temperature)
