@@ -61,8 +61,11 @@ done
 mixed_intakes="$(psql -X -At -v ON_ERROR_STOP=1 -c "select count(*) from public.demo_requests where work_email='$mixed_email' and organization_name='$mixed_org'")"
 mixed_opportunities="$(psql -X -At -v ON_ERROR_STOP=1 -c "select count(*) from public.sales_opportunities where lower(btrim(contact_email))='$mixed_email' and lower(btrim(organization_name))=lower('$mixed_org')")"
 mixed_activities="$(psql -X -At -v ON_ERROR_STOP=1 -c "select count(*) from public.sales_activities a join public.sales_opportunities o on o.id=a.opportunity_id where lower(btrim(o.contact_email))='$mixed_email'")"
-if [[ "$mixed_intakes" != 2 || "$mixed_opportunities" != 1 || "$mixed_activities" != 2 ]]; then
-  echo "FAIL: concurrent demo/quote yielded $mixed_intakes intakes, $mixed_opportunities opportunities, $mixed_activities activities (expected 2/1/2)"
+mixed_stage="$(psql -X -At -v ON_ERROR_STOP=1 -c "select stage from public.sales_opportunities where lower(btrim(contact_email))='$mixed_email' and lower(btrim(organization_name))=lower('$mixed_org')")"
+mixed_quote_activities="$(psql -X -At -v ON_ERROR_STOP=1 -c "select count(*) from public.sales_activities a join public.sales_opportunities o on o.id=a.opportunity_id where lower(btrim(o.contact_email))='$mixed_email' and a.activity_type='Quote'")"
+mixed_demo_activities="$(psql -X -At -v ON_ERROR_STOP=1 -c "select count(*) from public.sales_activities a join public.sales_opportunities o on o.id=a.opportunity_id where lower(btrim(o.contact_email))='$mixed_email' and a.activity_type='Demo Request'")"
+if [[ "$mixed_intakes" != 2 || "$mixed_opportunities" != 1 || "$mixed_activities" != 2 || "$mixed_stage" != "Quote/Proposal" || "$mixed_quote_activities" != 1 || "$mixed_demo_activities" != 1 ]]; then
+  echo "FAIL: concurrent demo/quote yielded $mixed_intakes intakes, $mixed_opportunities opportunities, $mixed_activities activities, stage $mixed_stage, quote activities $mixed_quote_activities, demo activities $mixed_demo_activities (expected 2/1/2, Quote/Proposal, 1/1)"
   exit 1
 fi
 echo "PASS: concurrent demo and quote preserve both inquiries and one shared opportunity"
