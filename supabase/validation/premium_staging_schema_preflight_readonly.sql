@@ -52,6 +52,11 @@ begin
     where n.nspname='public' and c.relname='demo_requests'
       and t.tgname='demo_request_sales_sync' and not t.tgisinternal
       and t.tgenabled in ('O','A')
+      and (t.tgtype::int & 1) = 1 -- FOR EACH ROW
+      and (t.tgtype::int & 2) = 0 -- AFTER, not BEFORE
+      and (t.tgtype::int & 4) = 4 -- INSERT
+      and (t.tgtype::int & 16) = 16 -- UPDATE
+      and t.tgfoid = 'public.sync_demo_request_to_sales()'::regprocedure
   ) then
     raise exception 'Premium staging preflight: original demo_request_sales_sync trigger missing';
   end if;
