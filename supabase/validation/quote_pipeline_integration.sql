@@ -203,6 +203,26 @@ begin
 end
 $original_source_attribution$;
 
+-- Empty historical attribution may be filled from the new inquiry, but not overwritten later.
+insert into public.sales_opportunities
+(organization_name,contact_first_name,contact_last_name,contact_email,source,stage,priority,temperature)
+values ('Unattributed Agency','Unknown','Source','unattributed@example.test','','Prospect','Low','Cold');
+insert into public.demo_requests(first_name,last_name,work_email,organization_name,organization_type,role_title,message)
+values ('Unknown','Source','unattributed@example.test','Unattributed Agency','Other','Director',
+'QUOTE REQUEST\nRequested package: Recovery Starter');
+do $missing_source_fallback$
+begin
+  if (select source from public.sales_opportunities
+      where contact_email='unattributed@example.test' and organization_name='Unattributed Agency')
+      <> 'Website'
+  then raise exception 'Missing first-touch attribution did not fall back to website source'; end if;
+  if (select stage from public.sales_opportunities
+      where contact_email='unattributed@example.test' and organization_name='Unattributed Agency')
+      <> 'Quote/Proposal'
+  then raise exception 'Unattributed prospect did not advance to quote stage'; end if;
+end
+$missing_source_fallback$;
+
 -- Won opportunities must not regress when the same contact requests another quote.
 insert into public.sales_opportunities
 (organization_name,contact_first_name,contact_last_name,contact_email,stage,priority,temperature)
