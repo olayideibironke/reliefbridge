@@ -357,6 +357,28 @@ begin
 end
 $quote_before_demo_stage$;
 
+-- A later demo must not overwrite the written-quote follow-up instructions.
+insert into public.demo_requests(first_name,last_name,work_email,organization_name,organization_type,role_title,message)
+values ('Action','First','action-first@example.test','Action First Agency','Other','Director',
+'QUOTE REQUEST\nRequested package: Recovery Growth');
+insert into public.demo_requests(first_name,last_name,work_email,organization_name,organization_type,role_title,message)
+values ('Action','First','action-first@example.test','Action First Agency','Other','Director',
+'We would also appreciate a demo video');
+do $quote_action_survives_demo$
+begin
+  if (select count(*) from public.sales_opportunities
+      where contact_email='action-first@example.test') <> 1
+  then raise exception 'Later demo duplicated action-first opportunity'; end if;
+  if (select stage from public.sales_opportunities
+      where contact_email='action-first@example.test') <> 'Quote/Proposal'
+  then raise exception 'Later demo regressed action-first quote stage'; end if;
+  if (select next_action from public.sales_opportunities
+      where contact_email='action-first@example.test')
+      <> 'Review organizational quote request and respond by email'
+  then raise exception 'Later demo overwrote written-quote follow-up instructions'; end if;
+end
+$quote_action_survives_demo$;
+
 -- Won opportunities must not regress when the same contact requests another quote.
 insert into public.sales_opportunities
 (organization_name,contact_first_name,contact_last_name,contact_email,stage,priority,temperature)
