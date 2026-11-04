@@ -87,6 +87,10 @@ Do not proceed if any required test fails, if staging schema differs unexpectedl
 - Do not delete customer intake, case, profile, or sales records to roll back.
 - Test rollback in staging first. If rollback cannot be proven safe, do not release.
 
+## Evidence register
+
+Maintain `supabase/validation/PREMIUM_RELEASE_EVIDENCE.md` as the source of truth for gate status. Refresh the CI commit and run evidence after the final code change; no prior green run substitutes for a release-candidate run. A gate with missing evidence is not passed.
+
 ## Evidence to record
 
 Commit SHA; CI run URLs; staging project identifier; migration execution log; original trigger/function snapshot; RLS audit; quote/demo screenshots or redacted test records; browser and accessibility results; security/abuse review; rollback rehearsal; explicit release approval.
