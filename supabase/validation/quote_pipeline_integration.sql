@@ -239,6 +239,30 @@ begin
 end
 $whitespace_source_fallback$;
 
+-- Legacy whitespace and case differences must not duplicate a matching opportunity.
+insert into public.sales_opportunities
+(organization_name,contact_first_name,contact_last_name,contact_email,source,stage,priority,temperature)
+values ('  Legacy Spacing Agency  ','Legacy','Contact','  LEGACY@EXAMPLE.TEST  ','Partner Referral','Qualified','High','Warm');
+insert into public.demo_requests(first_name,last_name,work_email,organization_name,organization_type,role_title,message)
+values ('Legacy','Contact','legacy@example.test','Legacy Spacing Agency','Other','Director',
+'QUOTE REQUEST\nRequested package: Recovery Growth');
+do $legacy_identity_normalization$
+begin
+  if (select count(*) from public.sales_opportunities
+      where lower(btrim(contact_email))='legacy@example.test'
+        and lower(btrim(organization_name))='legacy spacing agency') <> 1
+  then raise exception 'Legacy whitespace/case mismatch duplicated the opportunity'; end if;
+  if (select stage from public.sales_opportunities
+      where lower(btrim(contact_email))='legacy@example.test'
+        and lower(btrim(organization_name))='legacy spacing agency') <> 'Quote/Proposal'
+  then raise exception 'Legacy normalized opportunity failed to advance'; end if;
+  if (select source from public.sales_opportunities
+      where lower(btrim(contact_email))='legacy@example.test'
+        and lower(btrim(organization_name))='legacy spacing agency') <> 'Partner Referral'
+  then raise exception 'Legacy source attribution was not preserved'; end if;
+end
+$legacy_identity_normalization$;
+
 -- Won opportunities must not regress when the same contact requests another quote.
 insert into public.sales_opportunities
 (organization_name,contact_first_name,contact_last_name,contact_email,stage,priority,temperature)
