@@ -9,7 +9,7 @@ declare
 begin
   if new.status = 'closed' then return new; end if;
   if tg_op = 'UPDATE' then
-    if old.status <> 'closed'
+    if old.status is distinct from 'closed'
        and old.organization_id is not distinct from new.organization_id then
       return new;
     end if;
