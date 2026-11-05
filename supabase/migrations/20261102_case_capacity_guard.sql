@@ -29,7 +29,7 @@ begin
   end if;
 
   select count(*) into active_count from public.recovery_cases
-  where organization_id = new.organization_id and status <> 'closed';
+  where organization_id = new.organization_id and status is distinct from 'closed';
 
   if active_count >= cap then
     raise exception 'Organization active case limit reached';
