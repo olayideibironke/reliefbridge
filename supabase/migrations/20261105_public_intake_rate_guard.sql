@@ -8,20 +8,28 @@ declare
   normalized_org text := lower(btrim(coalesce(new.organization_name, '')));
   recent_count bigint;
 begin
+  -- Internal sales imports and management-created records are not public form
+  -- submissions and must not consume or be rejected by the website quota.
+  if new.source is distinct from 'Website' then
+    return new;
+  end if;
+
   -- One transaction-wide lock for all public intake attempts. The fixed key
   -- protects global and per-identity counters against races across instances.
   perform pg_catalog.pg_advisory_xact_lock(9472031001);
 
   select count(*) into recent_count
   from public.demo_requests d
-  where d.created_at >= pg_catalog.now() - interval '1 hour';
+  where d.source = 'Website'
+    and d.created_at >= pg_catalog.now() - interval '1 hour';
   if recent_count >= 120 then
     raise exception 'Public intake temporarily limited' using errcode = 'RB002';
   end if;
 
   select count(*) into recent_count
   from public.demo_requests d
-  where lower(btrim(d.work_email)) = normalized_email
+  where d.source = 'Website'
+    and lower(btrim(d.work_email)) = normalized_email
     and d.created_at >= pg_catalog.now() - interval '1 hour';
   if recent_count >= 3 then
     raise exception 'Public intake temporarily limited' using errcode = 'RB002';
@@ -29,7 +37,8 @@ begin
 
   select count(*) into recent_count
   from public.demo_requests d
-  where lower(btrim(d.organization_name)) = normalized_org
+  where d.source = 'Website'
+    and lower(btrim(d.organization_name)) = normalized_org
     and d.created_at >= pg_catalog.now() - interval '1 hour';
   if recent_count >= 10 then
     raise exception 'Public intake temporarily limited' using errcode = 'RB002';
