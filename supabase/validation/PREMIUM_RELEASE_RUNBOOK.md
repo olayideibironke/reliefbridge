@@ -29,8 +29,20 @@ Apply in this order, in the staging environment only:
 3. `supabase/migrations/20261103_staff_capacity_guard.sql`
 4. `supabase/migrations/20261102_quote_request_sales_classification.sql`
 5. `supabase/migrations/20261103_quote_repeat_guard.sql`
+6. `supabase/migrations/20261105_public_intake_rate_guard.sql`
+7. `supabase/migrations/20261105_public_intake_insert_lockdown.sql` **only after** the server-only intake path is deployed and verified against the same staging database.
 
 Review all migrations against the current schema before execution. Do not blindly replay migrations or alter production migration history.
+
+## Intake cutover safety
+
+- Confirm the server runtime has a valid service-role credential without printing or exposing it. If absent, stop: both forms will fail after privilege lockdown.
+- Verify both form actions use `persistPublicIntake`, with explicit field mapping and no browser-side service-role key.
+- Run a synthetic demo and written quote through the deployed staging application **before** revoking public INSERT; verify both persist and the demo notifications behave correctly.
+- Apply the staged rate guard and test legitimate multiple contacts, concurrent requests, and abuse thresholds against staging data. Review the global 120/hour ceiling for false positives and denial-of-service exposure.
+- Only then apply the direct INSERT lockdown and repeat form submissions. Verify direct anonymous/authenticated Data API INSERT is rejected while authorized staff UPDATE remains functional.
+- Never deploy a code revision that depends on the new permissions before its server environment is ready. Coordinate cutover to avoid an interval where valid requests are rejected.
+- The quota trigger counts all rows, including internal privileged inserts, and a global quota can be exhausted intentionally. Confirm operational mitigation and monitoring before approving production.
 
 ## Staging verification
 

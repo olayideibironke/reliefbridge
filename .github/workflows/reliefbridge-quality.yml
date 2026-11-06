@@ -145,6 +145,15 @@ jobs:
           PGDATABASE: reliefbridge_quote_test
         run: bash supabase/validation/quote_concurrency.sh
 
+      - name: Verify concurrent public intake quota enforcement
+        env:
+          PGHOST: localhost
+          PGPORT: '5432'
+          PGUSER: reliefbridge_test
+          PGPASSWORD: local_test_only
+          PGDATABASE: reliefbridge_quote_test
+        run: bash supabase/validation/public_intake_rate_concurrency.sh
+
       - name: Verify shared public intake volume guard
         env:
           PGHOST: localhost

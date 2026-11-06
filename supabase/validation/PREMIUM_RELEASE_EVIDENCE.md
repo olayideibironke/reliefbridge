@@ -30,3 +30,7 @@
 ## November 5 staged intake boundary
 
 A shared server-only intake module, staged browser-role INSERT lockdown, and staged atomic database volume guard have been committed for validation. These controls are **NOT deployed or approved for production**. The quota guard currently uses a serialized global 120/hour backstop, 3/hour per normalized email, and 10/hour per normalized organization; thresholds and false-positive behavior need staging load review. The global backstop can be exhausted by an attacker, so edge-level mitigation and monitoring remain release requirements. Confirm service-role environment configuration without exposing credentials, run full-schema staging, validate concurrent submissions and rollback, and review legitimate insert callers before release. Do not treat disposable PostgreSQL CI as staging approval.
+
+### CI evidence, November 5
+
+GitHub Actions run [#122](https://github.com/olayideibironke/reliefbridge/actions/runs/42137041376) completed successfully for commit `ee7d0917fc717a8ff68a8f09be7c9df75702b32b`. This is **disposable CI evidence only**, not full-schema staging approval. The next development change adds a four-writer quota concurrency regression and updates cutover order; its CI must be verified separately. Production remains blocked.
