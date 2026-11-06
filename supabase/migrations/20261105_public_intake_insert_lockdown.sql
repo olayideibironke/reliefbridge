@@ -14,6 +14,10 @@
 -- Do not enable it until the replacement intake path is deployed and tested
 -- in staging. A premature application would block legitimate demo/quote forms.
 
+-- The live schema lacks service_role INSERT; provide only the minimum needed
+-- by the server-side INSERT without .select(). Do not grant SELECT or UPDATE.
+grant insert on table public.demo_requests to service_role;
+
 revoke insert on table public.demo_requests from anon;
 revoke insert on table public.demo_requests from authenticated;
 revoke insert on table public.demo_requests from public;
@@ -22,6 +26,9 @@ revoke insert on table public.demo_requests from public;
 -- This checks effective privileges, not merely explicit GRANT statements.
 do $intake_privilege_check$
 begin
+  if not pg_catalog.has_table_privilege('service_role', 'public.demo_requests', 'INSERT') then
+    raise exception 'Server-only intake role lacks required INSERT privilege';
+  end if;
   if pg_catalog.has_table_privilege('anon', 'public.demo_requests', 'INSERT')
      or pg_catalog.has_table_privilege('authenticated', 'public.demo_requests', 'INSERT')
   then

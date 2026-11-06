@@ -4,6 +4,8 @@
 -- Reproduce the dangerous pre-cutover state for BOTH browser-facing roles.
 -- Otherwise authenticated INSERT rejection would pass trivially without testing
 -- whether the migration actually revokes a previously available privilege.
+create role service_role nologin;
+grant usage on schema public to service_role;
 grant insert on public.demo_requests to authenticated;
 grant select, update on public.demo_requests to authenticated;
 
@@ -21,6 +23,9 @@ $pre_cutover_privileges$;
 
 do $effective_privileges$
 begin
+  if not pg_catalog.has_table_privilege('service_role','public.demo_requests','INSERT') then
+    raise exception 'Service-role INSERT not restored for server-side intake';
+  end if;
   if pg_catalog.has_table_privilege('anon','public.demo_requests','INSERT')
      or pg_catalog.has_table_privilege('authenticated','public.demo_requests','INSERT')
   then
@@ -90,6 +95,15 @@ end
 $authenticated_insert_denied$;
 reset role;
 
+-- Verify the real service-role permission, not just superuser writes.
+-- The application uses INSERT without RETURNING; SELECT is not needed.
+set role service_role;
+insert into public.demo_requests
+  (first_name,last_name,work_email,organization_name,organization_type,role_title,message)
+values
+  ('Service','Intake','service-role@example.test','Service Agency','Other','Director','Ordinary demo');
+reset role;
+
 -- Existing privileged database operations still work in the fixture.
 insert into public.demo_requests
   (first_name,last_name,work_email,organization_name,organization_type,role_title,message)
@@ -97,6 +111,9 @@ values
   ('Privileged','Intake','privileged@example.test','Fixture Allowed','Other','Director','Ordinary demo');
 do $privileged_intake_check$
 begin
+  if (select count(*) from public.demo_requests where work_email='service-role@example.test') <> 1 then
+    raise exception 'Service-role INSERT failed under restricted permissions';
+  end if;
   if (select count(*) from public.demo_requests where work_email='privileged@example.test') <> 1 then
     raise exception 'Privileged intake INSERT unexpectedly failed';
   end if;

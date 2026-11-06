@@ -7,7 +7,7 @@
 | GitHub CI: validate, postgres-preflight, postgres-capacity, postgres-quote | PASS at commit `6611135365ccf51d94f4136042eb8c1b3a42c3de` | [CI run #135](https://github.com/olayideibironke/reliefbridge/actions/runs/42143967022), all four required jobs succeeded; refresh after every new commit |
 | Disposable PostgreSQL preflight, case/staff and quote integration | PASS at above commit | CI run #135, three PostgreSQL jobs; disposable fixtures only |
 | Read-only production RLS and schema review | REVIEWED (2026-11-03) | `QUOTE_SECURITY_RELEASE_REVIEW.md`; repeat against current schema before release |
-| Production service-role table permissions (read-only review, 2026-11-05) | **BLOCKED: service_role lacks INSERT and SELECT on public.demo_requests** | Effective `has_table_privilege` results and role grants verified read-only; stage a narrowly scoped grant fix and verify before any cutover |
+| Production service-role table permissions (read-only review, 2026-11-05) | **BLOCKED: service_role lacks INSERT on public.demo_requests** | Effective `has_table_privilege` results and role grants verified read-only; stage a narrowly scoped INSERT grant fix and verify before any cutover |
 | Full-schema staging migration rehearsal | NOT RUN | Staging project ID, migration logs, preflight schema comparison |
 | Original sales-sync trigger/function snapshot | NOT CAPTURED FOR RELEASE | Restricted rollback artifact and review sign-off |
 | Staging rollback and restore rehearsal | NOT RUN | Restore transcript, validation results, owner |
@@ -21,7 +21,7 @@
 
 ## Live schema finding, November 5 (read-only)
 
-A read-only query against ReliefBridge Supabase project `hknfbkbqfcombsblrnnu` confirmed RLS is enabled on `demo_requests`, `sales_opportunities`, and `sales_activities`. On `public.demo_requests`, `anon` and `authenticated` both currently have effective INSERT, while `service_role` has **neither INSERT nor SELECT**. The underlying role grants also lack those two privileges for `service_role`. This is a concrete compatibility blocker for the staged server-only intake client, which inserts with the service-role key and requests the inserted row in its response. Rehearse a narrowly scoped service-role privilege correction in schema-equivalent staging and validate both demo and quote end-to-end before revoking browser INSERT. Do not change production grants without a separate approved rollout. No SQL writes were performed during this review.
+A read-only query against ReliefBridge Supabase project `hknfbkbqfcombsblrnnu` confirmed RLS is enabled on `demo_requests`, `sales_opportunities`, and `sales_activities`. On `public.demo_requests`, `anon` and `authenticated` both currently have effective INSERT, while `service_role` has **neither INSERT nor SELECT**. The underlying role grants also lack those privileges for `service_role`. The staged server-only intake client uses INSERT **without** `.select()` or RETURNING, so **INSERT is required but SELECT is not**. Rehearse a narrowly scoped service-role INSERT grant in schema-equivalent staging and validate both demo and quote end-to-end before revoking browser INSERT. Do not change production grants without a separate approved rollout. No SQL writes were performed during this review.
 
 ## Evidence rules
 

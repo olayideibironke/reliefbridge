@@ -36,6 +36,7 @@ Review all migrations against the current schema before execution. Do not blindl
 
 ## Intake cutover safety
 
+- Confirm the staging `service_role` has effective INSERT on `public.demo_requests` after the staged lockdown migration, while `anon` and `authenticated` do not. The server-only intake path uses INSERT without RETURNING and does not require service-role SELECT. Test as the actual service role, not just the database owner.
 - Confirm the server runtime has a valid service-role credential without printing or exposing it. If absent, stop: both forms will fail after privilege lockdown.
 - Verify both form actions use `persistPublicIntake`, with explicit field mapping and no browser-side service-role key.
 - Run a synthetic demo and written quote through the deployed staging application **before** revoking public INSERT; verify both persist and the demo notifications behave correctly.
