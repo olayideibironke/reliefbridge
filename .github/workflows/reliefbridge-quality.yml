@@ -29,6 +29,8 @@ jobs:
         run: node scripts/test-premium-release-evidence.cjs
       - name: Public intake security boundary invariants
         run: node scripts/check-public-intake-boundary.cjs
+      - name: Guard intake release migration order and rollback
+        run: node scripts/check-intake-release-sequence.cjs
       - name: TypeScript typecheck
         run: npm run typecheck
       - name: Feature ESLint (required)
