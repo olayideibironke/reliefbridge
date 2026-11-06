@@ -2,7 +2,7 @@
 
 import { Resend } from "resend";
 
-import { createSupabaseServerClient } from "@/lib/supabase-server";
+import { persistPublicIntake } from "@/lib/public-intake";
 import { isEmail } from "@/lib/utils";
 import { US_STATES } from "@/lib/constants";
 import type { FormState } from "@/lib/forms";
@@ -821,37 +821,29 @@ export async function requestDemoAction(
     message,
   };
 
-  const supabase = await createSupabaseServerClient();
+  const result = await persistPublicIntake({
+    first_name: firstName,
+    last_name: lastName,
+    work_email: workEmail,
+    phone: phone || null,
+    organization_name: organizationName,
+    organization_type: organizationType,
+    role_title: roleTitle,
+    state: state || null,
+    organization_size: organizationSize || null,
+    recovery_focus: recoveryFocus || null,
+    preferred_contact: preferredContact,
+    message: message || null,
+    status: "New",
+    source: "Website",
+  });
 
-  const { error } = await supabase
-    .from("demo_requests")
-    .insert({
-      first_name: firstName,
-      last_name: lastName,
-      work_email: workEmail,
-      phone: phone || null,
-      organization_name: organizationName,
-      organization_type: organizationType,
-      role_title: roleTitle,
-      state: state || null,
-      organization_size: organizationSize || null,
-      recovery_focus: recoveryFocus || null,
-      preferred_contact: preferredContact,
-      message: message || null,
-      status: "New",
-      source: "Website",
-    });
-
-  if (error) {
-    console.error(
-      "ReliefBridge demo request submission failed:",
-      error
-    );
-
+  if (!result.ok) {
     return {
       ok: false,
-      message:
-        "We could not submit your request right now. Please try again in a moment.",
+      message: result.reason === "limited"
+        ? "We have received several recent requests. Please try again later or contact our team by email."
+        : "We could not submit your request right now. Please try again in a moment.",
     };
   }
 

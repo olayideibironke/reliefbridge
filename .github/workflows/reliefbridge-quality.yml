@@ -127,6 +127,15 @@ jobs:
           PGDATABASE: reliefbridge_quote_test
         run: psql -X -v ON_ERROR_STOP=1 -f supabase/validation/quote_pipeline_integration.sql
 
+      - name: Verify shared public intake volume guard
+        env:
+          PGHOST: localhost
+          PGPORT: '5432'
+          PGUSER: reliefbridge_test
+          PGPASSWORD: local_test_only
+          PGDATABASE: reliefbridge_quote_test
+        run: psql -X -v ON_ERROR_STOP=1 -f supabase/validation/public_intake_rate_integration.sql
+
       - name: Verify staged browser-role intake INSERT lockdown
         env:
           PGHOST: localhost
