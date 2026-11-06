@@ -63,6 +63,17 @@ begin
   if to_regprocedure('public.sync_demo_request_to_sales()') is null then
     raise exception 'Premium staging preflight: original sales-sync function missing';
   end if;
+  -- A security-invoker replacement would run the sales-sync body under the
+  -- narrowly granted intake role and break sales writes after cutover.
+  if not exists (
+    select 1 from pg_catalog.pg_proc p
+    join pg_catalog.pg_namespace n on n.oid=p.pronamespace
+    where n.nspname='public'
+      and p.oid=to_regprocedure('public.sync_demo_request_to_sales()')
+      and p.prosecdef
+  ) then
+    raise exception 'Premium staging preflight: sales-sync function must be SECURITY DEFINER';
+  end if;
   raise notice 'PASS: required schema objects, RLS and original sales sync exist';
 end
 $premium_preflight$;
