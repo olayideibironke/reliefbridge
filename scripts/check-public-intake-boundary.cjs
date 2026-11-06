@@ -22,6 +22,7 @@ assert(intake.includes('import "server-only";'), "shared intake must be server-o
 assert(intake.includes("createSupabaseAdminClient()"), "shared intake must use a privileged server client");
 assert(intake.includes('status: "New"') && intake.includes('source: "Website"'), "server must pin status and source");
 assert(!intake.includes("...payload"), "shared intake must map permitted fields explicitly");
+assert(admin.includes('import "server-only";'), "admin client must be server-only");
 assert(admin.includes("SUPABASE_SERVICE_ROLE_KEY"), "admin client must read the server-only service-role key");
 for (const role of ["anon", "authenticated", "public"]) {
   assert(lockdown.includes("from " + role + ";"), "INSERT lockdown must revoke from " + role);
