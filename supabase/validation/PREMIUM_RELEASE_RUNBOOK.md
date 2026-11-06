@@ -13,7 +13,7 @@
 
 ## Before staging
 
-1. Record the exact Git commit, PR review, and all three successful CI jobs: `validate`, `postgres-capacity`, `postgres-quote`.
+1. Record the exact Git commit, PR review, and all four successful CI jobs: `validate`, `postgres-preflight`, `postgres-capacity`, `postgres-quote`.
 2. Prepare a disposable staging project with a **schema-equivalent** copy of the actual ReliefBridge schema, including RLS, existing triggers, constraints, and grants. Do not copy real survivor or customer PII.
 3. Capture the current `public.sync_demo_request_to_sales()` function definition and `demo_request_sales_sync` trigger definition as a reviewed, access-controlled rollback artifact. Do not overwrite this snapshot with the staged replacement.
 4. Back up staging and verify a restore procedure before applying changes.
@@ -42,7 +42,16 @@ Review all migrations against the current schema before execution. Do not blindl
 - Apply the staged rate guard and test legitimate multiple contacts, concurrent requests, and abuse thresholds against staging data. Review the global 120/hour ceiling for false positives and denial-of-service exposure.
 - Only then apply the direct INSERT lockdown and repeat form submissions. Verify direct anonymous/authenticated Data API INSERT is rejected while authorized staff UPDATE remains functional.
 - Never deploy a code revision that depends on the new permissions before its server environment is ready. Coordinate cutover to avoid an interval where valid requests are rejected.
-- The quota trigger counts all rows, including internal privileged inserts, and a global quota can be exhausted intentionally. Confirm operational mitigation and monitoring before approving production.
+- The quota trigger counts only rows with `source = 'Website'`; internal privileged inserts with a different source remain outside the quota. A global website quota can still be exhausted intentionally. Confirm operational mitigation and monitoring before approving production.
+
+## Intake cutover rollback (staging rehearsal required)
+
+1. Capture the current table privileges, RLS policies, triggers, and a reviewed rollback artifact **before** any migration. Keep secrets and live PII out of evidence.
+2. If a form fails after the new application code is deployed but before privilege lockdown, stop rollout and revert the application revision to the previously verified version. Do not alter production grants to debug.
+3. If a form fails **after** privilege lockdown, first confirm the service-role environment and server-side intake path. Rolling back the application alone will **not** restore public submissions because the old code uses the browser-facing database role.
+4. To revert the cutover, coordinate a reviewed restoration of the prior database grants/RLS and the prior application version as a single controlled operation. Re-enabling public INSERT reopens the direct API bypass and must be treated as a temporary security exception, not a routine rollback.
+5. For a rate-guard defect, review and rehearse disabling the `public_intake_volume_guard` trigger in staging while retaining the public INSERT lockdown and the working server-only intake path. Do not disable the quote repeat guard or sales pipeline sync.
+6. Re-run the real staging demo and quote forms, their notifications, internal sales management updates, and direct anonymous/authenticated Data API rejection after every rollback or remediation.
 
 ## Staging verification
 
