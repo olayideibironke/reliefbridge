@@ -40,6 +40,24 @@ begin
 end
 $retained_privileges$;
 
+-- Replaying the lockdown in a controlled staging rehearsal must remain safe
+-- and must not silently restore direct INSERT to browser-facing roles.
+\ir ../migrations/20261105_public_intake_insert_lockdown.sql
+do $repeat_lockdown$
+begin
+  if pg_catalog.has_table_privilege('anon','public.demo_requests','INSERT')
+     or pg_catalog.has_table_privilege('authenticated','public.demo_requests','INSERT')
+  then
+    raise exception 'Repeated lockdown unexpectedly restored INSERT access';
+  end if;
+  if not pg_catalog.has_table_privilege('authenticated','public.demo_requests','SELECT')
+     or not pg_catalog.has_table_privilege('authenticated','public.demo_requests','UPDATE')
+  then
+    raise exception 'Repeated lockdown removed unrelated management privileges';
+  end if;
+end
+$repeat_lockdown$;
+
 -- Attempt an ordinary demo submission under the actual browser-facing role.
 set role anon;
 do $anonymous_insert_denied$
