@@ -4,7 +4,9 @@
 -- Reproduce the dangerous pre-cutover state for BOTH browser-facing roles.
 -- Otherwise authenticated INSERT rejection would pass trivially without testing
 -- whether the migration actually revokes a previously available privilege.
-create role service_role nologin;
+-- Supabase's service_role has BYPASSRLS; a plain PostgreSQL role does not.
+-- Match that property so the fixture exercises the actual privileged intake path.
+create role service_role nologin bypassrls;
 grant usage on schema public to service_role;
 grant insert on public.demo_requests to authenticated;
 grant select, update on public.demo_requests to authenticated;
