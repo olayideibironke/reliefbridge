@@ -23,6 +23,12 @@
 
 A read-only query against ReliefBridge Supabase project `hknfbkbqfcombsblrnnu` confirmed RLS is enabled on `demo_requests`, `sales_opportunities`, and `sales_activities`. On `public.demo_requests`, `anon` and `authenticated` both currently have effective INSERT, while `service_role` has **neither INSERT nor SELECT**. The underlying role grants also lack those privileges for `service_role`. The staged server-only intake client uses INSERT **without** `.select()` or RETURNING, so **INSERT is required but SELECT is not**. Rehearse a narrowly scoped service-role INSERT grant in schema-equivalent staging and validate both demo and quote end-to-end before revoking browser INSERT. Do not change production grants without a separate approved rollout. No SQL writes were performed during this review.
 
+### Live sales-sync privilege review, November 5 (read-only)
+
+The existing `public.sync_demo_request_to_sales()` function is owned by `postgres` and is `SECURITY DEFINER`. The live `service_role` has no direct INSERT/SELECT on `public.sales_opportunities` or `public.sales_activities`. PostgreSQL trigger execution does not require the triggering role to have explicit EXECUTE on the trigger function; the trigger runs the security-definer body with its owner privileges. **Do not grant broad sales-table access merely to satisfy the intake cutover.** This is a structural review, not proof that the full sales-sync function works with staged migrations. Verify actual service-role inserts, trigger side effects, and sales integrity in schema-equivalent staging.
+
+GitHub Actions [run #139](https://github.com/olayideibironke/reliefbridge/actions/runs/42155849308) passed at commit `3613f70464c9bcd87731614e21c6421d48931e40`, including the corrected `BYPASSRLS` service-role fixture. It does not supersede the staging gates.
+
 ## Evidence rules
 
 1. Use synthetic staging contacts and organizations. Never copy survivor or customer PII into evidence.
