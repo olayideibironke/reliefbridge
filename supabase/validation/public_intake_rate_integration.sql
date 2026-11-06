@@ -88,4 +88,37 @@ begin
 end
 $internal_not_limited$;
 
+-- Expired website requests must stop consuming all three rolling quotas.
+-- Move only synthetic website records back in time, leaving internal records intact.
+update public.demo_requests
+set created_at = pg_catalog.now() - interval '2 hours'
+where source = 'Website';
+
+do $window_expiry$
+declare i integer;
+begin
+  for i in 1..3 loop
+    insert into public.demo_requests(first_name,last_name,work_email,organization_name,organization_type,role_title,message)
+    values ('Window','Lead',' RATE@Example.Test ',' Rate Agency ','Other','Director','New request after expiry');
+  end loop;
+  if (select count(*) from public.demo_requests
+      where lower(btrim(work_email)) = 'rate@example.test'
+        and source = 'Website'
+        and created_at >= pg_catalog.now() - interval '1 hour') <> 3 then
+    raise exception 'Expired requests incorrectly consumed the rolling email quota';
+  end if;
+  begin
+    insert into public.demo_requests(first_name,last_name,work_email,organization_name,organization_type,role_title,message)
+    values ('Window','Lead','rate@example.test','Rate Agency','Other','Director','Fourth normalized request');
+    raise exception 'FAIL: normalized email limit was bypassed after window reset';
+  exception when sqlstate 'RB002' then null;
+  end;
+  if (select count(*) from public.demo_requests
+      where source = 'Website'
+        and created_at >= pg_catalog.now() - interval '1 hour') <> 3 then
+    raise exception 'Rolling window quota accepted a fourth normalized request';
+  end if;
+end
+$window_expiry$;
+
 select 'public intake rate guard passed' as result;
