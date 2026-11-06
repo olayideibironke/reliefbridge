@@ -123,9 +123,19 @@ order by table_name,conname;
 -- Intake cutover privilege matrix: baseline only. Before lockdown, public
 -- INSERT may still be enabled. Review this output against the migration plan.
 select role_name,
-       pg_catalog.has_table_privilege(role_name,'public.demo_requests','INSERT') as can_insert,
-       pg_catalog.has_table_privilege(role_name,'public.demo_requests','SELECT') as can_select,
-       pg_catalog.has_table_privilege(role_name,'public.demo_requests','UPDATE') as can_update
+       pg_catalog.to_regrole(role_name) is not null as role_exists,
+       case when pg_catalog.to_regrole(role_name) is not null
+            and to_regclass('public.demo_requests') is not null
+         then pg_catalog.has_table_privilege(role_name,'public.demo_requests','INSERT')
+         else null end as can_insert,
+       case when pg_catalog.to_regrole(role_name) is not null
+            and to_regclass('public.demo_requests') is not null
+         then pg_catalog.has_table_privilege(role_name,'public.demo_requests','SELECT')
+         else null end as can_select,
+       case when pg_catalog.to_regrole(role_name) is not null
+            and to_regclass('public.demo_requests') is not null
+         then pg_catalog.has_table_privilege(role_name,'public.demo_requests','UPDATE')
+         else null end as can_update
 from (values ('anon'),('authenticated'),('service_role')) as roles(role_name)
 order by role_name;
 
