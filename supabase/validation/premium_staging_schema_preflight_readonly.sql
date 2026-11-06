@@ -119,3 +119,21 @@ where connamespace='public'::regnamespace
  and conrelid in ('public.sales_opportunities'::regclass,'public.sales_activities'::regclass)
  and contype='c'
 order by table_name,conname;
+
+-- Intake cutover privilege matrix: baseline only. Before lockdown, public
+-- INSERT may still be enabled. Review this output against the migration plan.
+select role_name,
+       pg_catalog.has_table_privilege(role_name,'public.demo_requests','INSERT') as can_insert,
+       pg_catalog.has_table_privilege(role_name,'public.demo_requests','SELECT') as can_select,
+       pg_catalog.has_table_privilege(role_name,'public.demo_requests','UPDATE') as can_update
+from (values ('anon'),('authenticated'),('service_role')) as roles(role_name)
+order by role_name;
+
+-- Verify whether the existing trigger function is security-definer and owned
+-- by the expected privileged role. Do not expose the function body in reports.
+select p.proname as function_name,
+       p.prosecdef as security_definer,
+       pg_catalog.pg_get_userbyid(p.proowner) as function_owner
+from pg_catalog.pg_proc p
+join pg_catalog.pg_namespace n on n.oid=p.pronamespace
+where n.nspname='public' and p.proname='sync_demo_request_to_sales';
