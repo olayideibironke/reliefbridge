@@ -75,4 +75,17 @@ begin
 end
 $global_rate$;
 
+-- An internal privileged record must remain writable after website quota saturation.
+-- It must not be counted against public intake volume.
+insert into public.demo_requests(first_name,last_name,work_email,organization_name,organization_type,role_title,source,message)
+values ('Internal','Lead','internal-allowed@example.test','Internal Agency','Other','Director','Internal','Privileged management intake');
+do $internal_not_limited$
+begin
+  if (select count(*) from public.demo_requests
+      where work_email='internal-allowed@example.test' and source='Internal') <> 1 then
+    raise exception 'Internal privileged intake was blocked by website quota';
+  end if;
+end
+$internal_not_limited$;
+
 select 'public intake rate guard passed' as result;
