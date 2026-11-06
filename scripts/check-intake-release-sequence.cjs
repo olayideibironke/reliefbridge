@@ -33,4 +33,16 @@ assert(guard.includes("new.source is distinct from 'Website'"), "SQL must preser
 assert(lockdown.includes("revoke insert on table public.demo_requests from anon;"), "anonymous INSERT revoke missing");
 assert(lockdown.includes("revoke insert on table public.demo_requests from authenticated;"), "authenticated INSERT revoke missing");
 assert(evidence.includes("BLOCKED") || evidence.includes("NOT AUTHORIZED"), "release evidence must retain blocked status");
+// Reject any later migration that reopens browser-facing direct intake INSERT.
+const migrationDir = path.join(root, "supabase/migrations");
+const cutoff = "20261105_public_intake_insert_lockdown.sql";
+for (const name of fs.readdirSync(migrationDir).filter((file) => file.endsWith(".sql") && file > cutoff)) {
+  const sql = fs.readFileSync(path.join(migrationDir, name), "utf8")
+    .replace(/--[^\n]*/g, "")
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .toLowerCase();
+  if (/grant\s+(?:all(?:\s+privileges)?|[^;]*\binsert\b)[^;]*\bon\s+(?:table\s+)?(?:public\.)?demo_requests\s+to\s+[^;]*\b(?:anon|authenticated|public)\b/.test(sql)) {
+    throw new Error("Release sequence: later migration regrants public intake INSERT: " + name);
+  }
+}
 console.log("PASS: staged migration order, rollback warnings, and release block");
