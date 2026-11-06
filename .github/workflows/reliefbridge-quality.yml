@@ -27,10 +27,12 @@ jobs:
         run: node scripts/check-premium-release-evidence.cjs
       - name: Verify release evidence guard rejects unsafe changes
         run: node scripts/test-premium-release-evidence.cjs
+      - name: Public intake security boundary invariants
+        run: node scripts/check-public-intake-boundary.cjs
       - name: TypeScript typecheck
         run: npm run typecheck
       - name: Feature ESLint (required)
-        run: npx eslint src/lib/billing-packages.ts src/lib/billing-entitlements.ts src/lib/billing-entitlements.test.ts src/lib/case-capacity.ts src/lib/case-capacity.test.ts src/lib/quote-intake-errors.ts src/lib/quote-intake-errors.test.ts src/lib/quote-form-validation.ts src/lib/quote-form-validation.test.ts src/app/request-quote src/app/app/settings/billing/page.tsx
+        run: npx eslint src/lib/billing-packages.ts src/lib/billing-entitlements.ts src/lib/billing-entitlements.test.ts src/lib/case-capacity.ts src/lib/case-capacity.test.ts src/lib/public-intake.ts src/app/request-demo/actions.ts src/lib/quote-intake-errors.ts src/lib/quote-intake-errors.test.ts src/lib/quote-form-validation.ts src/lib/quote-form-validation.test.ts src/app/request-quote src/app/app/settings/billing/page.tsx
       - name: Repository ESLint (existing backlog, informational)
         continue-on-error: true
         run: npm run lint
