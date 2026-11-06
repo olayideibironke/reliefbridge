@@ -1,6 +1,22 @@
 -- Disposable PostgreSQL only. Execute after quote_pipeline_integration.sql.
 -- Verify the staged privilege lockdown without applying it to production.
 \set ON_ERROR_STOP on
+-- Reproduce the dangerous pre-cutover state for BOTH browser-facing roles.
+-- Otherwise authenticated INSERT rejection would pass trivially without testing
+-- whether the migration actually revokes a previously available privilege.
+grant insert on public.demo_requests to authenticated;
+grant select, update on public.demo_requests to authenticated;
+
+do $pre_cutover_privileges$
+begin
+  if not pg_catalog.has_table_privilege('anon','public.demo_requests','INSERT')
+     or not pg_catalog.has_table_privilege('authenticated','public.demo_requests','INSERT')
+  then
+    raise exception 'Fixture must grant both browser roles INSERT before lockdown';
+  end if;
+end
+$pre_cutover_privileges$;
+
 \ir ../migrations/20261105_public_intake_insert_lockdown.sql
 
 do $effective_privileges$
@@ -12,6 +28,17 @@ begin
   end if;
 end
 $effective_privileges$;
+
+-- The migration must not revoke unrelated existing management privileges.
+do $retained_privileges$
+begin
+  if not pg_catalog.has_table_privilege('authenticated','public.demo_requests','SELECT')
+     or not pg_catalog.has_table_privilege('authenticated','public.demo_requests','UPDATE')
+  then
+    raise exception 'Lockdown removed existing SELECT/UPDATE table privileges';
+  end if;
+end
+$retained_privileges$;
 
 -- Attempt an ordinary demo submission under the actual browser-facing role.
 set role anon;
