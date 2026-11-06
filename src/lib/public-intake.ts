@@ -15,8 +15,8 @@ export type PublicIntakePayload = {
   recovery_focus?: string | null;
   preferred_contact: string;
   message?: string | null;
-  status: "New";
-  source: "Website";
+  status: string;
+  source: string;
 };
 
 export type IntakeResult =
