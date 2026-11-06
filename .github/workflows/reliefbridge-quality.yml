@@ -1,0 +1,173 @@
+name: ReliefBridge Quality Checks
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Billing and case-capacity tests
+        run: npm run test:billing
+      - name: Capacity SQL static safety checks
+        run: node scripts/check-capacity-migrations.cjs
+      - name: Premium release evidence safety gate
+        run: node scripts/check-premium-release-evidence.cjs
+      - name: Verify release evidence guard rejects unsafe changes
+        run: node scripts/test-premium-release-evidence.cjs
+      - name: Public intake security boundary invariants
+        run: node scripts/check-public-intake-boundary.cjs
+      - name: Guard intake release migration order and rollback
+        run: node scripts/check-intake-release-sequence.cjs
+      - name: Prove migration release guard detects unsafe SQL grants
+        run: node scripts/test-intake-release-sequence.cjs
+      - name: Verify public intake boundary guard rejects unsafe changes
+        run: node scripts/test-public-intake-boundary.cjs
+      - name: TypeScript typecheck
+        run: npm run typecheck
+      - name: Feature ESLint (required)
+        run: npx eslint src/lib/billing-packages.ts src/lib/billing-entitlements.ts src/lib/billing-entitlements.test.ts src/lib/case-capacity.ts src/lib/case-capacity.test.ts src/lib/public-intake.ts src/app/request-demo/actions.ts src/lib/quote-intake-errors.ts src/lib/quote-intake-errors.test.ts src/lib/quote-form-validation.ts src/lib/quote-form-validation.test.ts src/app/request-quote src/app/app/settings/billing/page.tsx
+      - name: Repository ESLint (existing backlog, informational)
+        continue-on-error: true
+        run: npm run lint
+
+  postgres-preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: reliefbridge_test
+          POSTGRES_PASSWORD: local_test_only
+          POSTGRES_DB: reliefbridge_preflight_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U reliefbridge_test -d reliefbridge_preflight_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reject incomplete staging schema in disposable PostgreSQL
+        env:
+          PGHOST: localhost
+          PGPORT: '5432'
+          PGUSER: reliefbridge_test
+          PGPASSWORD: local_test_only
+          PGDATABASE: reliefbridge_preflight_test
+        run: bash supabase/validation/premium_preflight_negative.sh
+
+  postgres-capacity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: reliefbridge_test
+          POSTGRES_PASSWORD: local_test_only
+          POSTGRES_DB: reliefbridge_capacity_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U reliefbridge_test -d reliefbridge_capacity_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Execute capacity migrations and integration assertions in disposable PostgreSQL
+        env:
+          PGHOST: localhost
+          PGPORT: '5432'
+          PGUSER: reliefbridge_test
+          PGPASSWORD: local_test_only
+          PGDATABASE: reliefbridge_capacity_test
+        run: psql -X -v ON_ERROR_STOP=1 -f supabase/validation/capacity_integration.sql
+      - name: Test concurrent case creation and staff activation
+        env:
+          PGHOST: localhost
+          PGPORT: '5432'
+          PGUSER: reliefbridge_test
+          PGPASSWORD: local_test_only
+          PGDATABASE: reliefbridge_capacity_test
+        run: bash supabase/validation/capacity_concurrency.sh
+
+  postgres-quote:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: reliefbridge_test
+          POSTGRES_PASSWORD: local_test_only
+          POSTGRES_DB: reliefbridge_quote_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U reliefbridge_test -d reliefbridge_quote_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify quote requests enter sales pipeline without breaking demo requests
+        env:
+          PGHOST: localhost
+          PGPORT: '5432'
+          PGUSER: reliefbridge_test
+          PGPASSWORD: local_test_only
+          PGDATABASE: reliefbridge_quote_test
+        run: psql -X -v ON_ERROR_STOP=1 -f supabase/validation/quote_pipeline_integration.sql
+
+      - name: Verify staged browser-role intake INSERT lockdown
+        env:
+          PGHOST: localhost
+          PGPORT: '5432'
+          PGUSER: reliefbridge_test
+          PGPASSWORD: local_test_only
+          PGDATABASE: reliefbridge_quote_test
+        run: psql -X -v ON_ERROR_STOP=1 -f supabase/validation/public_intake_lockdown_integration.sql
+
+      - name: Verify simultaneous duplicate quote requests serialize safely
+        env:
+          PGHOST: localhost
+          PGPORT: '5432'
+          PGUSER: reliefbridge_test
+          PGPASSWORD: local_test_only
+          PGDATABASE: reliefbridge_quote_test
+        run: bash supabase/validation/quote_concurrency.sh
+
+      - name: Verify concurrent public intake quota enforcement
+        env:
+          PGHOST: localhost
+          PGPORT: '5432'
+          PGUSER: reliefbridge_test
+          PGPASSWORD: local_test_only
+          PGDATABASE: reliefbridge_quote_test
+        run: bash supabase/validation/public_intake_rate_concurrency.sh
+
+      - name: Verify shared public intake volume guard
+        env:
+          PGHOST: localhost
+          PGPORT: '5432'
+          PGUSER: reliefbridge_test
+          PGPASSWORD: local_test_only
+          PGDATABASE: reliefbridge_quote_test
+        run: psql -X -v ON_ERROR_STOP=1 -f supabase/validation/public_intake_rate_integration.sql
+
