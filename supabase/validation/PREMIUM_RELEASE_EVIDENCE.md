@@ -4,8 +4,8 @@
 
 | Gate | Current status | Required evidence |
 | --- | --- | --- |
-| GitHub CI: validate, postgres-capacity, postgres-quote | PASS at commit `f2eb19264223b932d136804c727a313dc25a10b5` | [CI run 41892394866](https://github.com/olayideibironke/reliefbridge/actions/runs/41892394866); refresh for the release candidate commit |
-| Disposable PostgreSQL case/staff and quote integration | PASS at above commit | Same CI run, both PostgreSQL jobs |
+| GitHub CI: validate, postgres-preflight, postgres-capacity, postgres-quote | PASS at commit `6611135365ccf51d94f4136042eb8c1b3a42c3de` | [CI run #135](https://github.com/olayideibironke/reliefbridge/actions/runs/42143967022), all four required jobs succeeded; refresh after every new commit |
+| Disposable PostgreSQL preflight, case/staff and quote integration | PASS at above commit | CI run #135, three PostgreSQL jobs; disposable fixtures only |
 | Read-only production RLS and schema review | REVIEWED (2026-11-03) | `QUOTE_SECURITY_RELEASE_REVIEW.md`; repeat against current schema before release |
 | Full-schema staging migration rehearsal | NOT RUN | Staging project ID, migration logs, preflight schema comparison |
 | Original sales-sync trigger/function snapshot | NOT CAPTURED FOR RELEASE | Restricted rollback artifact and review sign-off |
@@ -33,4 +33,6 @@ A shared server-only intake module, staged browser-role INSERT lockdown, and sta
 
 ### CI evidence, November 5
 
-GitHub Actions run [#122](https://github.com/olayideibironke/reliefbridge/actions/runs/42137041376) completed successfully for commit `ee7d0917fc717a8ff68a8f09be7c9df75702b32b`. This is **disposable CI evidence only**, not full-schema staging approval. The next development change adds a four-writer quota concurrency regression and updates cutover order; its CI must be verified separately. Production remains blocked.
+GitHub Actions [run #135](https://github.com/olayideibironke/reliefbridge/actions/runs/42143967022) completed successfully at commit `6611135365ccf51d94f4136042eb8c1b3a42c3de`. All four jobs passed: `validate`, `postgres-preflight`, `postgres-capacity`, and `postgres-quote`. The latest checks include the staged browser-role INSERT lockdown, rolling website intake quotas, concurrency regressions, and mutation tests that reject unsafe permission changes.
+
+**Evidence boundary:** these results come from isolated GitHub Actions runners and disposable PostgreSQL fixtures. They do not establish schema-equivalent staging compatibility, a tested rollback, real application E2E success, edge abuse mitigation, or production readiness. Every later code commit requires a fresh green run before a release candidate can be identified. Production approval remains **BLOCKED**.
