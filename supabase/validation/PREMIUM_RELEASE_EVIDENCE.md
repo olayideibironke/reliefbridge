@@ -4,8 +4,8 @@
 
 | Gate | Current status | Required evidence |
 | --- | --- | --- |
-| GitHub CI: validate, postgres-preflight, postgres-capacity, postgres-quote | PASS at commit `6611135365ccf51d94f4136042eb8c1b3a42c3de` | [CI run #135](https://github.com/olayideibironke/reliefbridge/actions/runs/42143967022), all four required jobs succeeded; refresh after every new commit |
-| Disposable PostgreSQL preflight, case/staff and quote integration | PASS at above commit | CI run #135, three PostgreSQL jobs; disposable fixtures only |
+| GitHub CI: validate, postgres-preflight, postgres-capacity, postgres-quote | PASS at commit `2eb788bdeb512f03271cb37b10b7c05945884650` | [CI run #144](https://github.com/olayideibironke/reliefbridge/actions/runs/42853030829), all four required jobs succeeded; refresh after every new commit |
+| Disposable PostgreSQL preflight, case/staff and quote integration | PASS at above commit | CI run #144, three PostgreSQL jobs; disposable fixtures only |
 | Read-only production RLS and schema review | REVIEWED (2026-11-03) | `QUOTE_SECURITY_RELEASE_REVIEW.md`; repeat against current schema before release |
 | Production service-role table permissions (read-only review, 2026-11-05) | **BLOCKED: service_role lacks INSERT on public.demo_requests** | Effective `has_table_privilege` results and role grants verified read-only; stage a narrowly scoped INSERT grant fix and verify before any cutover |
 | Full-schema staging migration rehearsal | NOT RUN | Staging project ID, migration logs, preflight schema comparison |
@@ -47,3 +47,9 @@ A shared server-only intake module, staged browser-role INSERT lockdown, and sta
 GitHub Actions [run #135](https://github.com/olayideibironke/reliefbridge/actions/runs/42143967022) completed successfully at commit `6611135365ccf51d94f4136042eb8c1b3a42c3de`. All four jobs passed: `validate`, `postgres-preflight`, `postgres-capacity`, and `postgres-quote`. The latest checks include the staged browser-role INSERT lockdown, rolling website intake quotas, concurrency regressions, and mutation tests that reject unsafe permission changes.
 
 **Evidence boundary:** these results come from isolated GitHub Actions runners and disposable PostgreSQL fixtures. They do not establish schema-equivalent staging compatibility, a tested rollback, real application E2E success, edge abuse mitigation, or production readiness. Every later code commit requires a fresh green run before a release candidate can be identified. Production approval remains **BLOCKED**.
+
+## November 10 CI verification
+
+GitHub Actions [run #144](https://github.com/olayideibironke/reliefbridge/actions/runs/42853030829) completed successfully for application commit `2eb788bdeb512f03271cb37b10b7c05945884650`. The `validate`, `postgres-preflight`, `postgres-capacity`, and `postgres-quote` jobs each reported success. The application commit changes demo notification handling to use independent settled results and updates email-first messaging. This evidence-register update is documentation only and requires its own current-head CI confirmation before release.
+
+**Still blocked:** a full-schema-equivalent staging rehearsal, reviewed original sales-sync rollback artifact, staging E2E and rollback, abuse review, and explicit production approval. CI fixtures are not proof of production-schema compatibility. No production migration or deployment is authorized.
