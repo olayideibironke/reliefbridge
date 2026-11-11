@@ -8,7 +8,10 @@ create table public.demo_requests (
  phone text, organization_name text not null, organization_type text not null,
  role_title text not null, state text, organization_size text, recovery_focus text,
  preferred_contact text not null default 'Email', source text not null default 'Website',
- message text, created_at timestamptz not null default now()
+ message text, status text not null default 'New',
+ contacted_at timestamptz, scheduled_at timestamptz, internal_notes text,
+ updated_at timestamptz not null default now(), updated_by uuid,
+ created_at timestamptz not null default now()
 );
 create table public.sales_opportunities (
  id uuid primary key default gen_random_uuid(),
@@ -16,15 +19,16 @@ create table public.sales_opportunities (
  organization_name text not null, contact_first_name text, contact_last_name text,
  contact_email text, contact_phone text, role_title text, organization_type text,
  state text, organization_size text, recovery_focus text, preferred_contact text,
- source text, stage text not null check(stage in ('Prospect','Contacted','Engaged','Qualified','Demo Requested','Quote/Proposal','Won')),
- priority text, temperature text, last_activity_at timestamptz,
+ source text not null default 'Outbound', stage text not null check(stage in ('Prospect','Contacted','Engaged','Qualified','Demo Requested','Quote/Proposal','Won')),
+ priority text not null default 'Medium', temperature text not null default 'Warm',
+ last_activity_at timestamptz not null default now(),
  next_action text, notes text, updated_at timestamptz default now()
 );
 create table public.sales_activities (
  id uuid primary key default gen_random_uuid(),
  opportunity_id uuid not null references public.sales_opportunities(id),
  activity_type text not null check(activity_type in ('Demo Request','Quote')),
- summary text, details text, occurred_at timestamptz
+ summary text not null, details text, occurred_at timestamptz not null default now()
 );
 \ir ../migrations/20261102_quote_request_sales_classification.sql
 \ir ../migrations/20261103_quote_repeat_guard.sql
