@@ -452,7 +452,7 @@ end
 $quote_to_demo_no_regression$;
 
 -- Security fixture: mirror production's public intake permissions and RLS.
-alter table public.demo_requests add column status text not null default 'New';
+-- status is defined in the live-schema-aligned fixture above.
 alter table public.demo_requests enable row level security;
 alter table public.sales_opportunities enable row level security;
 alter table public.sales_activities enable row level security;
