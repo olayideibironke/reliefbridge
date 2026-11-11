@@ -47,6 +47,19 @@ begin
 end
 $retained_privileges$;
 
+-- Least-privilege regression: the server-only intake role must not receive
+-- unrelated read or management rights through the lockdown migration.
+do $least_privilege$
+begin
+  if pg_catalog.has_table_privilege('service_role','public.demo_requests','SELECT')
+     or pg_catalog.has_table_privilege('service_role','public.demo_requests','UPDATE')
+     or pg_catalog.has_table_privilege('service_role','public.demo_requests','DELETE')
+  then
+    raise exception 'Intake service role received excess table privileges';
+  end if;
+end
+$least_privilege$;
+
 -- Replaying the lockdown in a controlled staging rehearsal must remain safe
 -- and must not silently restore direct INSERT to browser-facing roles.
 \ir ../migrations/20261105_public_intake_insert_lockdown.sql
