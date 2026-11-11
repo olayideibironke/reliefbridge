@@ -4,8 +4,8 @@
 
 | Gate | Current status | Required evidence |
 | --- | --- | --- |
-| GitHub CI: validate, postgres-preflight, postgres-capacity, postgres-quote | PASS at commit `2eb788bdeb512f03271cb37b10b7c05945884650` | [CI run #144](https://github.com/olayideibironke/reliefbridge/actions/runs/42853030829), all four required jobs succeeded; refresh after every new commit |
-| Disposable PostgreSQL preflight, case/staff and quote integration | PASS at above commit | CI run #144, three PostgreSQL jobs; disposable fixtures only |
+| GitHub CI: validate, postgres-preflight, postgres-capacity, postgres-quote | PASS at commit `eb66857a4d53134292b9d2c3b75f3764bcb888b2` | [CI run #148](https://github.com/olayideibironke/reliefbridge/actions/runs/43084781135), all four required jobs succeeded; refresh after every new commit |
+| Disposable PostgreSQL preflight, case/staff and quote integration | PASS at above commit | CI run #148, three PostgreSQL jobs; disposable fixtures only |
 | Read-only production RLS and schema review | REVIEWED (2026-11-03) | `QUOTE_SECURITY_RELEASE_REVIEW.md`; repeat against current schema before release |
 | Production service-role table permissions (read-only review, 2026-11-05) | **BLOCKED: service_role lacks INSERT on public.demo_requests** | Effective `has_table_privilege` results and role grants verified read-only; stage a narrowly scoped INSERT grant fix and verify before any cutover |
 | Full-schema staging migration rehearsal | NOT RUN | Staging project ID, migration logs, preflight schema comparison |
@@ -53,3 +53,13 @@ GitHub Actions [run #135](https://github.com/olayideibironke/reliefbridge/action
 GitHub Actions [run #144](https://github.com/olayideibironke/reliefbridge/actions/runs/42853030829) completed successfully for application commit `2eb788bdeb512f03271cb37b10b7c05945884650`. The `validate`, `postgres-preflight`, `postgres-capacity`, and `postgres-quote` jobs each reported success. The application commit changes demo notification handling to use independent settled results and updates email-first messaging. This evidence-register update is documentation only and requires its own current-head CI confirmation before release.
 
 **Still blocked:** a full-schema-equivalent staging rehearsal, reviewed original sales-sync rollback artifact, staging E2E and rollback, abuse review, and explicit production approval. CI fixtures are not proof of production-schema compatibility. No production migration or deployment is authorized.
+
+## November 11 live-schema prerequisite verification (read-only)
+
+Read-only checks against the connected ReliefBridge production database found **zero missing tables** among the six required tables and **zero missing columns** among the 17 columns listed in the staging preflight. RLS was enabled on all three sales/intake tables. The `demo_request_sales_sync` trigger was enabled and `sync_demo_request_to_sales()` remained SECURITY DEFINER. These findings establish only structural prerequisites, **not** that the premium migrations or intake cutover work against the full schema. No live schema or data writes were performed.
+
+## November 11 CI release evidence
+
+GitHub Actions [run #148](https://github.com/olayideibironke/reliefbridge/actions/runs/43084781135) succeeded for commit `eb66857a4d53134292b9d2c3b75f3764bcb888b2`: `validate`, `postgres-preflight`, `postgres-capacity`, and `postgres-quote` all passed. Run #147 failed because the newly live-aligned disposable quote fixture declared `demo_requests.status` twice; commit `eb66857` removed the duplicate declaration and #148 passed. The fixture now models more live column defaults and constraints but **is not** a schema-equivalent staging environment.
+
+**Current decision: NO-GO.** Full-schema staging, captured original rollback function, actual staging form E2E, restoration, and abuse/monitoring review remain unverified. This evidence-register-only commit must also pass its own CI checks; no production approval is implied.
