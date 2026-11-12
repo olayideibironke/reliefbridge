@@ -7,7 +7,7 @@ create table public.demo_requests (
  first_name text not null, last_name text not null, work_email text not null,
  phone text, organization_name text not null, organization_type text not null,
  role_title text not null, state text, organization_size text, recovery_focus text,
- preferred_contact text not null default 'Email', source text not null default 'Website',
+ preferred_contact text not null default 'Email', source text not null default 'Website' check (source = 'Website'),
  message text, status text not null default 'New',
  contacted_at timestamptz, scheduled_at timestamptz, internal_notes text,
  updated_at timestamptz not null default now(), updated_by uuid,
