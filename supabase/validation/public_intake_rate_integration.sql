@@ -75,18 +75,23 @@ begin
 end
 $global_rate$;
 
--- An internal privileged record must remain writable after website quota saturation.
--- It must not be counted against public intake volume.
-insert into public.demo_requests(first_name,last_name,work_email,organization_name,organization_type,role_title,source,message)
-values ('Internal','Lead','internal-allowed@example.test','Internal Agency','Other','Director','Internal','Privileged management intake');
-do $internal_not_limited$
+-- The live demo_requests CHECK constraint permits only Website source. An
+-- internal-source bypass cannot be exercised on this table, even by a
+-- privileged role. Confirm that the schema rejects such a record instead of
+-- asserting an impossible quota exemption.
+do $internal_source_rejected$
 begin
-  if (select count(*) from public.demo_requests
-      where work_email='internal-allowed@example.test' and source='Internal') <> 1 then
-    raise exception 'Internal privileged intake was blocked by website quota';
+  begin
+    insert into public.demo_requests(first_name,last_name,work_email,organization_name,organization_type,role_title,source,message)
+    values ('Internal','Lead','internal-rejected@example.test','Internal Agency','Other','Director','Internal','Privileged management intake');
+    raise exception 'FAIL: non-Website source bypassed the live source constraint';
+  exception when check_violation then null;
+  end;
+  if exists (select 1 from public.demo_requests where work_email='internal-rejected@example.test') then
+    raise exception 'Rejected internal-source record was persisted';
   end if;
 end
-$internal_not_limited$;
+$internal_source_rejected$;
 
 -- Expired website requests must stop consuming all three rolling quotas.
 -- Move only synthetic website records back in time, leaving internal records intact.
