@@ -35,6 +35,8 @@ jobs:
         run: node scripts/test-intake-release-sequence.cjs
       - name: Verify public intake boundary guard rejects unsafe changes
         run: node scripts/test-public-intake-boundary.cjs
+      - name: Legacy messaging tenant isolation static gate
+        run: node scripts/check-legacy-message-tenant-guard.cjs
       - name: TypeScript typecheck
         run: npm run typecheck
       - name: Feature ESLint (required)
