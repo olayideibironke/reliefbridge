@@ -2,7 +2,7 @@
 
 import { Resend } from "resend";
 
-import { createSupabaseServerClient } from "@/lib/supabase-server";
+import { persistPublicIntake } from "@/lib/public-intake";
 import { isEmail } from "@/lib/utils";
 import { US_STATES } from "@/lib/constants";
 import type { FormState } from "@/lib/forms";
@@ -470,7 +470,7 @@ function buildConfirmationEmailHtml(
                   "
                 >
                   <li>We review your organization and coordination priorities.</li>
-                  <li>Our team contacts you directly.</li>
+                  <li>Our team follows up by email with next steps and a demo video.</li>
                   <li>We tailor the walkthrough to your recovery workflow.</li>
                 </ol>
               </div>
@@ -551,7 +551,7 @@ function buildConfirmationEmailText(
     "",
     "What happens next:",
     "1. We review your organization and coordination priorities.",
-    "2. Our team contacts you directly.",
+    "2. Our team follows up by email with next steps and a demo video.",
     "3. We tailor the walkthrough to your recovery workflow.",
     "",
     "You can reply to this email if you need to add information.",
@@ -581,8 +581,7 @@ async function sendDemoRequestEmails(
 
   const { resend, fromEmail, notificationEmail } = configuration;
 
-  try {
-    const [adminResult, confirmationResult] = await Promise.all([
+  const [adminResult, confirmationResult] = await Promise.allSettled([
       resend.emails.send({
         from: fromEmail,
         to: [notificationEmail],
@@ -621,36 +620,26 @@ async function sendDemoRequestEmails(
         ],
       }),
     ]);
+  const adminSent = adminResult.status === "fulfilled" && !adminResult.value.error;
+  const confirmationSent =
+    confirmationResult.status === "fulfilled" && !confirmationResult.value.error;
 
-    if (adminResult.error) {
-      console.error(
-        "ReliefBridge admin demo notification failed:",
-        adminResult.error
-      );
-    }
-
-    if (confirmationResult.error) {
-      console.error(
-        "ReliefBridge requester confirmation failed:",
-        confirmationResult.error
-      );
-    }
-
-    return {
-      adminSent: !adminResult.error,
-      confirmationSent: !confirmationResult.error,
-    };
-  } catch (error) {
+  if (!adminSent) {
     console.error(
-      "ReliefBridge demo request email delivery threw an exception:",
-      error
+      "ReliefBridge admin demo notification failed:",
+      adminResult.status === "rejected" ? adminResult.reason : adminResult.value.error
     );
-
-    return {
-      adminSent: false,
-      confirmationSent: false,
-    };
   }
+  if (!confirmationSent) {
+    console.error(
+      "ReliefBridge requester confirmation failed:",
+      confirmationResult.status === "rejected"
+        ? confirmationResult.reason
+        : confirmationResult.value.error
+    );
+  }
+
+  return { adminSent, confirmationSent };
 }
 
 export async function requestDemoAction(
@@ -821,37 +810,29 @@ export async function requestDemoAction(
     message,
   };
 
-  const supabase = await createSupabaseServerClient();
+  const result = await persistPublicIntake({
+    first_name: firstName,
+    last_name: lastName,
+    work_email: workEmail,
+    phone: phone || null,
+    organization_name: organizationName,
+    organization_type: organizationType,
+    role_title: roleTitle,
+    state: state || null,
+    organization_size: organizationSize || null,
+    recovery_focus: recoveryFocus || null,
+    preferred_contact: preferredContact,
+    message: message || null,
+    status: "New",
+    source: "Website",
+  });
 
-  const { error } = await supabase
-    .from("demo_requests")
-    .insert({
-      first_name: firstName,
-      last_name: lastName,
-      work_email: workEmail,
-      phone: phone || null,
-      organization_name: organizationName,
-      organization_type: organizationType,
-      role_title: roleTitle,
-      state: state || null,
-      organization_size: organizationSize || null,
-      recovery_focus: recoveryFocus || null,
-      preferred_contact: preferredContact,
-      message: message || null,
-      status: "New",
-      source: "Website",
-    });
-
-  if (error) {
-    console.error(
-      "ReliefBridge demo request submission failed:",
-      error
-    );
-
+  if (!result.ok) {
     return {
       ok: false,
-      message:
-        "We could not submit your request right now. Please try again in a moment.",
+      message: result.reason === "limited"
+        ? "We have received several recent requests. Please try again later or contact our team by email."
+        : "We could not submit your request right now. Please try again in a moment.",
     };
   }
 
@@ -865,7 +846,7 @@ export async function requestDemoAction(
     return {
       ok: true,
       message:
-        "Your demo request has been received. A confirmation email is on its way, and a ReliefBridge representative will contact you shortly.",
+        "Your demo request has been received. A confirmation email is on its way. Our team will follow up by email with next steps and a demo video.",
     };
   }
 
@@ -873,7 +854,7 @@ export async function requestDemoAction(
     return {
       ok: true,
       message:
-        "Your demo request has been received and our team has been notified. We could not send the confirmation email, but a ReliefBridge representative will still contact you.",
+        "Your demo request has been received and our team has been notified. We could not send the confirmation email, but our team will follow up by email.",
     };
   }
 

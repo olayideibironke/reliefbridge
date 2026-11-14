@@ -1,0 +1,12 @@
+const fs = require('node:fs');
+const assert = require('node:assert/strict');
+const sql = fs.readFileSync('supabase/migrations/20261113_legacy_internal_message_tenant_guard.sql','utf8');
+assert.match(sql, /create or replace function public\.send_internal_message\s*\(/i);
+assert.match(sql, /private\.is_reliefbridge_internal_user\(auth\.uid\(\)\)/i);
+assert.match(sql, /private\.is_reliefbridge_internal_user\(target_recipient\)/i);
+assert.match(sql, /recipient_org is distinct from sender_org/i);
+assert.match(sql, /sender_org is null/i);
+assert.match(sql, /recipient must belong to your organization/i);
+assert.match(sql, /revoke all on function public\.send_internal_message\(uuid,text,text\) from public, anon/i);
+assert.match(sql, /grant execute on function public\.send_internal_message\(uuid,text,text\) to authenticated/i);
+console.log('Legacy messaging tenant guard static invariants passed.');
