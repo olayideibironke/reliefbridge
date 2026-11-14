@@ -28,7 +28,8 @@ for (const name of required) {
 assert(runbook.includes("server-only intake path is deployed"), "lockdown must require working server intake");
 assert(runbook.includes("revert the cutover"), "cutover must include coordinated rollback");
 assert(runbook.includes("Re-enabling public INSERT reopens the direct API bypass"), "rollback must flag the direct API security risk");
-assert(runbook.includes("source = 'Website'"), "runbook must reflect website-only quota");
+assert(runbook.includes("source = 'Website'") || runbook.includes("only `Website`"), "runbook must reflect website-only quota");
+assert(runbook.includes("unreachable under the current schema"), "runbook must not present non-Website quota bypass as currently usable");
 assert(guard.includes("new.source is distinct from 'Website'"), "SQL must preserve internal insert exemption");
 assert(lockdown.includes("revoke insert on table public.demo_requests from anon;"), "anonymous INSERT revoke missing");
 assert(lockdown.includes("revoke insert on table public.demo_requests from authenticated;"), "authenticated INSERT revoke missing");
