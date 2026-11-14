@@ -63,3 +63,11 @@ Read-only checks against the connected ReliefBridge production database found **
 GitHub Actions [run #148](https://github.com/olayideibironke/reliefbridge/actions/runs/43084781135) succeeded for commit `eb66857a4d53134292b9d2c3b75f3764bcb888b2`: `validate`, `postgres-preflight`, `postgres-capacity`, and `postgres-quote` all passed. Run #147 failed because the newly live-aligned disposable quote fixture declared `demo_requests.status` twice; commit `eb66857` removed the duplicate declaration and #148 passed. The fixture now models more live column defaults and constraints but **is not** a schema-equivalent staging environment.
 
 **Current decision: NO-GO.** Full-schema staging, captured original rollback function, actual staging form E2E, restoration, and abuse/monitoring review remain unverified. This evidence-register-only commit must also pass its own CI checks; no production approval is implied.
+
+## November 13 messaging tenant isolation and live intake baseline
+
+GitHub Actions [run #153](https://github.com/olayideibironke/reliefbridge/actions/runs/43497846620) passed at commit `eb93149f454cda031dc5053332f62250be7094e0` with all five jobs successful, including `postgres-message-tenant`. Its disposable PostgreSQL log explicitly reported `Legacy tenant isolation SQL integration passed`. This validates the staged legacy messaging tenant check with synthetic identities; it does **not** demonstrate application-level authorization against full Supabase Auth or production.
+
+Read-only production review confirmed PostgreSQL 17.6, two enabled demo-request triggers, three demo-request RLS policies, and effective INSERT on `demo_requests` for `anon` and `authenticated` but not `service_role`. The live source constraint accepts only `Website`, so the rate-guard comment about bypassing quotas using an internal source is not an executable workflow under the present schema. The sales-sync function remains SECURITY DEFINER, owned by `postgres`. No production grants, schema, records, or deployment were changed.
+
+**Current decision: NO-GO.** Full-schema staging, rollback snapshot and rehearsal, actual application demo/quote E2E, abuse monitoring, and explicit production approval remain outstanding. This evidence-document update requires a fresh CI run before being considered the current green head.

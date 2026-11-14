@@ -13,7 +13,7 @@
 
 ## Before staging
 
-1. Record the exact Git commit, PR review, and all four successful CI jobs: `validate`, `postgres-preflight`, `postgres-capacity`, `postgres-quote`.
+1. Record the exact Git commit, PR review, and all five successful CI jobs: `validate`, `postgres-preflight`, `postgres-capacity`, `postgres-quote`, `postgres-message-tenant`.
 2. Prepare a disposable staging project with a **schema-equivalent** copy of the actual ReliefBridge schema, including RLS, existing triggers, constraints, and grants. Do not copy real survivor or customer PII.
 3. Capture the current `public.sync_demo_request_to_sales()` function definition and `demo_request_sales_sync` trigger definition as a reviewed, access-controlled rollback artifact. Do not overwrite this snapshot with the staged replacement.
 4. Back up staging and verify a restore procedure before applying changes.
@@ -30,7 +30,8 @@ Apply in this order, in the staging environment only:
 4. `supabase/migrations/20261102_quote_request_sales_classification.sql`
 5. `supabase/migrations/20261103_quote_repeat_guard.sql`
 6. `supabase/migrations/20261105_public_intake_rate_guard.sql`
-7. `supabase/migrations/20261105_public_intake_insert_lockdown.sql` **only after** the server-only intake path is deployed and verified against the same staging database.
+7. `supabase/migrations/20261113_legacy_internal_message_tenant_guard.sql` (independent messaging authorization hardening, after synthetic tenant-isolation tests)
+8. `supabase/migrations/20261105_public_intake_insert_lockdown.sql` **only after** the server-only intake path is deployed and verified against the same staging database.
 
 Review all migrations against the current schema before execution. Do not blindly replay migrations or alter production migration history.
 
@@ -43,7 +44,7 @@ Review all migrations against the current schema before execution. Do not blindl
 - Apply the staged rate guard and test legitimate multiple contacts, concurrent requests, and abuse thresholds against staging data. Review the global 120/hour ceiling for false positives and denial-of-service exposure.
 - Only then apply the direct INSERT lockdown and repeat form submissions. Verify direct anonymous/authenticated Data API INSERT is rejected while authorized staff UPDATE remains functional.
 - Never deploy a code revision that depends on the new permissions before its server environment is ready. Coordinate cutover to avoid an interval where valid requests are rejected.
-- The quota trigger counts only rows with `source = 'Website'`; internal privileged inserts with a different source remain outside the quota. A global website quota can still be exhausted intentionally. Confirm operational mitigation and monitoring before approving production.
+- The live `demo_requests.source` CHECK constraint permits only `Website`. A hypothetical non-Website source bypass in the rate guard is therefore unreachable under the current schema. Do not rely on it for internal imports without a separately reviewed schema change. A global website quota can still be exhausted intentionally. Confirm operational mitigation and monitoring before approving production.
 
 ## Intake cutover rollback (staging rehearsal required)
 
