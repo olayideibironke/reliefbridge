@@ -609,4 +609,39 @@ begin
 end
 $cooldown_expiry$;
 
+-- Production-compatible later demo stages must advance to quote without
+-- reopening Won opportunities or creating duplicate opportunities.
+alter table public.sales_opportunities drop constraint if exists sales_opportunities_stage_check;
+alter table public.sales_opportunities add constraint sales_opportunities_stage_check
+check(stage in ('Prospect','Contacted','Engaged','Qualified','Demo Requested',
+'Demo Scheduled','Demo Completed','7-Day Evaluation Offered','Evaluation Active',
+'Quote/Proposal','Won'));
+insert into public.sales_opportunities
+(organization_name,contact_first_name,contact_last_name,contact_email,stage)
+values
+('Scheduled Recovery','Scheduled','Lead','scheduled@example.test','Demo Scheduled'),
+('Evaluating Recovery','Evaluating','Lead','evaluating@example.test','Evaluation Active'),
+('Won Recovery','Won','Lead','won@example.test','Won');
+insert into public.demo_requests(first_name,last_name,work_email,organization_name,organization_type,role_title,message)
+values
+('Scheduled','Lead','scheduled@example.test','Scheduled Recovery','Other','Director','QUOTE REQUEST for scheduled committee'),
+('Evaluating','Lead','evaluating@example.test','Evaluating Recovery','Other','Director','QUOTE REQUEST after evaluation'),
+('Won','Lead','won@example.test','Won Recovery','Other','Director','QUOTE REQUEST from existing customer');
+do $later_demo_quote$
+begin
+ if (select count(*) from public.sales_opportunities where
+   (contact_email='scheduled@example.test' or contact_email='evaluating@example.test')
+   and stage='Quote/Proposal') <> 2 then
+   raise exception 'Later demo stages did not advance to quote';
+ end if;
+ if (select stage from public.sales_opportunities where contact_email='won@example.test') <> 'Won' then
+   raise exception 'Won opportunity was reopened';
+ end if;
+ if (select count(*) from public.sales_opportunities where contact_email in
+   ('scheduled@example.test','evaluating@example.test','won@example.test')) <> 3 then
+   raise exception 'Later demo quote duplicated an opportunity';
+ end if;
+end
+$later_demo_quote$;
+
 select 'quote pipeline integration passed' as result;

@@ -58,7 +58,7 @@ begin
         preferred_contact = new.preferred_contact,
         source = coalesce(nullif(btrim(so.source),''),nullif(btrim(new.source),'')),
         stage = case when so.stage in ('Prospect','Contacted','Engaged','Qualified')
-                       or (is_quote and so.stage = 'Demo Requested')
+                       or (is_quote and so.stage in ('Demo Requested','Demo Scheduled','Demo Completed','7-Day Evaluation Offered','Evaluation Active'))
                      then target_stage else so.stage end,
         priority = case when so.priority in ('Low','Medium') then 'High' else so.priority end,
         temperature = 'Hot',
