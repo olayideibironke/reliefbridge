@@ -19,7 +19,7 @@ create table public.recovery_cases (
 create table public.profiles (
   id uuid primary key,
   organization_id uuid references public.organizations(id),
-  access_status text not null
+  access_status text not null check (access_status in ('invited','active','disabled'))
 );
 \ir ../migrations/20261102_capacity_configuration.sql
 \ir ../migrations/20261102_case_capacity_guard.sql
@@ -94,7 +94,7 @@ begin
 end $$;
 
 -- Staff deactivation frees a seat; activation at the cap is rejected.
-update public.profiles set access_status='inactive'
+update public.profiles set access_status='disabled'
 where id='20000000-0000-0000-0000-000000000003';
 insert into public.profiles values
  ('20000000-0000-0000-0000-000000000005','00000000-0000-0000-0000-000000000001','active');
