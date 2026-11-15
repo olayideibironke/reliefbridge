@@ -137,6 +137,15 @@ jobs:
           PGDATABASE: reliefbridge_quote_test
         run: psql -X -v ON_ERROR_STOP=1 -f supabase/validation/quote_pipeline_integration.sql
 
+      - name: Rehearse original sales-sync function restoration on disposable PostgreSQL
+        env:
+          PGHOST: localhost
+          PGPORT: '5432'
+          PGUSER: reliefbridge_test
+          PGPASSWORD: local_test_only
+          PGDATABASE: reliefbridge_quote_test
+        run: psql -X -v ON_ERROR_STOP=1 -f supabase/validation/original_sales_sync_rollback_integration.sql
+
       - name: Verify staged browser-role intake INSERT lockdown
         env:
           PGHOST: localhost
