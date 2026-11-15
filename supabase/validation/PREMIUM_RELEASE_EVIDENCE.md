@@ -9,7 +9,7 @@
 | Read-only production RLS and schema review | REVIEWED (2026-11-03) | `QUOTE_SECURITY_RELEASE_REVIEW.md`; repeat against current schema before release |
 | Production service-role table permissions (read-only review, 2026-11-05) | **BLOCKED: service_role lacks INSERT on public.demo_requests** | Effective `has_table_privilege` results and role grants verified read-only; stage a narrowly scoped INSERT grant fix and verify before any cutover |
 | Full-schema staging migration rehearsal | NOT RUN | Staging project ID, migration logs, preflight schema comparison |
-| Original sales-sync trigger/function snapshot | NOT CAPTURED FOR RELEASE | Restricted rollback artifact and review sign-off |
+| Original sales-sync trigger/function snapshot | CAPTURED; REVIEW PENDING | `rollback_original_sales_sync_20261115.sql` at commit `c8af7ab`; live trigger verified read-only. Review sign-off and staging restore still required |
 | Staging rollback and restore rehearsal | NOT RUN | Restore transcript, validation results, owner |
 | Real anonymous quote/demo E2E | NOT RUN | Redacted synthetic intake, opportunity and activity evidence |
 | Staging before/after sales-integrity audit | NOT RUN | `quote_pipeline_staging_audit_readonly.sql` outputs, baseline comparison |
@@ -79,3 +79,12 @@ GitHub Actions [run #159](https://github.com/olayideibironke/reliefbridge/action
 Read-only Supabase security advisors reported 20 `authenticated_security_definer_function_executable` warnings, two `rls_enabled_no_policy` informational findings (`staff_activation_tokens` and `stripe_webhook_events`), and one leaked-password-protection warning. The 20 flagged functions deny anonymous EXECUTE and their definitions include caller-scoped access checks or call protected helpers; this static review does **not** establish authenticated-user penetration-test coverage. `private.touch_platform_access()` was inspected and limits writes to the caller's active ReliefBridge platform profile. Do not revoke RPC execution blindly because existing authorized workflows depend on it. See [Supabase linter guidance](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable).
 
 **Release remains NO-GO:** no billable staging branch has been authorized or created; full-schema staging, rollback rehearsal, application E2E, and final production approval remain outstanding. No production writes or Vercel deployment were made during these checks.
+
+## November 15 latest CI and rollback reference
+
+GitHub Actions [run #161](https://github.com/olayideibironke/reliefbridge/actions/runs/43758404027) completed successfully at commit `c8af7ab0b2c9e47e7815fdd8d1d07e8b5cc51494`. All five jobs passed: `validate`, `postgres-preflight`, `postgres-capacity`, `postgres-quote`, and `postgres-message-tenant`. The commit also corrected duplicate ReliefBridge Team sign-offs in demo confirmations.
+
+The read-only production definition of `public.sync_demo_request_to_sales()` was saved to `supabase/validation/rollback_original_sales_sync_20261115.sql`, and the existing `demo_request_sales_sync` trigger was verified as enabled. The saved function matches the original definition apart from terminal formatting. This is a **captured reference, not an executed rollback**; a reviewer must approve the artifact and validate restoration on full-schema staging. No production writes were performed.
+
+A no-cost local PostgreSQL installation was attempted but the package-index update timed out. It does not count as a staging rehearsal. **NO-GO** remains in effect until full-schema staging, rollback execution, real demo/quote E2E, operational abuse controls, and explicit approval are complete.
+
