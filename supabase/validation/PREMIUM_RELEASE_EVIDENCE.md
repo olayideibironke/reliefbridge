@@ -4,13 +4,13 @@
 
 | Gate | Current status | Required evidence |
 | --- | --- | --- |
-| GitHub CI: validate, postgres-preflight, postgres-capacity, postgres-quote | PASS at commit `eb66857a4d53134292b9d2c3b75f3764bcb888b2` | [CI run #148](https://github.com/olayideibironke/reliefbridge/actions/runs/43084781135), all four required jobs succeeded; refresh after every new commit |
-| Disposable PostgreSQL preflight, case/staff and quote integration | PASS at above commit | CI run #148, three PostgreSQL jobs; disposable fixtures only |
+| GitHub CI: all five required jobs | PASS at commit `7bbd7e9e421c0752aedc1801746052a2fa224923` | [CI run #166](https://github.com/olayideibironke/reliefbridge/actions/runs/43769896261): validate, postgres-preflight, postgres-capacity, postgres-quote, postgres-message-tenant succeeded; refresh after every new commit |
+| Disposable PostgreSQL preflight, case/staff, quote, messaging and original sales-sync rollback | PASS at above commit | CI run #166, four PostgreSQL jobs; postgres-quote log explicitly confirms original function restore and fresh demo success; synthetic fixtures only |
 | Read-only production RLS and schema review | REVIEWED (2026-11-03) | `QUOTE_SECURITY_RELEASE_REVIEW.md`; repeat against current schema before release |
 | Production service-role table permissions (read-only review, 2026-11-05) | **BLOCKED: service_role lacks INSERT on public.demo_requests** | Effective `has_table_privilege` results and role grants verified read-only; stage a narrowly scoped INSERT grant fix and verify before any cutover |
 | Full-schema staging migration rehearsal | NOT RUN | Staging project ID, migration logs, preflight schema comparison |
 | Original sales-sync trigger/function snapshot | NOT CAPTURED FOR RELEASE | Original definition saved as an unreviewed reference in `rollback_original_sales_sync_20261115.sql` at commit `c8af7ab`; independent review and staging restore are still required |
-| Staging rollback and restore rehearsal | NOT RUN | Restore transcript, validation results, owner |
+| Full-schema staging rollback and restore rehearsal | NOT RUN | Restore transcript on schema-equivalent staging, validation results, owner; disposable function-only rollback passed in CI #166 and does not satisfy this gate |
 | Real anonymous quote/demo E2E | NOT RUN | Redacted synthetic intake, opportunity and activity evidence |
 | Staging before/after sales-integrity audit | NOT RUN | `quote_pipeline_staging_audit_readonly.sql` outputs, baseline comparison |
 | Staging capacity opt-in, transfers and concurrency | NOT RUN | Test log showing disabled default, case/staff race safety |
@@ -88,3 +88,11 @@ The read-only production definition of `public.sync_demo_request_to_sales()` was
 
 A no-cost local PostgreSQL installation was attempted but the package-index update timed out. It does not count as a staging rehearsal. **NO-GO** remains in effect until full-schema staging, rollback execution, real demo/quote E2E, operational abuse controls, and explicit approval are complete.
 
+
+## November 15 disposable rollback rehearsal (run #166)
+
+GitHub Actions [run #166](https://github.com/olayideibironke/reliefbridge/actions/runs/43769896261) succeeded at commit `7bbd7e9e421c0752aedc1801746052a2fa224923` with all five required jobs passing. The `postgres-quote` job log contains `quote pipeline integration passed` and `original sales-sync rollback rehearsal passed on disposable fixture`. The test first executes quote and concurrency checks, then applies the saved original function definition from `rollback_original_sales_sync_20261115.sql` and asserts that the enabled trigger, SECURITY DEFINER property, and a fresh synthetic demo opportunity/activity work after restoration.
+
+The production database was queried read-only using aggregate-only sales-integrity checks: zero normalized duplicate opportunity groups, zero orphaned sales activities, and zero duplicate inquiry links, with six demo requests, eleven opportunities, and seventeen activities at the time of inspection. No customer identifiers were exported.
+
+**Scope limit:** this is a synthetic-fixture function rollback, **not** a full-schema staging restore, real browser form test, or approval for production. A reviewer still needs to approve the saved original function artifact. A billable Supabase staging branch has not been authorized. Production schema, records, grants, and Vercel deployments remain unchanged. **Release decision: NO-GO.**
