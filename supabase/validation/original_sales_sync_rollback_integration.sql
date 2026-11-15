@@ -12,6 +12,14 @@ begin
 end
 $before_restore$;
 
+-- Snapshot aggregate record counts so the restore cannot silently discard prior
+-- synthetic intake or sales history.
+create temporary table rollback_before_counts as
+select
+  (select count(*) from public.demo_requests) as intake_count,
+  (select count(*) from public.sales_opportunities) as opportunity_count,
+  (select count(*) from public.sales_activities) as activity_count;
+
 -- Apply the exact captured original function body, not a reconstructed approximation.
 \ir rollback_original_sales_sync_20261115.sql
 
@@ -37,6 +45,20 @@ begin
   end if;
 end
 $after_restore$;
+
+-- Restoring a function must preserve all previously written records.
+do $no_data_loss$
+declare
+  baseline record;
+begin
+  select * into baseline from rollback_before_counts;
+  if (select count(*) from public.demo_requests) <> baseline.intake_count
+     or (select count(*) from public.sales_opportunities) <> baseline.opportunity_count
+     or (select count(*) from public.sales_activities) <> baseline.activity_count then
+    raise exception 'Sales-sync rollback altered existing intake or sales record counts';
+  end if;
+end
+$no_data_loss$;
 
 -- A fresh synthetic demo must continue to create its opportunity and activity.
 insert into public.demo_requests
