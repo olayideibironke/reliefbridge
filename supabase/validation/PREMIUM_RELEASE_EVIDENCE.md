@@ -10,7 +10,7 @@
 | Production service-role table permissions (read-only review, 2026-11-05) | **BLOCKED: service_role lacks INSERT on public.demo_requests** | Effective `has_table_privilege` results and role grants verified read-only; stage a narrowly scoped INSERT grant fix and verify before any cutover |
 | Full-schema staging migration rehearsal | NOT RUN | Staging project ID, migration logs, preflight schema comparison |
 | Original sales-sync trigger/function snapshot | NOT CAPTURED FOR RELEASE | Original definition saved as an unreviewed reference in `rollback_original_sales_sync_20261115.sql` at commit `c8af7ab`; independent review and staging restore are still required |
-| Full-schema staging rollback and restore rehearsal | NOT RUN | Restore transcript on schema-equivalent staging, validation results, owner; disposable function-only rollback passed in CI #166 and does not satisfy this gate |
+| Staging rollback and restore rehearsal | NOT RUN | Full-schema staging restore transcript, validation results, owner; disposable function-only rollback passed in CI #166 and does not satisfy this gate |
 | Real anonymous quote/demo E2E | NOT RUN | Redacted synthetic intake, opportunity and activity evidence |
 | Staging before/after sales-integrity audit | NOT RUN | `quote_pipeline_staging_audit_readonly.sql` outputs, baseline comparison |
 | Staging capacity opt-in, transfers and concurrency | NOT RUN | Test log showing disabled default, case/staff race safety |
