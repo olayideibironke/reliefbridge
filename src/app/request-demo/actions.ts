@@ -317,7 +317,7 @@ function buildAdminEmailHtml(details: DemoRequestDetails): string {
               "
             >
               ReliefBridge · Disaster Recovery Coordination<br />
-              A Westforge Holdings platform
+              ReliefBridge Team
             </div>
           </div>
         </div>
@@ -515,7 +515,7 @@ function buildConfirmationEmailHtml(
               >
                 ReliefBridge Team<br />
                 Disaster Recovery Coordination<br />
-                A Westforge Holdings platform
+                ReliefBridge Team
               </p>
             </div>
 
@@ -558,7 +558,7 @@ function buildConfirmationEmailText(
     "",
     "ReliefBridge Team",
     "Disaster Recovery Coordination",
-    "A Westforge Holdings platform",
+    "ReliefBridge Team",
     "",
     "https://reliefbridge.net",
   ].join("\n");
