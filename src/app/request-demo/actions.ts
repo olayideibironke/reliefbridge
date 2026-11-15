@@ -514,8 +514,7 @@ function buildConfirmationEmailHtml(
                 "
               >
                 ReliefBridge Team<br />
-                Disaster Recovery Coordination<br />
-                ReliefBridge Team
+                Disaster Recovery Coordination
               </p>
             </div>
 
@@ -558,7 +557,6 @@ function buildConfirmationEmailText(
     "",
     "ReliefBridge Team",
     "Disaster Recovery Coordination",
-    "ReliefBridge Team",
     "",
     "https://reliefbridge.net",
   ].join("\n");
