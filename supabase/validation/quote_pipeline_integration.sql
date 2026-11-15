@@ -634,11 +634,11 @@ begin
    and stage='Quote/Proposal') <> 2 then
    raise exception 'Later demo stages did not advance to quote';
  end if;
- if (select stage from public.sales_opportunities where contact_email='won@example.test') <> 'Won' then
+ if (select count(*) from public.sales_opportunities where contact_email='won@example.test' and organization_name='Won Recovery' and stage='Won') <> 1 then
    raise exception 'Won opportunity was reopened';
  end if;
  if (select count(*) from public.sales_opportunities where contact_email in
-   ('scheduled@example.test','evaluating@example.test','won@example.test')) <> 3 then
+   ('scheduled@example.test','evaluating@example.test','won@example.test') and organization_name in ('Scheduled Recovery','Evaluating Recovery','Won Recovery')) <> 3 then
    raise exception 'Later demo quote duplicated an opportunity';
  end if;
 end
