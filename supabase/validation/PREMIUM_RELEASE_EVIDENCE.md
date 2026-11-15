@@ -9,7 +9,7 @@
 | Read-only production RLS and schema review | REVIEWED (2026-11-03) | `QUOTE_SECURITY_RELEASE_REVIEW.md`; repeat against current schema before release |
 | Production service-role table permissions (read-only review, 2026-11-05) | **BLOCKED: service_role lacks INSERT on public.demo_requests** | Effective `has_table_privilege` results and role grants verified read-only; stage a narrowly scoped INSERT grant fix and verify before any cutover |
 | Full-schema staging migration rehearsal | NOT RUN | Staging project ID, migration logs, preflight schema comparison |
-| Original sales-sync trigger/function snapshot | CAPTURED; REVIEW PENDING | `rollback_original_sales_sync_20261115.sql` at commit `c8af7ab`; live trigger verified read-only. Review sign-off and staging restore still required |
+| Original sales-sync trigger/function snapshot | NOT CAPTURED FOR RELEASE | Original definition saved as an unreviewed reference in `rollback_original_sales_sync_20261115.sql` at commit `c8af7ab`; independent review and staging restore are still required |
 | Staging rollback and restore rehearsal | NOT RUN | Restore transcript, validation results, owner |
 | Real anonymous quote/demo E2E | NOT RUN | Redacted synthetic intake, opportunity and activity evidence |
 | Staging before/after sales-integrity audit | NOT RUN | `quote_pipeline_staging_audit_readonly.sql` outputs, baseline comparison |
