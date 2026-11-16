@@ -18,6 +18,8 @@ for (const [name, content] of [["demo", demo], ["quote", quote]]) {
   assert(!/\.from\s*\(\s*["'`]demo_requests["'`]\s*\)\s*\.insert\s*\(/.test(content), name + " action must not directly INSERT");
   assert(!content.includes("createSupabaseServerClient"), name + " action must not use a cookie-scoped client for public intake");
 }
+assert(demo.includes('preferredContact === "Phone" && !phone'), "phone contact selection must require a phone number");
+assert(demo.includes('/^\\d{10}$/.test(digits)'), "optional phone must validate as ten U.S. digits");
 assert(intake.includes('import "server-only";'), "shared intake must be server-only");
 assert(intake.includes("createSupabaseAdminClient()"), "shared intake must use a privileged server client");
 assert(intake.includes('status: "New"') && intake.includes('source: "Website"'), "server must pin status and source");
