@@ -705,9 +705,13 @@ export async function requestDemoAction(
     fieldErrors.work_email = "Email address is too long.";
   }
 
-  if (phone.length > 40) {
-    fieldErrors.phone =
-      "Phone number must be 40 characters or fewer.";
+  // Optional U.S. contact number: accept common separators and an optional +1.
+  // Never persist arbitrary text as a phone number.
+  if (phone) {
+    const digits = phone.replace(/[\s().-]/g, "").replace(/^\+1/, "");
+    if (!/^\d{10}$/.test(digits)) {
+      fieldErrors.phone = "Enter a valid 10-digit U.S. phone number.";
+    }
   }
 
   if (!organizationName) {
