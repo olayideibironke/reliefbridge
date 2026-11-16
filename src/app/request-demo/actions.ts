@@ -784,6 +784,10 @@ export async function requestDemoAction(
       "Select a preferred contact method.";
   }
 
+  if (preferredContact === "Phone" && !phone) {
+    fieldErrors.phone = "Enter a phone number when requesting phone contact.";
+  }
+
   if (message.length > 2000) {
     fieldErrors.message =
       "Message must be 2,000 characters or fewer.";
