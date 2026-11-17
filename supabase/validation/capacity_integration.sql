@@ -30,7 +30,7 @@ as $ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $;
 
 create function private.protect_profile_authorization_fields()
 returns trigger language plpgsql security definer set search_path = ''
-as $
+as $fixture_trigger$
 begin
   if auth.uid() is not null and new.id = auth.uid() then
     if new.organization_id is distinct from old.organization_id
@@ -48,7 +48,7 @@ begin
   end if;
   return new;
 end;
-$;
+$fixture_trigger$;
 -- Fixture adds the protected columns referenced by the live trigger.
 alter table public.profiles
   add column role text, add column invited_by uuid, add column invited_at timestamptz,
@@ -59,7 +59,7 @@ for each row execute function private.protect_profile_authorization_fields();
 
 create function private.prevent_organization_id_change()
 returns trigger language plpgsql set search_path = ''
-as $
+as $fixture_trigger$
 begin
   if auth.uid() is not null
      and new.organization_id is distinct from old.organization_id then
@@ -67,7 +67,7 @@ begin
   end if;
   return new;
 end;
-$;
+$fixture_trigger$;
 create trigger protect_case_organization before update on public.recovery_cases
 for each row execute function private.prevent_organization_id_change();
 
