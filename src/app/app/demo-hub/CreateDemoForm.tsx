@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import { createDemoAction, type DemoHubState } from "./actions";
 import { Button } from "@/components/ui/Button";
+import { LOCALE_NAMES, SUPPORTED_LOCALES } from "@/lib/i18n";
 
 const initialState: DemoHubState = { ok: false, message: null };
 
@@ -162,6 +163,12 @@ export function CreateDemoForm() {
         </label>
         <label className="text-[12.5px] font-semibold text-ink-2">Contact email
           <input name="contact_email" type="email" required className={inputClass} />
+        </label>
+        <label className="text-[12.5px] font-semibold text-ink-2">Demo language
+          <select name="preferred_locale" defaultValue="en" className={inputClass} required>
+            {SUPPORTED_LOCALES.map(locale => <option key={locale} value={locale}>{LOCALE_NAMES[locale]}</option>)}
+          </select>
+          <span className="mt-1 block text-[11px] font-normal text-ink-3">Sets the language of the invitation and initial demo experience.</span>
         </label>
         <label className="text-[12.5px] font-semibold text-ink-2">Access duration
           <select name="duration_days" defaultValue="7" className={inputClass}>
