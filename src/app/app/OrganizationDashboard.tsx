@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { LOCALE_COOKIE, parseLocale, t } from "@/lib/i18n";
 
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { requireProfile } from "@/lib/session";
@@ -10,6 +12,7 @@ import { LinkButton } from "@/components/ui/Button";
 export const dynamic = "force-dynamic";
 
 export async function OrganizationDashboard() {
+  const locale = parseLocale((await cookies()).get(LOCALE_COOKIE)?.value);
   const supabase = await createSupabaseServerClient();
   const profile = await requireProfile();
 
@@ -96,39 +99,27 @@ export async function OrganizationDashboard() {
 
   const metrics = [
     {
-      label: "Active survivors",
+      label: t(locale,"activeSurvivors"),
       value: activeSurvivorCount,
-      detail:
-        activeSurvivorCount === 1
-          ? "1 survivor currently receiving support"
-          : `${activeSurvivorCount} survivors currently receiving support`,
+      detail: `${activeSurvivorCount} ${t(locale,"survivorsReceivingSupport")}`,
       icon: Icons.Survivors,
     },
     {
-      label: "Active recovery cases",
+      label: t(locale,"activeRecoveryCases"),
       value: activeCaseCount,
-      detail:
-        activeCaseCount === 1
-          ? "1 recovery case currently open"
-          : `${activeCaseCount} recovery cases currently open`,
+      detail: `${activeCaseCount} ${t(locale,"recoveryCasesOpen")}`,
       icon: Icons.Cases,
     },
     {
-      label: "Pending referrals",
+      label: t(locale,"pendingReferrals"),
       value: pendingReferralCount,
-      detail:
-        pendingReferralCount === 1
-          ? "1 partner referral awaiting action"
-          : `${pendingReferralCount} partner referrals awaiting action`,
+      detail: `${pendingReferralCount} ${t(locale,"referralsAwaitingAction")}`,
       icon: Icons.Referrals,
     },
     {
-      label: "Open unmet needs",
+      label: t(locale,"openUnmetNeeds"),
       value: openNeedCount,
-      detail:
-        openNeedCount === 1
-          ? "1 unmet need requiring coordination"
-          : `${openNeedCount} unmet needs requiring coordination`,
+      detail: `${openNeedCount} ${t(locale,"needsRequiringCoordination")}`,
       icon: Icons.Needs,
     },
   ];
@@ -136,9 +127,9 @@ export async function OrganizationDashboard() {
   return (
     <>
       <PageHeader
-        eyebrow="Command Center"
-        title={`Good day, ${firstName}.`}
-        subtitle="Monitor survivor recovery cases, partner referrals, unmet needs, and coordination activity across your ReliefBridge workspace."
+        eyebrow={t(locale,"commandCenter")}
+        title={`${t(locale,"goodDay")}, ${firstName}.`}
+        subtitle={t(locale,"orgDashboardSubtitle")}
         actions={
           isManagedDemo ? undefined : (
             <>
@@ -148,12 +139,12 @@ export async function OrganizationDashboard() {
                 size="md"
               >
                 <Icons.Plus className="h-4 w-4" />
-                New survivor
+                {t(locale,"newSurvivor")}
               </LinkButton>
 
               <LinkButton href="/app/referrals/new" size="md">
                 <Icons.Referrals className="h-4 w-4" />
-                Send referral
+                {t(locale,"sendReferral")}
               </LinkButton>
             </>
           )
@@ -196,24 +187,21 @@ export async function OrganizationDashboard() {
             <CardBody className="space-y-5">
               <div>
                 <div className="text-[12px] font-bold uppercase tracking-[0.14em] text-blue">
-                  Operational overview
+                  {t(locale,"operationalOverview")}
                 </div>
 
                 <h2 className="mt-2 text-[28px] font-black tracking-tight text-navy">
-                  Your recovery coordination workspace is live.
+                  {t(locale,"workspaceLive")}
                 </h2>
 
                 <p className="mt-3 max-w-2xl text-[15.5px] leading-7 text-ink-2">
-                  Use ReliefBridge to coordinate survivor records, recovery
-                  cases, unmet needs, and partner referrals from one secure
-                  workspace. The figures above are loaded directly from your
-                  organization&apos;s current Supabase records.
+                  {t(locale,"orgWorkspaceDescription")}
                 </p>
               </div>
 
               <div className="rounded-sm border border-line bg-surface-2 px-5 py-4">
                 <div className="text-[12px] font-bold uppercase tracking-[0.12em] text-ink-3">
-                  Signed-in account
+                  {t(locale,"signedInAccount")}
                 </div>
 
                 <div className="mt-2 text-[15px] font-bold text-navy">
@@ -225,12 +213,12 @@ export async function OrganizationDashboard() {
                 {!isManagedDemo && (
                   <LinkButton href="/app/survivors/new">
                     <Icons.Plus className="h-4 w-4" />
-                    Add survivor
+                    {t(locale,"addSurvivor")}
                   </LinkButton>
                 )}
 
                 <LinkButton href="/app/cases" variant="outline">
-                  View recovery cases
+                  {t(locale,"viewRecoveryCases")}
                 </LinkButton>
               </div>
             </CardBody>
@@ -239,7 +227,7 @@ export async function OrganizationDashboard() {
           <Card>
             <CardBody className="space-y-4">
               <div className="text-[12px] font-bold uppercase tracking-[0.14em] text-blue">
-                Recovery network
+                {t(locale,"recoveryNetwork")}
               </div>
 
               <div>
@@ -249,8 +237,8 @@ export async function OrganizationDashboard() {
 
                 <div className="mt-2 text-[14.5px] leading-6 text-ink-2">
                   {partnerCount === 1
-                    ? "Active partner organization available for coordinated referrals."
-                    : "Active partner organizations available for coordinated referrals."}
+                    ? t(locale,"activePartnerOrganizations")
+                    : t(locale,"activePartnerOrganizations")}
                 </div>
               </div>
 
@@ -266,14 +254,14 @@ export async function OrganizationDashboard() {
                   href="/app/partners"
                   className="inline-flex text-[14px] font-bold text-blue hover:text-navy hover:no-underline"
                 >
-                  View partner network →
+                  {t(locale,"viewPartnerNetwork")} →
                 </Link>
 
                 <Link
                   href="/app/reports"
                   className="inline-flex text-[14px] font-bold text-blue hover:text-navy hover:no-underline"
                 >
-                  View reporting workspace →
+                  {t(locale,"viewReportingWorkspace")} →
                 </Link>
               </div>
             </CardBody>
