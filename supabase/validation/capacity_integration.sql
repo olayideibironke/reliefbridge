@@ -26,7 +26,7 @@ create table public.profiles (
 create schema auth;
 create schema private;
 create function auth.uid() returns uuid language sql stable
-as $ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $;
+as $auth_uid$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $auth_uid$;
 
 create function private.protect_profile_authorization_fields()
 returns trigger language plpgsql security definer set search_path = ''
