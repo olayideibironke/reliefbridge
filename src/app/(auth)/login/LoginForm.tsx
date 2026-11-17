@@ -1,13 +1,14 @@
 "use client";
 
 import { useActionState } from "react";
+import { t, type ReliefBridgeLocale } from "@/lib/i18n";
 import { Input } from "@/components/ui/Field";
 import { SubmitButton } from "@/components/ui/SubmitButton";
 import { Alert } from "@/components/ui/Alert";
 import { loginAction } from "@/app/(auth)/actions";
 import { initialFormState as authInitialState } from "@/lib/forms";
 
-export function LoginForm({ next }: { next: string }) {
+export function LoginForm({ next, locale }: { next: string; locale: ReliefBridgeLocale }) {
   const [state, action] = useActionState(loginAction, authInitialState);
   const fe = state.fieldErrors ?? {};
 
@@ -20,7 +21,7 @@ export function LoginForm({ next }: { next: string }) {
       )}
 
       <Input
-        label="Work email"
+        label={t(locale, "workEmail")}
         name="email"
         type="email"
         autoComplete="email"
@@ -29,17 +30,17 @@ export function LoginForm({ next }: { next: string }) {
         error={fe.email}
       />
       <Input
-        label="Password"
+        label={t(locale, "password")}
         name="password"
         type="password"
         autoComplete="current-password"
         required
-        placeholder="Enter your password"
+        placeholder={t(locale, "passwordPlaceholder")}
         error={fe.password}
       />
 
-      <SubmitButton className="w-full" pendingLabel="Signing in…">
-        Sign in
+      <SubmitButton className="w-full" pendingLabel={t(locale, "signingIn")}>
+        {t(locale, "signIn")}
       </SubmitButton>
     </form>
   );
