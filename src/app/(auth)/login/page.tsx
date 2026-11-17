@@ -12,10 +12,10 @@ export const metadata: Metadata = {
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string; demo_expired?: string }>;
+  searchParams: Promise<{ next?: string; demo_expired?: string; lang?: string }>;
 }) {
   const sp = await searchParams;
-  const locale = parseLocale((await cookies()).get(LOCALE_COOKIE)?.value);
+  const locale = parseLocale(sp.lang || (await cookies()).get(LOCALE_COOKIE)?.value);
   const next = sp.next && sp.next.startsWith("/") ? sp.next : "/app";
 
   return (
