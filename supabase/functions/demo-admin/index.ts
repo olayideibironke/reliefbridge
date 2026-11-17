@@ -61,11 +61,11 @@ Deno.serve(async(req)=>{
   try{
    const providerId=await sendInvitation(contactEmail,contactName,organizationName,loginEmail,generatedPassword,expiresAt,preferredLocale);
    await admin.from("demo_workspaces").update({invitation_status:"sent",invitation_sent_at:new Date().toISOString(),invitation_error:null,invitation_provider_id:providerId}).eq("id",registry.id);
-   return json({login_email:loginEmail,password:generatedPassword,expires_at:expiresAt,organization_id:org.id,invitation_status:"sent"});
+   return json({login_email:loginEmail,password:generatedPassword,expires_at:expiresAt,organization_id:org.id,preferred_locale:preferredLocale,invitation_status:"sent"});
   }catch(e){
    const message=e instanceof Error?e.message:"Invitation email could not be sent.";
    await admin.from("demo_workspaces").update({invitation_status:"failed",invitation_error:message}).eq("id",registry.id);
-   return json({login_email:loginEmail,password:generatedPassword,expires_at:expiresAt,organization_id:org.id,invitation_status:"failed",invitation_error:message});
+   return json({login_email:loginEmail,password:generatedPassword,expires_at:expiresAt,organization_id:org.id,preferred_locale:preferredLocale,invitation_status:"failed",invitation_error:message});
   }
  }
  const demoId=String(body.demo_id??""); const {data:demo}=await admin.from("demo_workspaces").select("id,auth_user_id,status,expires_at").eq("id",demoId).maybeSingle(); if(!demo)return json({error:"Demo not found."},404);
