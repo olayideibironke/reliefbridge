@@ -11,7 +11,7 @@ import { initialFormState as authInitialState } from "@/lib/forms";
 export function LoginForm({ next, locale }: { next: string; locale: ReliefBridgeLocale }) {
   const [state, action] = useActionState(loginAction, authInitialState);
   useEffect(() => {
-    document.cookie = `${LOCALE_COOKIE}=${locale}; Path=/; Max-Age=31536000; SameSite=Lax; Secure`;
+    document.cookie = `${LOCALE_COOKIE}=${locale}; Path=/; Max-Age=31536000; SameSite=Lax${window.location.protocol === "https:" ? "; Secure" : ""}`;
     document.documentElement.lang = locale;
   }, [locale]);
   const fe = state.fieldErrors ?? {};
