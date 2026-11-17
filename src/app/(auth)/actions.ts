@@ -2,7 +2,8 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { headers } from "next/headers";
+import { headers, cookies } from "next/headers";
+import { LOCALE_COOKIE, parseLocale } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { isEmail } from "@/lib/utils";
 import { ORG_TYPES, US_STATES } from "@/lib/constants";
@@ -27,6 +28,7 @@ export async function loginAction(
   const email = asString(formData.get("email"));
   const password = asString(formData.get("password"));
   const next = asString(formData.get("next")) || "/app";
+  const requestedLocale = asString(formData.get("locale"));
 
   const fieldErrors: Record<string, string> = {};
   if (!email) fieldErrors.email = "Required";
@@ -68,8 +70,14 @@ export async function loginAction(
     }
   }
 
+  if (requestedLocale) {
+    (await cookies()).set(LOCALE_COOKIE, parseLocale(requestedLocale), {
+      path: "/", httpOnly: false, secure: process.env.NODE_ENV === "production",
+      sameSite: "lax", maxAge: 60 * 60 * 24 * 365,
+    });
+  }
   revalidatePath("/app", "layout");
-  redirect(next.startsWith("/") ? next : "/app");
+  redirect(next.startsWith("/") && !next.startsWith("//") ? next : "/app");
 }
 
 export async function signupAction(
