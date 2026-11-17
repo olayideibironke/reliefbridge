@@ -1,7 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
-import { t, type ReliefBridgeLocale } from "@/lib/i18n";
+import { useActionState, useEffect } from "react";
+import { LOCALE_COOKIE, t, type ReliefBridgeLocale } from "@/lib/i18n";
 import { Input } from "@/components/ui/Field";
 import { SubmitButton } from "@/components/ui/SubmitButton";
 import { Alert } from "@/components/ui/Alert";
@@ -10,6 +10,10 @@ import { initialFormState as authInitialState } from "@/lib/forms";
 
 export function LoginForm({ next, locale }: { next: string; locale: ReliefBridgeLocale }) {
   const [state, action] = useActionState(loginAction, authInitialState);
+  useEffect(() => {
+    document.cookie = `${LOCALE_COOKIE}=${locale}; Path=/; Max-Age=31536000; SameSite=Lax; Secure`;
+    document.documentElement.lang = locale;
+  }, [locale]);
   const fe = state.fieldErrors ?? {};
 
   return (
