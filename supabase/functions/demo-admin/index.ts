@@ -16,13 +16,13 @@ const esc=(v:string)=>v.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;
 async function sendInvitation(to:string,name:string,org:string,login:string,pwd:string,expires:string,locale:"en"|"es"|"fr"){
  const key=Deno.env.get("RESEND_API_KEY"); if(!key) throw new Error("ReliefBridge email service is not configured.");
  const copy=invitationCopy[locale];
- const greeting=name?esc(name):"there",orgName=esc(org),loginSafe=esc(login),pwdSafe=esc(pwd);
+ const greeting=name?esc(name):(locale==="es"?"estimado usuario":locale==="fr"?"cher utilisateur":"there"),orgName=esc(org),loginSafe=esc(login),pwdSafe=esc(pwd);
  const expiresText=new Date(expires).toLocaleString(locale==="es"?"es-PR":locale==="fr"?"fr-CA":"en-US",{dateStyle:"long",timeStyle:"short",timeZone:"America/New_York"})+" ET";
  const res=await fetch("https://api.resend.com/emails",{method:"POST",headers:{"Authorization":"Bearer "+key,"Content-Type":"application/json"},body:JSON.stringify({
    from:"ReliefBridge <contact@reliefbridge.net>",to:[to],reply_to:"contact@reliefbridge.net",
    subject:copy.subject,
    html:`<div style="font-family:Arial,sans-serif;max-width:620px;margin:auto;color:#172033"><h2 style="color:#12385b">${esc(copy.title)}</h2><p>${esc(copy.hello)} ${greeting},</p><p>${esc(copy.intro)} <strong>${orgName}</strong>.</p><div style="background:#f5f7fa;border:1px solid #dde4ec;border-radius:8px;padding:18px"><p><strong>${esc(copy.login)}:</strong><br>${loginSafe}</p><p><strong>${esc(copy.password)}:</strong><br>${pwdSafe}</p><p><strong>${esc(copy.expires)}:</strong><br>${esc(expiresText)}</p></div><p><a href="https://reliefbridge.net/login?lang=${locale}" style="display:inline-block;background:#12385b;color:white;text-decoration:none;padding:11px 18px;border-radius:5px;font-weight:bold">${esc(copy.open)}</a></p><p>${esc(copy.disclaimer)}</p><p>ReliefBridge</p></div>`,
-   text:`${copy.hello} ${name||"there"},\n\n${copy.intro} ${org}.\n\n${copy.login}: ${login}\n${copy.password}: ${pwd}\n${copy.expires}: ${expiresText}\n\n${copy.open}: https://reliefbridge.net/login\n\n${copy.disclaimer}\n\nReliefBridge`
+   text:`${copy.hello} ${name||(locale==="es"?"estimado usuario":locale==="fr"?"cher utilisateur":"there")},\n\n${copy.intro} ${org}.\n\n${copy.login}: ${login}\n${copy.password}: ${pwd}\n${copy.expires}: ${expiresText}\n\n${copy.open}: https://reliefbridge.net/login?lang=${locale}\n\n${copy.disclaimer}\n\nReliefBridge`
  })});
  const result=await res.json().catch(()=>({}));
  if(!res.ok) throw new Error(String(result?.message||"Invitation email could not be sent."));
