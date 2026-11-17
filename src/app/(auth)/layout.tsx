@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 import { Logo } from "@/components/brand/Logo";
 import { Icons } from "@/components/ui/Icons";
+import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
@@ -29,6 +30,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         </div>
       </div>
 
+      <div className="flex justify-end border-b border-line bg-surface px-5 py-2"><LanguageSwitcher /></div>
       {/* Split layout — brand panel + form */}
       <div className="grid min-h-[calc(100vh-2.25rem)] lg:grid-cols-2">
         {/* Left brand panel */}
