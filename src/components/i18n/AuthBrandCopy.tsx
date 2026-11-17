@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { DEFAULT_LOCALE, LOCALE_COOKIE, parseLocale, type ReliefBridgeLocale } from "@/lib/i18n";
+import { LOCALE_COOKIE, parseLocale, type ReliefBridgeLocale } from "@/lib/i18n";
 
 const copy = {
   en: {
@@ -40,8 +40,8 @@ function readLocale(): ReliefBridgeLocale {
   return parseLocale(cookie?.slice(LOCALE_COOKIE.length + 1));
 }
 
-export function AuthBrandCopy({ copyKey }: { copyKey: AuthBrandKey }) {
-  const [locale, setLocale] = useState<ReliefBridgeLocale>(DEFAULT_LOCALE);
+export function AuthBrandCopy({ copyKey, initialLocale }: { copyKey: AuthBrandKey; initialLocale: ReliefBridgeLocale }) {
+  const [locale, setLocale] = useState<ReliefBridgeLocale>(initialLocale);
   useEffect(() => {
     const sync = () => setLocale(readLocale());
     sync();
