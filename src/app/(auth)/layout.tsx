@@ -6,6 +6,7 @@ export const metadata: Metadata = { robots: { index: false, follow: false } };
 import { Logo } from "@/components/brand/Logo";
 import { Icons } from "@/components/ui/Icons";
 import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
+import { AuthBrandCopy } from "@/components/i18n/AuthBrandCopy";
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
@@ -52,26 +53,25 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             <div className="mt-auto">
               <div className="inline-flex items-center gap-2 rounded-sm border border-white/15 bg-white/[0.04] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/85">
                 <Icons.Lock className="h-3 w-3 text-gold" />
-                Secure coordination workspace
+                <AuthBrandCopy copyKey="secureWorkspace" />
               </div>
               <h2 className="mt-5 max-w-[18ch] text-[34px] font-bold leading-[1.1] tracking-tight">
-                One survivor record.
-                <span className="block text-gold">One coordinated recovery.</span>
+                <AuthBrandCopy copyKey="oneSurvivor" />
+                <span className="block text-gold"><AuthBrandCopy copyKey="oneRecovery" /></span>
               </h2>
               <p className="mt-4 max-w-[44ch] text-[15px] leading-7 text-white/80">
-                Sign in to coordinate survivor cases, partner referrals, unmet
-                needs, and outcome reporting across your recovery network.
+                <AuthBrandCopy copyKey="authBrandDescription" />
               </p>
 
               <ul className="mt-7 space-y-2.5 text-[13.5px] text-white/85">
                 {[
-                  "Role-based access for case managers, directors, and partners",
-                  "Audit trail across every case, note, and referral",
-                  "Consent-aware survivor records",
+                  "roleBasedAccess",
+                  "auditTrail",
+                  "consentAwareRecords",
                 ].map((b) => (
                   <li key={b} className="flex items-start gap-2.5">
                     <Icons.CircleCheck className="mt-[3px] h-4 w-4 shrink-0 text-gold" />
-                    <span>{b}</span>
+                    <span><AuthBrandCopy copyKey={b as "roleBasedAccess" | "auditTrail" | "consentAwareRecords"} /></span>
                   </li>
                 ))}
               </ul>
