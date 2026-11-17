@@ -3,7 +3,7 @@
 import { useActionState, useState } from "react";
 import { createDemoAction, type DemoHubState } from "./actions";
 import { Button } from "@/components/ui/Button";
-import { LOCALE_NAMES, SUPPORTED_LOCALES } from "@/lib/i18n";
+import { LOCALE_NAMES, SUPPORTED_LOCALES, type ReliefBridgeLocale } from "@/lib/i18n";
 
 const initialState: DemoHubState = { ok: false, message: null };
 
@@ -92,6 +92,7 @@ export function CreateDemoForm() {
   const [manualCity, setManualCity] = useState("");
   const [copied, setCopied] = useState<"password" | "all" | null>(null);
   const [passwordVisible, setPasswordVisible] = useState(true);
+  const [preferredLocale, setPreferredLocale] = useState<ReliefBridgeLocale>("en");
 
   async function copyText(text: string, kind: "password" | "all") {
     try {
@@ -165,10 +166,10 @@ export function CreateDemoForm() {
           <input name="contact_email" type="email" required className={inputClass} />
         </label>
         <label className="text-[12.5px] font-semibold text-ink-2">Demo language
-          <select name="preferred_locale" defaultValue="en" className={inputClass} required>
+          <select name="preferred_locale" value={preferredLocale} onChange={(event) => setPreferredLocale(event.target.value as ReliefBridgeLocale)} className={inputClass} required>
             {SUPPORTED_LOCALES.map(locale => <option key={locale} value={locale}>{LOCALE_NAMES[locale]}</option>)}
           </select>
-          <span className="mt-1 block text-[11px] font-normal text-ink-3">Sets the language of the invitation and initial demo experience.</span>
+          <span className="mt-1 block text-[11px] font-normal text-ink-3">Sets the invitation and sign-in language. Additional workspace translations are in progress.</span>
         </label>
         <label className="text-[12.5px] font-semibold text-ink-2">Access duration
           <select name="duration_days" defaultValue="7" className={inputClass}>
@@ -193,7 +194,7 @@ export function CreateDemoForm() {
             <div><div className="text-[11px] font-bold text-ink-3">EXPIRES</div><div className="mt-1 text-[13px] font-semibold text-navy">{state.credentials.expires_at ? new Date(state.credentials.expires_at).toLocaleString() : "Not set"}</div></div>
           </div>
           <p className="mt-3 text-[12px] text-ink-3">The password is not stored in the Demo Hub. A ReliefBridge invitation is sent automatically to the client contact when delivery succeeds.</p>
-          <button type="button" onClick={() => copyText(`ReliefBridge demo access\nLogin: ${state.credentials?.login_email ?? ""}\nPassword: ${state.credentials?.password ?? ""}\nExpires: ${state.credentials?.expires_at ? new Date(state.credentials.expires_at).toLocaleString() : ""}\nSign in: https://reliefbridge.net/login`, "all")} className="mt-4 inline-flex h-9 items-center rounded-sm border border-blue/20 bg-white px-3 text-[12.5px] font-bold text-blue hover:border-blue">{copied === "all" ? "Copied!" : "Copy access details"}</button>
+          <button type="button" onClick={() => copyText(`ReliefBridge demo access\nLogin: ${state.credentials?.login_email ?? ""}\nPassword: ${state.credentials?.password ?? ""}\nExpires: ${state.credentials?.expires_at ? new Date(state.credentials.expires_at).toLocaleString() : ""}\nSign in: https://reliefbridge.net/login?lang=${preferredLocale}`, "all")} className="mt-4 inline-flex h-9 items-center rounded-sm border border-blue/20 bg-white px-3 text-[12.5px] font-bold text-blue hover:border-blue">{copied === "all" ? "Copied!" : "Copy access details"}</button>
         </div>
       )}
       <Button type="submit" size="sm" disabled={pending}>{pending ? "Creating demo..." : "Create demo"}</Button>
