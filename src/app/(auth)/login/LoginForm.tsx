@@ -19,6 +19,7 @@ export function LoginForm({ next, locale }: { next: string; locale: ReliefBridge
   return (
     <form action={action} className="space-y-5">
       <input type="hidden" name="next" value={next} />
+      <input type="hidden" name="locale" value={locale} />
 
       {state.message && !state.ok && (
         <Alert tone="error">{state.message}</Alert>
