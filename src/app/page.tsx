@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = { alternates: { canonical: "/" } };
 import Link from "next/link";
+import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
 
 const IMG = {
   heroBuilder:
@@ -320,6 +321,8 @@ function Masthead() {
             />
           </label>
         </div>
+
+        <div className="shrink-0"><LanguageSwitcher /></div>
 
         <div className="hidden shrink-0 items-center gap-3 lg:flex">
           <Link
