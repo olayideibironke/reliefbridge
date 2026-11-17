@@ -38,6 +38,13 @@ export function LanguageSwitcher() {
     document.documentElement.lang = next;
     setLocale(next);
     window.dispatchEvent(new Event("reliefbridge:locale"));
+    // An invitation ?lang= parameter initializes the login language only.
+    // Explicit user selection must take precedence on the next reload.
+    const url = new URL(window.location.href);
+    if (url.searchParams.has("lang")) {
+      url.searchParams.delete("lang");
+      window.history.replaceState(null, "", url.pathname + url.search + url.hash);
+    }
     // Server-rendered pages will read the locale cookie on navigation.
     // Do not claim all UI is translated until each screen is wired to dictionaries.
     window.location.reload();
