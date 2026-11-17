@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test:billing": "node scripts/test-billing.cjs"
+    "test:billing": "node scripts/test-billing.cjs",
+    "test:spanish-demo": "node scripts/test-spanish-demo.cjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",
