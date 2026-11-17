@@ -65,7 +65,7 @@ export async function loginAction(
       return {
         ok: false,
         message:
-          "This demonstration access period has ended. Please contact Westforge for renewed access.",
+          "This demonstration access period has ended. Please contact ReliefBridge for renewed access.",
       };
     }
   }
