@@ -165,7 +165,7 @@ export async function OrganizationDashboard() {
                     </div>
 
                     <div className="rb-numerals mt-2 text-[38px] font-black leading-none tracking-tight text-navy">
-                      {metric.value.toLocaleString()}
+                      {metric.value.toLocaleString(locale)}
                     </div>
 
                     <div className="mt-2 text-[13px] leading-5 text-ink-3">
@@ -232,21 +232,19 @@ export async function OrganizationDashboard() {
 
               <div>
                 <div className="rb-numerals text-[38px] font-black leading-none tracking-tight text-navy">
-                  {partnerCount.toLocaleString()}
+                  {partnerCount.toLocaleString(locale)}
                 </div>
 
                 <div className="mt-2 text-[14.5px] leading-6 text-ink-2">
-                  {partnerCount === 1
-                    ? t(locale,"activePartnerOrganizations")
-                    : t(locale,"activePartnerOrganizations")}
+                  {t(locale,"activePartnerOrganizations")}
                 </div>
               </div>
 
               <div className="space-y-2 border-t border-line pt-4 text-[14px] leading-6 text-ink-2">
-                <div>Review active recovery cases.</div>
-                <div>Follow up on pending referrals.</div>
-                <div>Prioritize open unmet needs.</div>
-                <div>Keep survivor records current.</div>
+                <div>{t(locale,"reviewActiveCases")}</div>
+                <div>{t(locale,"followPendingReferrals")}</div>
+                <div>{t(locale,"prioritizeOpenNeeds")}</div>
+                <div>{t(locale,"keepRecordsCurrent")}</div>
               </div>
 
               <div className="flex flex-col gap-2">
