@@ -21,8 +21,14 @@ export function LanguageSwitcher() {
   const [locale, setLocale] = useState<ReliefBridgeLocale>(DEFAULT_LOCALE);
 
   useEffect(() => {
-    setLocale(currentLocale());
-    const update = () => setLocale(currentLocale());
+    const initial = currentLocale();
+    document.documentElement.lang = initial;
+    setLocale(initial);
+    const update = () => {
+      const next = currentLocale();
+      document.documentElement.lang = next;
+      setLocale(next);
+    };
     window.addEventListener("reliefbridge:locale", update);
     return () => window.removeEventListener("reliefbridge:locale", update);
   }, []);
