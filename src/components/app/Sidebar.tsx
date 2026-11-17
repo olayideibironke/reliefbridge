@@ -13,6 +13,14 @@ const translatedLabels: Record<string, TranslationKey> = {
   "Referral exchange": "referrals", "Partner organizations": "partners",
   "Mail": "mail", "Reports": "reports", "Settings": "settings",
   "Demo Hub": "demoHub", "Activity Log": "activityLog",
+  "Command Center":"commandCenter", "Organizations":"organizations",
+  "Demo requests":"demoRequests", "Sales Pipeline":"salesPipeline",
+  "Network Activity":"networkActivity", "Staff Management":"staffManagement",
+  "Work Assignments":"workAssignments", "Access Control":"accessControl",
+  "System Health":"systemHealth", "My Profile":"myProfile", "Internal Mail":"internalMail",
+  "Workspace":"workspace", "Network":"network", "Communication":"communication",
+  "Insights":"insights", "Account":"account", "My Work":"myWork",
+  "Platform":"platform", "Operations":"operations", "Administration":"administration",
 };
 function displayLabel(locale: ReliefBridgeLocale, label: string) {
   const key = translatedLabels[label];
@@ -41,7 +49,7 @@ export function Sidebar({user,orgName,isManagedDemo=false,isPlatformAdmin=false,
  return <aside className="sticky top-0 hidden h-screen w-[268px] shrink-0 flex-col border-r border-line bg-surface-2 lg:flex">
  <div className="shrink-0 border-b border-line px-5 py-5"><Link href="/app" className="block hover:no-underline"><Logo size="sm"/></Link></div>
  <div className="shrink-0 px-3 py-3"><div className="rounded-sm border border-line bg-surface px-3 py-2.5"><div className="flex items-center gap-2.5"><span className="grid h-8 w-8 place-items-center rounded-sm bg-navy text-[11px] font-bold text-white">{isPlatformAdmin?"RB":initials(orgName.split(" ")[0],orgName.split(" ")[1])}</span><div className="min-w-0"><div className="truncate text-[12.5px] font-bold text-navy">{isPlatformAdmin?"ReliefBridge Administration":isPlatformStaff?"ReliefBridge Staff":orgName}</div><div className="truncate text-[11px] text-ink-3">{isPlatformAdmin?"Platform control center":isPlatformStaff?"Internal operations workspace":isManagedDemo?"Managed demo · Read-only":"Active organization"}</div></div></div></div></div>
- <nav className="min-h-0 flex-1 overflow-y-auto px-3 pb-6">{groups.map(g=><div key={g.title} className="mb-3"><div className="px-3 pb-1.5 text-[10.5px] font-bold uppercase tracking-[0.14em] text-ink-3">{g.title}</div><ul className="space-y-0.5">{g.items.map(({label,href,icon:Icon})=>{const active=pathname===href||(href!=="/app"&&pathname.startsWith(href+"/"));return <li key={href}><Link href={href} className={cn("group flex items-center gap-3 rounded-sm px-3 py-2 text-[13px] font-medium hover:no-underline",active?"bg-blue text-white":"text-ink-2 hover:bg-surface hover:text-navy")}><Icon className="h-[18px] w-[18px] shrink-0"/><span>{displayLabel(locale, label)}</span></Link></li>})}</ul></div>)}</nav>
+ <nav className="min-h-0 flex-1 overflow-y-auto px-3 pb-6">{groups.map(g=><div key={displayLabel(locale,g.title)} className="mb-3"><div className="px-3 pb-1.5 text-[10.5px] font-bold uppercase tracking-[0.14em] text-ink-3">{g.title}</div><ul className="space-y-0.5">{g.items.map(({label,href,icon:Icon})=>{const active=pathname===href||(href!=="/app"&&pathname.startsWith(href+"/"));return <li key={href}><Link href={href} className={cn("group flex items-center gap-3 rounded-sm px-3 py-2 text-[13px] font-medium hover:no-underline",active?"bg-blue text-white":"text-ink-2 hover:bg-surface hover:text-navy")}><Icon className="h-[18px] w-[18px] shrink-0"/><span>{displayLabel(locale, label)}</span></Link></li>})}</ul></div>)}</nav>
  <div className="shrink-0 border-t border-line px-3 py-3"><Link href={isManagedDemo?"/app":"/app/settings/profile"} className="flex items-center gap-3 rounded-sm px-2 py-2 hover:bg-surface hover:no-underline"><span className="grid h-9 w-9 place-items-center rounded-sm bg-navy text-[12px] font-bold text-white">{initials(user.name.split(" ")[0],user.name.split(" ")[1])}</span><div className="min-w-0 flex-1"><div className="truncate text-[13px] font-bold text-navy">{user.name}</div><div className="truncate text-[11.5px] text-ink-3">{isPlatformAdmin&&user.role.toLowerCase()==="owner"?"Super Admin":user.role}</div></div><Icons.ChevronRight className="h-4 w-4"/></Link><form action="/auth/signout" method="post"><button className="mt-1 inline-flex w-full items-center gap-2 rounded-sm px-3 py-2 text-[12.5px] font-semibold text-ink-3 hover:text-red"><Icons.Logout className="h-4 w-4"/>Sign out</button></form></div>
  </aside>
 }
