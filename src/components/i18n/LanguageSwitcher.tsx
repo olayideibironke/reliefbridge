@@ -34,7 +34,7 @@ export function LanguageSwitcher() {
   }, []);
 
   function changeLocale(next: ReliefBridgeLocale) {
-    document.cookie = `${LOCALE_COOKIE}=${next}; Path=/; Max-Age=31536000; SameSite=Lax; Secure`;
+    document.cookie = `${LOCALE_COOKIE}=${next}; Path=/; Max-Age=31536000; SameSite=Lax${window.location.protocol === "https:" ? "; Secure" : ""}`;
     document.documentElement.lang = next;
     setLocale(next);
     window.dispatchEvent(new Event("reliefbridge:locale"));
