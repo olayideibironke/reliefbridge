@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { requireProfile } from "@/lib/session";
+import { parseLocale } from "@/lib/i18n";
 
 const PLATFORM_ORGANIZATION_ID = "9f3cb5cc-aa6f-44cb-8aa9-b0a7bc505142";
 
@@ -52,6 +53,7 @@ export async function createDemoAction(_previous: DemoHubState, formData: FormDa
   const contact_name = value(formData, "contact_name");
   const contact_email = value(formData, "contact_email");
   const duration_days = Number(value(formData, "duration_days") || "7");
+  const preferred_locale = parseLocale(value(formData, "preferred_locale"));
 
   if (!organization_name || !country || country.length > 100 || !city || city.length > 100 || !state || state.length > 100) {
     return { ok: false, message: "Organization name, country, state/province, and city are required." };
@@ -65,7 +67,7 @@ export async function createDemoAction(_previous: DemoHubState, formData: FormDa
   }
 
   try {
-    const data = await invoke({ action: "create", organization_name, organization_type, country, city, state, contact_name, contact_email, duration_days });
+    const data = await invoke({ action: "create", organization_name, organization_type, country, city, state, contact_name, contact_email, duration_days, preferred_locale });
     revalidatePath("/app/demo-hub");
     return {
       ok: true,
