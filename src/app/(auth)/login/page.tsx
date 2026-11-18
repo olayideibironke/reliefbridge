@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string; demo_expired?: string; lang?: string }>;
+  searchParams: Promise<{ next?: string; demo_expired?: string; lang?: string; languageChoice?: string }>;
 }) {
   const sp = await searchParams;
   const locale = parseLocale(sp.lang || (await cookies()).get(LOCALE_COOKIE)?.value);
@@ -38,7 +38,7 @@ export default async function LoginPage({
         </div>
       )}
 
-      <LoginForm next={next} locale={locale} />
+      <LoginForm next={next} locale={locale} explicitLocale={sp.languageChoice === "1"} />
 
       <div className="mt-5 flex items-center justify-between text-[13.5px]">
         <Link

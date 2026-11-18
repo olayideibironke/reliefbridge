@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 
-import { DEMO_LOCALE_HEADER, SUPPORTED_LOCALES } from "@/lib/i18n";
+import { DEMO_LOCALE_HEADER, LOGIN_LOCALE_OVERRIDE_COOKIE, SUPPORTED_LOCALES } from "@/lib/i18n";
 
 type CookieToSet = { name: string; value: string; options: CookieOptions };
 
@@ -62,7 +62,13 @@ export async function proxy(request: NextRequest) {
   }
 
   if (user && isProtected(pathname)) {
-    const { data: locale } = await supabase.rpc("get_my_demo_locale");
+    const [overrideUser, overrideLocale] =
+      (request.cookies.get(LOGIN_LOCALE_OVERRIDE_COOKIE)?.value ?? "").split(":");
+    const explicitLocale = overrideUser === user.id && SUPPORTED_LOCALES.some((supported) => supported === overrideLocale)
+      ? overrideLocale
+      : undefined;
+    const { data: savedLocale } = await supabase.rpc("get_my_demo_locale");
+    const locale = savedLocale ? explicitLocale ?? savedLocale : null;
     if (SUPPORTED_LOCALES.some((supported) => supported === locale)) {
       requestHeaders.set(DEMO_LOCALE_HEADER, locale);
       const localizedResponse = NextResponse.next({ request: { headers: requestHeaders } });

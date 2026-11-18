@@ -7,6 +7,7 @@ export const SUPPORTED_LOCALES = ["en", "es", "fr"] as const;
 export type ReliefBridgeLocale = (typeof SUPPORTED_LOCALES)[number];
 export const DEFAULT_LOCALE: ReliefBridgeLocale = "en";
 export const DEMO_LOCALE_HEADER = "x-reliefbridge-demo-locale";
+export const LOGIN_LOCALE_OVERRIDE_COOKIE = "rb_login_locale";
 export const LOCALE_COOKIE = "rb_locale";
 
 export const LOCALE_NAMES: Record<ReliefBridgeLocale, string> = {
