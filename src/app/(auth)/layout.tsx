@@ -1,12 +1,17 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
+import { LOCALE_COOKIE, parseLocale } from "@/lib/i18n";
 
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 import { Logo } from "@/components/brand/Logo";
 import { Icons } from "@/components/ui/Icons";
+import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
+import { AuthBrandCopy } from "@/components/i18n/AuthBrandCopy";
 
-export default function AuthLayout({ children }: { children: ReactNode }) {
+export default async function AuthLayout({ children }: { children: ReactNode }) {
+  const locale = parseLocale((await cookies()).get(LOCALE_COOKIE)?.value);
   return (
     <div className="min-h-screen bg-surface">
       {/* Top banner — matches homepage */}
@@ -29,6 +34,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         </div>
       </div>
 
+      <div className="flex justify-end border-b border-line bg-surface px-5 py-2"><LanguageSwitcher /></div>
       {/* Split layout — brand panel + form */}
       <div className="grid min-h-[calc(100vh-2.25rem)] lg:grid-cols-2">
         {/* Left brand panel */}
@@ -50,26 +56,25 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             <div className="mt-auto">
               <div className="inline-flex items-center gap-2 rounded-sm border border-white/15 bg-white/[0.04] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/85">
                 <Icons.Lock className="h-3 w-3 text-gold" />
-                Secure coordination workspace
+                <AuthBrandCopy initialLocale={locale} copyKey="secureWorkspace" />
               </div>
               <h2 className="mt-5 max-w-[18ch] text-[34px] font-bold leading-[1.1] tracking-tight">
-                One survivor record.
-                <span className="block text-gold">One coordinated recovery.</span>
+                <AuthBrandCopy initialLocale={locale} copyKey="oneSurvivor" />
+                <span className="block text-gold"><AuthBrandCopy initialLocale={locale} copyKey="oneRecovery" /></span>
               </h2>
               <p className="mt-4 max-w-[44ch] text-[15px] leading-7 text-white/80">
-                Sign in to coordinate survivor cases, partner referrals, unmet
-                needs, and outcome reporting across your recovery network.
+                <AuthBrandCopy initialLocale={locale} copyKey="authBrandDescription" />
               </p>
 
               <ul className="mt-7 space-y-2.5 text-[13.5px] text-white/85">
                 {[
-                  "Role-based access for case managers, directors, and partners",
-                  "Audit trail across every case, note, and referral",
-                  "Consent-aware survivor records",
+                  "roleBasedAccess",
+                  "auditTrail",
+                  "consentAwareRecords",
                 ].map((b) => (
                   <li key={b} className="flex items-start gap-2.5">
                     <Icons.CircleCheck className="mt-[3px] h-4 w-4 shrink-0 text-gold" />
-                    <span>{b}</span>
+                    <span><AuthBrandCopy initialLocale={locale} copyKey={b as "roleBasedAccess" | "auditTrail" | "consentAwareRecords"} /></span>
                   </li>
                 ))}
               </ul>
