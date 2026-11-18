@@ -32,7 +32,7 @@ export function LoginForm({ next, locale }: { next: string; locale: ReliefBridge
         type="email"
         autoComplete="email"
         required
-        placeholder="you@your-organization.org"
+        placeholder={t(locale, "loginEmailPlaceholder")}
         error={fe.email}
       />
       <Input
