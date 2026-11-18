@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { cookies } from "next/headers";
+import { LOCALE_COOKIE, parseLocale } from "@/lib/i18n";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://reliefbridge.net"),
@@ -48,13 +50,14 @@ export const viewport: Viewport = {
   themeColor: "#112E51",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = parseLocale((await cookies()).get(LOCALE_COOKIE)?.value);
   return (
-    <html lang="en">
+    <html lang={locale}>
       <body className="min-w-0 overflow-x-hidden bg-surface text-ink antialiased">
         {children}
       </body>
