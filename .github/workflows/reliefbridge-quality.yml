@@ -1,6 +1,15 @@
 name: ReliefBridge Quality Checks
 
 on:
+  push:
+    branches: [reliefbridge-i18n-en-es-fr]
+    paths:
+      - '.github/workflows/reliefbridge-quality.yml'
+      - 'src/**'
+      - 'scripts/**'
+      - 'supabase/**'
+      - 'package.json'
+      - 'package-lock.json'
   pull_request:
     branches: [main]
   workflow_dispatch:
