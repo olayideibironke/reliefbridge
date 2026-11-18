@@ -11,6 +11,8 @@ import { Sidebar } from "@/components/app/Sidebar";
 import { TopBar } from "@/components/app/TopBar";
 import { MobileHeader } from "@/components/app/MobileHeader";
 import { SessionInactivityGuard } from "@/components/app/SessionInactivityGuard";
+import { DemoLocaleSync } from "@/components/i18n/DemoLocaleSync";
+import { parseLocale } from "@/lib/i18n";
 import type { Profile } from "@/lib/types";
 
 type ProfileWithFullName = Profile & {
@@ -55,6 +57,12 @@ export default async function AppLayout({
   const { data: demoAccess } = await supabase.rpc("get_my_demo_access");
   const isManagedDemo =
     Array.isArray(demoAccess) && Boolean(demoAccess[0]?.is_demo);
+  const { data: preferredDemoLocale } = isManagedDemo
+    ? await supabase.rpc("get_my_demo_locale")
+    : { data: null };
+  const demoLocale = typeof preferredDemoLocale === "string"
+    ? parseLocale(preferredDemoLocale)
+    : null;
 
   let orgName = "ReliefBridge Workspace";
   let communicationsMode = "off";
@@ -116,6 +124,7 @@ export default async function AppLayout({
   return (
     <div className="flex min-h-screen bg-surface-2">
       <SessionInactivityGuard />
+      <DemoLocaleSync preferredLocale={demoLocale} />
 
       <Sidebar
         user={{
