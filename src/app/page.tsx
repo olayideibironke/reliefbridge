@@ -256,7 +256,7 @@ function OfficialBanner() {
   );
 }
 
-function MobileNavigation() {
+function MobileNavigation({ locale }: { locale: ReliefBridgeLocale }) {
   return (
     <details className="group relative ml-auto shrink-0 lg:hidden">
       <summary className="grid h-11 w-11 cursor-pointer list-none place-items-center rounded-sm border border-line bg-surface text-ink-2 [&::-webkit-details-marker]:hidden">
@@ -343,7 +343,7 @@ function Masthead({ locale }: { locale: ReliefBridgeLocale }) {
           </Link>
         </div>
 
-        <MobileNavigation />
+        <MobileNavigation locale={locale} />
       </Container>
     </div>
   );
