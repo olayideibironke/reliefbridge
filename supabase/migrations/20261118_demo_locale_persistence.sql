@@ -1,9 +1,8 @@
--- Release only after staging authorization and locale-persistence checks pass.
 -- Returns only the current authenticated demo user's preferred interface language.
 CREATE OR REPLACE FUNCTION public.get_my_demo_locale()
 RETURNS text
 LANGUAGE sql STABLE SECURITY DEFINER
-SET search_path = public
+SET search_path = ''
 AS $$
   SELECT d.preferred_locale
   FROM public.demo_workspaces d

@@ -1,3 +1,4 @@
+import { workspaceLabel, type ReliefBridgeLocale } from "@/lib/i18n";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import type {
@@ -74,7 +75,7 @@ const referralTone: Record<ReferralStatus, Tone> = {
   Declined: "red",
 };
 
-export function CaseStatusBadge({ status }: { status: CaseStatus }) {
+export function CaseStatusBadge({ status, locale = "en" }: { status: CaseStatus; locale?: ReliefBridgeLocale }) {
   const label = {
     open: "Open",
     in_review: "In Review",
@@ -84,12 +85,12 @@ export function CaseStatusBadge({ status }: { status: CaseStatus }) {
   }[status];
   return (
     <Badge tone={caseTone[status]} dot>
-      {label}
+      {workspaceLabel(locale, label)}
     </Badge>
   );
 }
 
-export function SurvivorStatusBadge({ status }: { status: SurvivorStatus }) {
+export function SurvivorStatusBadge({ status, locale = "en" }: { status: SurvivorStatus; locale?: ReliefBridgeLocale }) {
   const label = {
     active: "Active",
     closed: "Closed",
@@ -98,12 +99,12 @@ export function SurvivorStatusBadge({ status }: { status: SurvivorStatus }) {
   }[status];
   return (
     <Badge tone={survivorTone[status]} dot>
-      {label}
+      {workspaceLabel(locale, label)}
     </Badge>
   );
 }
 
-export function NeedStatusBadge({ status }: { status: NeedStatus }) {
+export function NeedStatusBadge({ status, locale = "en" }: { status: NeedStatus; locale?: ReliefBridgeLocale }) {
   const label = {
     open: "Open",
     in_progress: "In Progress",
@@ -112,20 +113,20 @@ export function NeedStatusBadge({ status }: { status: NeedStatus }) {
   }[status];
   return (
     <Badge tone={needTone[status]} dot>
-      {label}
+      {workspaceLabel(locale, label)}
     </Badge>
   );
 }
 
-export function ReferralStatusBadge({ status }: { status: ReferralStatus }) {
+export function ReferralStatusBadge({ status, locale = "en" }: { status: ReferralStatus; locale?: ReliefBridgeLocale }) {
   return (
     <Badge tone={referralTone[status]} dot>
-      {status}
+      {workspaceLabel(locale, status)}
     </Badge>
   );
 }
 
-export function PriorityBadge({ priority }: { priority: Priority }) {
+export function PriorityBadge({ priority, locale = "en" }: { priority: Priority; locale?: ReliefBridgeLocale }) {
   const label = { low: "Low", medium: "Medium", high: "High" }[priority];
   return (
     <span
@@ -139,7 +140,7 @@ export function PriorityBadge({ priority }: { priority: Priority }) {
       )}
     >
       <span className="h-1.5 w-1.5 rounded-full bg-current" />
-      {label}
+      {workspaceLabel(locale, label)}
     </span>
   );
 }

@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { cookies } from "next/headers";
-import { LOCALE_COOKIE, parseLocale, t } from "@/lib/i18n";
+import { getRequestLocale } from "@/lib/request-locale";
+import { t } from "@/lib/i18n";
 
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { requireProfile } from "@/lib/session";
@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
 export async function OrganizationDashboard() {
   const supabase = await createSupabaseServerClient();
   const profile = await requireProfile();
-  const locale = parseLocale((await cookies()).get(LOCALE_COOKIE)?.value);
+  const locale = await getRequestLocale();
   const tr = (key: Parameters<typeof t>[1]) => t(locale, key);
 
   const {
@@ -50,7 +50,7 @@ export async function OrganizationDashboard() {
   let partnerCount = 0;
 
   if (orgId) {
-    let partnersQuery = supabase
+    const partnersQuery = supabase
       .from("organizations")
       .select("id", { count: "exact", head: true })
       .neq("id", orgId)

@@ -1,3 +1,5 @@
+import { getRequestLocale } from "@/lib/request-locale";
+import { t, workspaceLabel } from "@/lib/i18n";
 import Link from "next/link";
 
 import { createSupabaseServerClient } from "@/lib/supabase-server";
@@ -81,6 +83,7 @@ function normalizePriority(value: string | null): Priority {
 }
 
 export default async function OpenCasesReport() {
+  const locale = await getRequestLocale();
   const profile = await requireProfile();
   const supabase = await createSupabaseServerClient();
 
@@ -145,13 +148,13 @@ export default async function OpenCasesReport() {
   return (
     <>
       <PageHeader
-        eyebrow="Reports · Operations"
-        title="Open recovery cases"
-        subtitle="Active workload distribution across your organization."
+        eyebrow={t(locale, "reportReportsOperations")}
+        title={t(locale, "openRecoveryCases")}
+        subtitle={t(locale, "reportActiveWorkloadDistributionAcrossYourOrganizationMessage")}
         breadcrumbs={[
-          { label: "Insights", href: "/app" },
-          { label: "Reports", href: "/app/reports" },
-          { label: "Open cases" },
+          { label: t(locale, "insights"), href: "/app" },
+          { label: t(locale, "reports"), href: "/app/reports" },
+          { label: t(locale, "reportOpenCases") },
         ]}
       />
 
@@ -160,7 +163,7 @@ export default async function OpenCasesReport() {
           <Card>
             <CardBody>
               <div className="text-[12px] font-semibold text-ink-3">
-                Total open
+                {t(locale, "reportTotalOpen")}
               </div>
 
               <div className="rb-numerals mt-2 text-[36px] font-black tracking-tight text-navy">
@@ -168,7 +171,7 @@ export default async function OpenCasesReport() {
               </div>
 
               <div className="mt-1 text-[12px] text-ink-3">
-                Excludes closed cases
+                {t(locale, "reportExcludesClosedCases")}
               </div>
             </CardBody>
           </Card>
@@ -176,7 +179,7 @@ export default async function OpenCasesReport() {
           <Card>
             <CardBody>
               <div className="text-[12px] font-semibold text-ink-3">
-                High priority
+                {t(locale, "reportHighPriority")}
               </div>
 
               <div className="rb-numerals mt-2 text-[36px] font-black tracking-tight text-navy">
@@ -184,7 +187,7 @@ export default async function OpenCasesReport() {
               </div>
 
               <div className="mt-1 text-[12px] text-ink-3">
-                Survivors needing the most attention now
+                {t(locale, "reportSurvivorsNeedingTheMostAttentionNow")}
               </div>
             </CardBody>
           </Card>
@@ -192,7 +195,7 @@ export default async function OpenCasesReport() {
           <Card>
             <CardBody>
               <div className="text-[12px] font-semibold text-ink-3">
-                In review
+                {t(locale, "reportInReview")}
               </div>
 
               <div className="rb-numerals mt-2 text-[36px] font-black tracking-tight text-navy">
@@ -200,7 +203,7 @@ export default async function OpenCasesReport() {
               </div>
 
               <div className="mt-1 text-[12px] text-ink-3">
-                Cases under partner or program review
+                {t(locale, "reportCasesUnderPartnerOrProgramReview")}
               </div>
             </CardBody>
           </Card>
@@ -208,12 +211,12 @@ export default async function OpenCasesReport() {
 
         <div className="grid gap-6 lg:grid-cols-2">
           <Card>
-            <CardHeader title="By status" />
+            <CardHeader title={t(locale, "reportByStatus")} />
 
             <CardBody>
               {total === 0 ? (
                 <div className="text-[13px] text-ink-3">
-                  No open cases.
+                  {t(locale, "reportNoOpenCasesMessage")}
                 </div>
               ) : (
                 <ul className="space-y-3.5">
@@ -223,7 +226,7 @@ export default async function OpenCasesReport() {
                     return (
                       <li key={status}>
                         <BarRow
-                          label={LABELS.caseStatus[status]}
+                          label={workspaceLabel(locale, LABELS.caseStatus[status])}
                           count={count}
                           pct={percentage(count)}
                         />
@@ -236,12 +239,12 @@ export default async function OpenCasesReport() {
           </Card>
 
           <Card>
-            <CardHeader title="By priority" />
+            <CardHeader title={t(locale, "reportByPriority")} />
 
             <CardBody>
               {total === 0 ? (
                 <div className="text-[13px] text-ink-3">
-                  No open cases.
+                  {t(locale, "reportNoOpenCasesMessage")}
                 </div>
               ) : (
                 <ul className="space-y-3.5">
@@ -251,7 +254,7 @@ export default async function OpenCasesReport() {
                     return (
                       <li key={priority}>
                         <BarRow
-                          label={LABELS.priority[priority]}
+                          label={workspaceLabel(locale, LABELS.priority[priority])}
                           count={count}
                           pct={percentage(count)}
                         />
@@ -266,27 +269,27 @@ export default async function OpenCasesReport() {
 
         <Card>
           <CardHeader
-            title="Open cases"
-            subtitle="All non-closed cases"
+            title={t(locale, "reportOpenCases")}
+            subtitle={t(locale, "reportAllNonClosedCases")}
           />
 
           {rows.length === 0 ? (
             <EmptyState
               className="m-5"
               icon={<Icons.Cases className="h-7 w-7" />}
-              title="No open cases"
-              description="No open recovery cases for this organization."
+              title={t(locale, "reportNoOpenCases")}
+              description={t(locale, "reportNoOpenRecoveryCasesForThisOrganizationMessage")}
             />
           ) : (
             <DataTable className="rounded-none border-0">
               <THead>
                 <Tr>
-                  <Th>Survivor</Th>
-                  <Th>Event</Th>
-                  <Th>Primary need</Th>
-                  <Th>Priority</Th>
-                  <Th>Status</Th>
-                  <Th align="right">Opened</Th>
+                  <Th>{t(locale, "survivor")}</Th>
+                  <Th>{t(locale, "event")}</Th>
+                  <Th>{t(locale, "primaryNeed")}</Th>
+                  <Th>{t(locale, "priority")}</Th>
+                  <Th>{t(locale, "status")}</Th>
+                  <Th align="right">{t(locale, "opened")}</Th>
                 </Tr>
               </THead>
 
@@ -325,7 +328,7 @@ export default async function OpenCasesReport() {
                       align="right"
                       className="rb-numerals text-[12.5px] text-ink-3"
                     >
-                      {relativeDate(caseRow.opened_at)}
+                      {relativeDate(caseRow.opened_at, locale)}
                     </Td>
                   </Tr>
                 ))}

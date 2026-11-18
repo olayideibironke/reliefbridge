@@ -1,3 +1,5 @@
+import { getRequestLocale } from "@/lib/request-locale";
+import { t, workspaceLabel } from "@/lib/i18n";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -34,6 +36,7 @@ export default async function ReferralDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const locale = await getRequestLocale();
   const profile = await requireProfile();
   const isPlatformStaff = profile.organization_id === PLATFORM && ["manager", "staff"].includes(String(profile.role ?? "").toLowerCase());
   const supabase = await createSupabaseServerClient();
@@ -64,33 +67,33 @@ export default async function ReferralDetailPage({
   return (
     <>
       <PageHeader
-        eyebrow="Referral"
-        title={`${r.category} referral`}
+        eyebrow={t(locale, "referral")}
+        title={locale === "en" ? `${r.category} referral` : `${t(locale, "referral")} · ${workspaceLabel(locale, r.category)}`}
         subtitle={
           r.survivors
-            ? `For ${fullName(
+            ? `${t(locale, "forPerson")} ${fullName(
                 r.survivors.first_name,
                 r.survivors.last_name,
               )}`
-            : "Referral"
+            : t(locale, "referral")
         }
         breadcrumbs={[
-          { label: "Network", href: "/app" },
-          { label: "Referral exchange", href: "/app/referrals" },
-          { label: r.category },
+          { label: t(locale, "network"), href: "/app" },
+          { label: t(locale, "referralExchange"), href: "/app/referrals" },
+          { label: workspaceLabel(locale, r.category) },
         ]}
-        actions={<ReferralStatusBadge status={r.status} />}
+        actions={<ReferralStatusBadge locale={locale} status={r.status} />}
       />
 
       <div className="grid gap-6 px-6 py-8 md:px-10 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <Card>
-            <CardHeader title="Referral details" />
+            <CardHeader title={t(locale, "referralDetails")} />
 
             <CardBody>
               <dl className="grid grid-cols-2 gap-x-6 gap-y-4 text-[13.5px]">
                 <Field
-                  label="Survivor"
+                  label={t(locale, "survivor")}
                   node={
                     r.survivors ? (
                       <Link
@@ -109,40 +112,40 @@ export default async function ReferralDetailPage({
                 />
 
                 <Field
-                  label="Category"
+                  label={t(locale, "category")}
                   node={
                     <span className="font-semibold text-navy">
-                      {r.category}
+                      {workspaceLabel(locale, r.category)}
                     </span>
                   }
                 />
 
                 <Field
-                  label="Sending organization"
+                  label={t(locale, "sendingOrganization")}
                   value={r.sender?.name ?? "—"}
                 />
 
                 <Field
-                  label="Receiving organization"
+                  label={t(locale, "receivingOrganization")}
                   value={r.receiver?.name ?? "—"}
                 />
 
                 <Field
-                  label="Created"
-                  value={formatDateTime(r.created_at)}
+                  label={t(locale, "created")}
+                  value={formatDateTime(r.created_at, locale)}
                 />
 
                 {r.responded_at && (
                   <Field
-                    label="Responded"
-                    value={formatDateTime(r.responded_at)}
+                    label={t(locale, "respondedDate")}
+                    value={formatDateTime(r.responded_at, locale)}
                   />
                 )}
 
                 {r.completed_at && (
                   <Field
-                    label="Completed"
-                    value={formatDateTime(r.completed_at)}
+                    label={t(locale, "completedDate")}
+                    value={formatDateTime(r.completed_at, locale)}
                   />
                 )}
               </dl>
@@ -150,7 +153,7 @@ export default async function ReferralDetailPage({
           </Card>
 
           <Card>
-            <CardHeader title="Notes shared with partner" />
+            <CardHeader title={t(locale, "partnerNotes")} />
 
             <CardBody>
               {r.notes ? (
@@ -159,7 +162,7 @@ export default async function ReferralDetailPage({
                 </div>
               ) : (
                 <div className="rounded-sm border border-dashed border-line bg-surface-2 px-4 py-6 text-center text-[13px] text-ink-3">
-                  No notes were sent with this referral.
+                  {t(locale, "noPartnerNotes")}
                 </div>
               )}
             </CardBody>

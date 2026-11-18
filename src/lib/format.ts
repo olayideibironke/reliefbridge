@@ -1,3 +1,4 @@
+import type { ReliefBridgeLocale } from "@/lib/i18n";
 import { LABELS } from "@/lib/constants";
 import type {
   CaseStatus,
@@ -21,21 +22,21 @@ const dateTimeFmt = new Intl.DateTimeFormat("en-US", {
   minute: "2-digit",
 });
 
-export function formatDate(value: string | null | undefined) {
+export function formatDate(value: string | null | undefined, locale: ReliefBridgeLocale = "en") {
   if (!value) return "—";
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return "—";
-  return dateFmt.format(d);
+  return locale === "en" ? dateFmt.format(d) : new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(d);
 }
 
-export function formatDateTime(value: string | null | undefined) {
+export function formatDateTime(value: string | null | undefined, locale: ReliefBridgeLocale = "en") {
   if (!value) return "—";
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return "—";
-  return dateTimeFmt.format(d);
+  return locale === "en" ? dateTimeFmt.format(d) : new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short" }).format(d);
 }
 
-export function relativeDate(value: string | null | undefined): string {
+export function relativeDate(value: string | null | undefined, locale: ReliefBridgeLocale = "en"): string {
   if (!value) return "—";
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return "—";
@@ -43,6 +44,14 @@ export function relativeDate(value: string | null | undefined): string {
   const min = 60 * 1000;
   const hour = 60 * min;
   const day = 24 * hour;
+  if (locale !== "en") {
+    const relative = new Intl.RelativeTimeFormat(locale);
+    if (diff < hour) return relative.format(-Math.max(1, Math.round(diff / min)), "minute");
+    if (diff < day) return relative.format(-Math.round(diff / hour), "hour");
+    if (diff < 7 * day) return relative.format(-Math.round(diff / day), "day");
+    if (diff < 30 * day) return relative.format(-Math.round(diff / (7 * day)), "week");
+    return new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(d);
+  }
   if (diff < hour) return `${Math.max(1, Math.round(diff / min))}m ago`;
   if (diff < day) return `${Math.round(diff / hour)}h ago`;
   if (diff < 7 * day) return `${Math.round(diff / day)}d ago`;

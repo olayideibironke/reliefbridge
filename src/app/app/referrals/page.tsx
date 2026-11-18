@@ -1,3 +1,5 @@
+import { getRequestLocale } from "@/lib/request-locale";
+import { t, workspaceLabel } from "@/lib/i18n";
 import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { requireProfile } from "@/lib/session";
@@ -36,6 +38,7 @@ export default async function ReferralsPage({
 }: {
   searchParams: Promise<{ direction?: "outgoing" | "incoming"; status?: string; category?: string }>;
 }) {
+  const locale = await getRequestLocale();
   const profile = await requireProfile();
   const isPlatformStaff = profile.organization_id === PLATFORM && ["manager", "staff"].includes(String(profile.role ?? "").toLowerCase());
   const sp = await searchParams;
@@ -73,14 +76,14 @@ export default async function ReferralsPage({
   return (
     <>
       <PageHeader
-        eyebrow="Network"
-        title="Referral exchange"
-        subtitle="Send referrals to partner organizations and track what happens to every handoff."
-        breadcrumbs={[{ label: "Network", href: "/app" }, { label: "Referral exchange" }]}
+        eyebrow={t(locale, "network")}
+        title={t(locale, "referralExchange")}
+        subtitle={t(locale, "referralListSubtitle")}
+        breadcrumbs={[{ label: t(locale, "network"), href: "/app" }, { label: t(locale, "referralExchange") }]}
         actions={!isManagedDemo && !isPlatformStaff ? (
           <LinkButton href="/app/referrals/new">
             <Icons.Plus className="h-4 w-4" />
-            Send referral
+            {t(locale, "sendReferral")}
           </LinkButton>
         ) : undefined}
       />
@@ -88,10 +91,10 @@ export default async function ReferralsPage({
       <div className="space-y-6 px-6 py-8 md:px-10">
         <div className="flex flex-wrap items-center gap-2 border-b border-line pb-3">
           <TabLink href="/app/referrals" active={direction === "outgoing"}>
-            Outgoing
+            {t(locale, "outgoing")}
           </TabLink>
           <TabLink href="/app/referrals?direction=incoming" active={direction === "incoming"}>
-            Incoming
+            {t(locale, "incoming")}
           </TabLink>
         </div>
 
@@ -103,19 +106,19 @@ export default async function ReferralsPage({
               method="get"
             >
               <input type="hidden" name="direction" value={direction} />
-              <Select label="Status" name="status" defaultValue={status}>
-                <option value="">All statuses</option>
+              <Select label={t(locale, "status")} name="status" defaultValue={status}>
+                <option value="">{t(locale, "allStatuses")}</option>
                 {REFERRAL_STATUSES.map((s) => (
                   <option key={s} value={s}>
-                    {s}
+                    {workspaceLabel(locale, s)}
                   </option>
                 ))}
               </Select>
-              <Select label="Category" name="category" defaultValue={category}>
-                <option value="">All categories</option>
+              <Select label={t(locale, "category")} name="category" defaultValue={category}>
+                <option value="">{t(locale, "allCategories")}</option>
                 {NEED_CATEGORIES.map((c) => (
                   <option key={c} value={c}>
-                    {c}
+                    {workspaceLabel(locale, c)}
                   </option>
                 ))}
               </Select>
@@ -125,13 +128,13 @@ export default async function ReferralsPage({
                   className="inline-flex h-11 items-center gap-2 rounded-sm bg-blue px-4 text-[13.5px] font-semibold text-white hover:bg-navy-light"
                 >
                   <Icons.Filter className="h-4 w-4" />
-                  Filter
+                  {t(locale, "filter")}
                 </button>
                 <Link
                   href={`/app/referrals${direction === "incoming" ? "?direction=incoming" : ""}`}
                   className="inline-flex h-11 items-center rounded-sm border border-line bg-surface px-3 text-[13.5px] font-semibold text-ink-2 hover:border-blue hover:text-blue hover:no-underline"
                 >
-                  Reset
+                  {t(locale, "reset")}
                 </Link>
               </div>
             </form>
@@ -141,17 +144,17 @@ export default async function ReferralsPage({
         {rows.length === 0 ? (
           <EmptyState
             icon={<Icons.Referrals className="h-7 w-7" />}
-            title={direction === "outgoing" ? "No outgoing referrals yet" : "No incoming referrals yet"}
+            title={direction === "outgoing" ? t(locale, "noOutgoingReferrals") : t(locale, "noIncomingReferrals")}
             description={
               direction === "outgoing"
-                ? "Send a referral to a partner organization to coordinate response on an unmet need."
-                : "Partner organizations haven't sent any referrals your way yet."
+                ? t(locale, "outgoingReferralsHelp")
+                : t(locale, "incomingReferralsHelp")
             }
             action={
               !isManagedDemo && !isPlatformStaff && direction === "outgoing" ? (
                 <LinkButton href="/app/referrals/new">
                   <Icons.Plus className="h-4 w-4" />
-                  Send first referral
+                  {t(locale, "sendFirstReferral")}
                 </LinkButton>
               ) : undefined
             }
@@ -161,11 +164,11 @@ export default async function ReferralsPage({
             <DataTable className="rounded-md border-0">
               <THead>
                 <Tr>
-                  <Th>Survivor</Th>
-                  <Th>{direction === "outgoing" ? "Receiving partner" : "Sending org"}</Th>
-                  <Th>Category</Th>
-                  <Th>Status</Th>
-                  <Th align="right">Created</Th>
+                  <Th>{t(locale, "survivor")}</Th>
+                  <Th>{direction === "outgoing" ? t(locale, "receivingPartner") : t(locale, "sendingOrg")}</Th>
+                  <Th>{t(locale, "category")}</Th>
+                  <Th>{t(locale, "status")}</Th>
+                  <Th align="right">{t(locale, "created")}</Th>
                 </Tr>
               </THead>
               <tbody>
@@ -184,12 +187,12 @@ export default async function ReferralsPage({
                       )}
                     </Td>
                     <Td>{direction === "outgoing" ? r.receiver?.name ?? "—" : r.sender?.name ?? "—"}</Td>
-                    <Td>{r.category}</Td>
+                    <Td>{workspaceLabel(locale, r.category)}</Td>
                     <Td>
-                      <ReferralStatusBadge status={r.status} />
+                      <ReferralStatusBadge locale={locale} status={r.status} />
                     </Td>
                     <Td align="right" className="rb-numerals text-[12.5px] text-ink-3">
-                      {relativeDate(r.created_at)}
+                      {relativeDate(r.created_at, locale)}
                     </Td>
                   </Tr>
                 ))}

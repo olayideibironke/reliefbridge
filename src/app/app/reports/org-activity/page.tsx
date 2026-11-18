@@ -1,3 +1,5 @@
+import { getRequestLocale } from "@/lib/request-locale";
+import { t } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { requireProfile } from "@/lib/session";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -12,6 +14,7 @@ function startOfDay(d: Date) {
 }
 
 export default async function OrgActivityReport() {
+  const locale = await getRequestLocale();
   const profile = await requireProfile();
   const supabase = await createSupabaseServerClient();
   const orgId = profile.organization_id ?? "00000000-0000-0000-0000-000000000000";
@@ -79,33 +82,33 @@ export default async function OrgActivityReport() {
   return (
     <>
       <PageHeader
-        eyebrow="Reports · Activity"
-        title="Organization activity"
-        subtitle="Last 30 days of activity across cases, referrals, unmet needs, and survivors."
+        eyebrow={t(locale, "reportReportsActivity")}
+        title={t(locale, "reportOrganizationActivity")}
+        subtitle={t(locale, "reportLastDaysOfActivityAcrossCasesReferralsUnmetNeedsAndSurvivorsMessage")}
         breadcrumbs={[
-          { label: "Insights", href: "/app" },
-          { label: "Reports", href: "/app/reports" },
-          { label: "Organization activity" },
+          { label: t(locale, "insights"), href: "/app" },
+          { label: t(locale, "reports"), href: "/app/reports" },
+          { label: t(locale, "reportOrganizationActivity") },
         ]}
       />
       <div className="space-y-6 px-6 py-8 md:px-10">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Kpi label="New survivors" value={totals.survivors} hint="Last 30 days" />
-          <Kpi label="New recovery cases" value={totals.cases} hint="Last 30 days" />
-          <Kpi label="New referrals" value={totals.refs} hint="Sent or received" />
-          <Kpi label="New unmet needs" value={totals.needs} hint="Captured" />
+          <Kpi label={t(locale, "reportNewSurvivors")} value={totals.survivors} hint={t(locale, "last30Days")} />
+          <Kpi label={t(locale, "reportNewRecoveryCases")} value={totals.cases} hint={t(locale, "last30Days")} />
+          <Kpi label={t(locale, "reportNewReferrals")} value={totals.refs} hint={t(locale, "reportSentOrReceived")} />
+          <Kpi label={t(locale, "reportNewUnmetNeeds")} value={totals.needs} hint={t(locale, "captured")} />
         </div>
 
         <Card>
           <CardHeader
-            title="Daily activity"
-            subtitle="Bars reflect new entries created each day for the past 30 days."
+            title={t(locale, "reportDailyActivity")}
+            subtitle={t(locale, "reportBarsReflectNewEntriesCreatedEachDayForThePastDaysMessage")}
           />
           <CardBody className="space-y-6">
-            <SeriesChart label="Recovery cases" series={casesSeries} tone="navy" />
-            <SeriesChart label="Referrals" series={refsSeries} tone="blue" />
-            <SeriesChart label="Unmet needs" series={needsSeries} tone="amber" />
-            <SeriesChart label="Survivors" series={survivorsSeries} tone="green" />
+            <SeriesChart label={t(locale, "recoveryCases")} series={casesSeries} tone="navy" />
+            <SeriesChart label={t(locale, "referrals")} series={refsSeries} tone="blue" />
+            <SeriesChart label={t(locale, "unmetNeeds")} series={needsSeries} tone="amber" />
+            <SeriesChart label={t(locale, "survivors")} series={survivorsSeries} tone="green" />
           </CardBody>
         </Card>
 

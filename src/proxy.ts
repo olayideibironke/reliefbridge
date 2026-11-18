@@ -1,6 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 
+import { DEMO_LOCALE_HEADER, SUPPORTED_LOCALES } from "@/lib/i18n";
+
 type CookieToSet = { name: string; value: string; options: CookieOptions };
 
 const PROTECTED_PREFIXES = ["/app"];
@@ -13,6 +15,7 @@ function isProtected(pathname: string) {
 
 export async function proxy(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
+  requestHeaders.delete(DEMO_LOCALE_HEADER);
   requestHeaders.set("x-reliefbridge-billing-recovery", request.nextUrl.pathname === "/app/settings/billing" ? "1" : "0");
   let response = NextResponse.next({ request: { headers: requestHeaders } });
 
@@ -29,6 +32,7 @@ export async function proxy(request: NextRequest) {
         for (const { name, value } of items) {
           request.cookies.set(name, value);
         }
+        requestHeaders.set("cookie", request.cookies.toString());
         response = NextResponse.next({ request: { headers: requestHeaders } });
         for (const { name, value, options } of items) {
           response.cookies.set(name, value, options);
@@ -55,6 +59,16 @@ export async function proxy(request: NextRequest) {
     redirect.pathname = "/app";
     redirect.search = "";
     return NextResponse.redirect(redirect);
+  }
+
+  if (user && isProtected(pathname)) {
+    const { data: locale } = await supabase.rpc("get_my_demo_locale");
+    if (SUPPORTED_LOCALES.some((supported) => supported === locale)) {
+      requestHeaders.set(DEMO_LOCALE_HEADER, locale);
+      const localizedResponse = NextResponse.next({ request: { headers: requestHeaders } });
+      for (const cookie of response.cookies.getAll()) localizedResponse.cookies.set(cookie);
+      return localizedResponse;
+    }
   }
 
   return response;

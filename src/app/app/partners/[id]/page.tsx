@@ -1,3 +1,5 @@
+import { getRequestLocale } from "@/lib/request-locale";
+import { t, workspaceLabel } from "@/lib/i18n";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
@@ -17,6 +19,7 @@ export default async function PartnerDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const locale = await getRequestLocale();
   const profile = await requireProfile();
   const supabase = await createSupabaseServerClient();
   const { data: demoAccess } = await supabase.rpc("get_my_demo_access");
@@ -34,16 +37,16 @@ export default async function PartnerDetailPage({
   return (
     <>
       <PageHeader
-        eyebrow={isMe ? "Your organization" : "Partner organization"}
+        eyebrow={isMe ? t(locale, "yourOrganization") : t(locale, "partnerOrganization")}
         title={org.name}
         subtitle={
-          [org.organization_type, [org.city, org.state].filter(Boolean).join(", ")]
+          [org.organization_type && workspaceLabel(locale, org.organization_type), [org.city, org.state].filter(Boolean).join(", ")]
             .filter(Boolean)
             .join(" · ") || undefined
         }
         breadcrumbs={[
-          { label: "Network", href: "/app" },
-          { label: "Partner organizations", href: "/app/partners" },
+          { label: t(locale, "network"), href: "/app" },
+          { label: t(locale, "partners"), href: "/app/partners" },
           { label: org.name },
         ]}
         actions={isManagedDemo ? undefined : (
@@ -51,13 +54,13 @@ export default async function PartnerDetailPage({
             {!isMe && (
               <LinkButton href={`/app/referrals/new?org=${org.id}`}>
                 <Icons.Referrals className="h-4 w-4" />
-                Refer survivor
+                {t(locale, "referSurvivor")}
               </LinkButton>
             )}
             {isMe && (
               <LinkButton href="/app/settings/organization" variant="outline">
                 <Icons.Edit className="h-4 w-4" />
-                Edit profile
+                {t(locale, "editProfile")}
               </LinkButton>
             )}
           </>
@@ -67,16 +70,16 @@ export default async function PartnerDetailPage({
       <div className="grid gap-6 px-6 py-8 md:px-10 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <Card>
-            <CardHeader title="Organization profile" />
+            <CardHeader title={t(locale, "organizationProfile")} />
             <CardBody>
               <dl className="grid grid-cols-2 gap-x-6 gap-y-4 text-[13.5px]">
                 <Field
-                  label="Type"
-                  node={<Badge tone="blue">{org.organization_type ?? "Organization"}</Badge>}
+                  label={t(locale, "type")}
+                  node={<Badge tone="blue">{org.organization_type ? workspaceLabel(locale, org.organization_type) : t(locale, "organization")}</Badge>}
                 />
-                <Field label="Location" value={[org.city, org.state].filter(Boolean).join(", ")} />
-                <Field label="Email" value={org.email} />
-                <Field label="Phone" value={org.phone} />
+                <Field label={t(locale, "location")} value={[org.city, org.state].filter(Boolean).join(", ")} />
+                <Field label={t(locale, "email")} value={org.email} />
+                <Field label={t(locale, "phone")} value={org.phone} />
               </dl>
             </CardBody>
           </Card>
@@ -84,22 +87,21 @@ export default async function PartnerDetailPage({
 
         <div className="space-y-6">
           <Card>
-            <CardHeader title="Coordination" />
+            <CardHeader title={t(locale, "coordination")} />
             <CardBody className="space-y-3 text-[13.5px] text-ink-2">
               <p>
-                Send a referral to this organization for survivors in their
-                service area and category.
+                {t(locale, "partnerCoordinationHelp")}
               </p>
               {!isManagedDemo && (!isMe ? (
                 <LinkButton href={`/app/referrals/new`} className="w-full justify-center">
-                  Send a referral
+                  {t(locale, "sendAReferral")}
                 </LinkButton>
               ) : (
                 <Link
                   href="/app/settings/organization"
                   className="text-[13px] font-semibold text-blue hover:text-navy-light hover:no-underline"
                 >
-                  Edit your organization profile →
+                  {t(locale, "editOrganizationProfile")}
                 </Link>
               ))}
             </CardBody>

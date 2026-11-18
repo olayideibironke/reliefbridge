@@ -1,3 +1,5 @@
+import { getRequestLocale } from "@/lib/request-locale";
+import { t, workspaceLabel, type ReliefBridgeLocale } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { requireProfile } from "@/lib/session";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -10,6 +12,7 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Referral outcomes — ReliefBridge" };
 
 export default async function ReferralOutcomesReport() {
+  const locale = await getRequestLocale();
   const profile = await requireProfile();
   const supabase = await createSupabaseServerClient();
   const orgId = profile.organization_id ?? "00000000-0000-0000-0000-000000000000";
@@ -72,35 +75,35 @@ export default async function ReferralOutcomesReport() {
   return (
     <>
       <PageHeader
-        eyebrow="Reports · Network"
-        title="Referral outcomes"
-        subtitle="Acceptance, response time, and completion across your outgoing referrals."
+        eyebrow={t(locale, "reportReportsNetwork")}
+        title={t(locale, "referralOutcomes")}
+        subtitle={t(locale, "reportAcceptanceResponseTimeAndCompletionAcrossYourOutgoingReferralsMessage")}
         breadcrumbs={[
-          { label: "Insights", href: "/app" },
-          { label: "Reports", href: "/app/reports" },
-          { label: "Referral outcomes" },
+          { label: t(locale, "insights"), href: "/app" },
+          { label: t(locale, "reports"), href: "/app/reports" },
+          { label: t(locale, "referralOutcomes") },
         ]}
       />
       <div className="space-y-6 px-6 py-8 md:px-10">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Kpi label="Total outgoing" value={totalOutgoing} hint="All-time" />
-          <Kpi label="Acceptance rate" value={`${acceptanceRate}%`} hint="Accepted or further" />
-          <Kpi label="Completion rate" value={`${completionRate}%`} hint="Closed-loop outcomes" />
-          <Kpi label="Avg response time" value={`${avgResponseHrs} h`} hint="To accept or decline" />
+          <Kpi label={t(locale, "reportTotalOutgoing")} value={totalOutgoing} hint={t(locale, "reportAllTime")} />
+          <Kpi label={t(locale, "reportAcceptanceRate")} value={`${acceptanceRate}%`} hint={t(locale, "reportAcceptedOrFurther")} />
+          <Kpi label={t(locale, "reportCompletionRate")} value={`${completionRate}%`} hint={t(locale, "reportClosedLoopOutcomes")} />
+          <Kpi label={t(locale, "reportAvgResponseTime")} value={`${avgResponseHrs} h`} hint={t(locale, "reportToAcceptOrDecline")} />
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
           <Card>
-            <CardHeader title="Outgoing referrals by status" />
+            <CardHeader title={t(locale, "reportOutgoingReferralsByStatus")} />
             <CardBody>
               {totalOutgoing === 0 ? (
-                <Empty />
+                <Empty locale={locale} />
               ) : (
                 <ul className="space-y-3.5">
                   {(["Pending", "Accepted", "In Progress", "Completed", "Declined"] as ReferralStatus[]).map(
                     (s) => (
                       <li key={s}>
-                        <BarRow label={s} count={byStatus.get(s) ?? 0} pct={pct(byStatus.get(s) ?? 0)} />
+                        <BarRow label={workspaceLabel(locale, s)} count={byStatus.get(s) ?? 0} pct={pct(byStatus.get(s) ?? 0)} />
                       </li>
                     )
                   )}
@@ -110,16 +113,16 @@ export default async function ReferralOutcomesReport() {
           </Card>
 
           <Card>
-            <CardHeader title="Incoming referrals" />
+            <CardHeader title={t(locale, "reportIncomingReferrals")} />
             <CardBody>
               <div className="grid grid-cols-2 gap-4 text-[13.5px]">
-                <Stat label="Total received" value={incoming.length} />
+                <Stat label={t(locale, "reportTotalReceived")} value={incoming.length} />
                 <Stat
-                  label="Awaiting response"
+                  label={t(locale, "reportAwaitingResponse")}
                   value={incoming.filter((r) => r.status === "Pending").length}
                 />
                 <Stat
-                  label="Accepted by you"
+                  label={t(locale, "reportAcceptedByYou")}
                   value={
                     incoming.filter(
                       (r) =>
@@ -130,7 +133,7 @@ export default async function ReferralOutcomesReport() {
                   }
                 />
                 <Stat
-                  label="Completed by you"
+                  label={t(locale, "reportCompletedByYou")}
                   value={incoming.filter((r) => r.status === "Completed").length}
                 />
               </div>
@@ -191,11 +194,10 @@ function Stat({ label, value }: { label: string; value: number }) {
   );
 }
 
-function Empty() {
+function Empty({ locale }: { locale: ReliefBridgeLocale }) {
   return (
     <div className="text-[13px] text-ink-3">
-      No outgoing referrals yet. Send your first referral from the Referral
-      Exchange.
+      {t(locale, "reportNoOutgoingHelp")}
     </div>
   );
 }
