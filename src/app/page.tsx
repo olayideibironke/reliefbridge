@@ -3,6 +3,9 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = { alternates: { canonical: "/" } };
 import Link from "next/link";
+import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
+import { cookies } from "next/headers";
+import { LOCALE_COOKIE, parseLocale, t, type ReliefBridgeLocale } from "@/lib/i18n";
 
 const IMG = {
   heroBuilder:
@@ -253,7 +256,7 @@ function OfficialBanner() {
   );
 }
 
-function MobileNavigation() {
+function MobileNavigation({ locale }: { locale: ReliefBridgeLocale }) {
   return (
     <details className="group relative ml-auto shrink-0 lg:hidden">
       <summary className="grid h-11 w-11 cursor-pointer list-none place-items-center rounded-sm border border-line bg-surface text-ink-2 [&::-webkit-details-marker]:hidden">
@@ -267,7 +270,7 @@ function MobileNavigation() {
             href="/login"
             className="flex h-11 items-center justify-center rounded-sm bg-navy px-4 text-[14px] font-semibold text-white hover:bg-navy-light hover:no-underline"
           >
-            Sign in
+            {t(locale, "signIn")}
           </Link>
         </div>
 
@@ -288,7 +291,7 @@ function MobileNavigation() {
             href="/request-demo"
             className="flex h-11 items-center justify-center gap-2 rounded-sm bg-gold px-4 text-[14px] font-bold !text-navy shadow-sm transition hover:bg-white hover:!text-navy hover:no-underline"
           >
-            Request Demo
+            {t(locale, "requestDemo")}
             <Icon.ArrowRight className="h-4 w-4" />
           </Link>
         </div>
@@ -297,7 +300,7 @@ function MobileNavigation() {
   );
 }
 
-function Masthead() {
+function Masthead({ locale }: { locale: ReliefBridgeLocale }) {
   return (
     <div className="relative z-40 border-b border-line bg-surface">
       <Container className="flex min-h-[88px] min-w-0 items-center gap-3 py-4 sm:min-h-[112px] sm:gap-8 sm:py-5">
@@ -321,6 +324,8 @@ function Masthead() {
           </label>
         </div>
 
+        <div className="shrink-0"><LanguageSwitcher /></div>
+
         <div className="hidden shrink-0 items-center gap-3 lg:flex">
           <Link
             href="/login"
@@ -338,7 +343,7 @@ function Masthead() {
           </Link>
         </div>
 
-        <MobileNavigation />
+        <MobileNavigation locale={locale} />
       </Container>
     </div>
   );
@@ -1113,11 +1118,12 @@ function Footer() {
   );
 }
 
-export default function Page() {
+export default async function Page() {
+  const locale = parseLocale((await cookies()).get(LOCALE_COOKIE)?.value);
   return (
     <div className="min-h-screen w-full min-w-0 overflow-x-hidden">
       <OfficialBanner />
-      <Masthead />
+      <Masthead locale={locale} />
       <PrimaryNav />
 
       <main className="min-w-0">

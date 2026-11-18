@@ -3,13 +3,14 @@
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { requireProfile } from "@/lib/session";
+import { parseLocale } from "@/lib/i18n";
 
 const PLATFORM_ORGANIZATION_ID = "9f3cb5cc-aa6f-44cb-8aa9-b0a7bc505142";
 
 export type DemoHubState = {
   ok: boolean;
   message: string | null;
-  credentials?: { login_email?: string; password: string; expires_at?: string };
+  credentials?: { login_email?: string; password: string; expires_at?: string; preferred_locale?: "en" | "es" | "fr" };
   invitation_status?: "sent" | "failed";
 };
 
@@ -52,6 +53,7 @@ export async function createDemoAction(_previous: DemoHubState, formData: FormDa
   const contact_name = value(formData, "contact_name");
   const contact_email = value(formData, "contact_email");
   const duration_days = Number(value(formData, "duration_days") || "7");
+  const preferred_locale = parseLocale(value(formData, "preferred_locale"));
 
   if (!organization_name || !country || country.length > 100 || !city || city.length > 100 || !state || state.length > 100) {
     return { ok: false, message: "Organization name, country, state/province, and city are required." };
@@ -65,13 +67,13 @@ export async function createDemoAction(_previous: DemoHubState, formData: FormDa
   }
 
   try {
-    const data = await invoke({ action: "create", organization_name, organization_type, country, city, state, contact_name, contact_email, duration_days });
+    const data = await invoke({ action: "create", organization_name, organization_type, country, city, state, contact_name, contact_email, duration_days, preferred_locale });
     revalidatePath("/app/demo-hub");
     return {
       ok: true,
       message: data.invitation_status === "sent" ? "Demo created and invitation sent to the client contact." : `Demo created, but the invitation could not be sent. ${data.invitation_error ?? "You can copy the credentials below."}`,
       invitation_status: data.invitation_status,
-      credentials: { login_email: data.login_email, password: data.password, expires_at: data.expires_at },
+      credentials: { login_email: data.login_email, password: data.password, expires_at: data.expires_at, preferred_locale: parseLocale(data.preferred_locale) },
     };
   } catch (error) {
     return { ok: false, message: error instanceof Error ? error.message : "Could not create demo." };
