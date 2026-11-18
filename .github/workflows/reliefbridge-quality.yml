@@ -21,6 +21,8 @@ jobs:
       - run: npm ci
       - name: Billing and case-capacity tests
         run: npm run test:billing
+      - name: Spanish demo contract checks
+        run: npm run test:spanish-demo
       - name: Capacity SQL static safety checks
         run: node scripts/check-capacity-migrations.cjs
       - name: Premium release evidence safety gate
@@ -211,3 +213,59 @@ jobs:
           PGPASSWORD: local_test_only
           PGDATABASE: reliefbridge_message_test
         run: psql -X -v ON_ERROR_STOP=1 -f supabase/validation/legacy_message_tenant_integration.sql
+
+  postgres-demo-i18n:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: reliefbridge_test
+          POSTGRES_PASSWORD: local_test_only
+          POSTGRES_DB: reliefbridge_demo_i18n_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U reliefbridge_test -d reliefbridge_demo_i18n_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: '5432'
+      PGUSER: reliefbridge_test
+      PGPASSWORD: local_test_only
+      PGDATABASE: reliefbridge_demo_i18n_test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Rehearse demo locale migration on disposable PostgreSQL
+        run: |
+          psql -X -v ON_ERROR_STOP=1 <<'SQL'
+          CREATE TABLE public.demo_workspaces (
+            id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+            contact_name text NOT NULL
+          );
+          INSERT INTO public.demo_workspaces(contact_name) VALUES ('existing-demo');
+          SQL
+          psql -X -v ON_ERROR_STOP=1 -f supabase/validation/DEMO_I18N_STAGING_SQL.sql
+          psql -X -v ON_ERROR_STOP=1 -f supabase/validation/DEMO_I18N_STAGING_SQL.sql
+          psql -X -v ON_ERROR_STOP=1 <<'SQL'
+          DO $$
+          BEGIN
+            IF (SELECT preferred_locale FROM public.demo_workspaces WHERE contact_name='existing-demo') <> 'en' THEN
+              RAISE EXCEPTION 'Existing demo did not default to English';
+            END IF;
+            INSERT INTO public.demo_workspaces(contact_name,preferred_locale)
+              VALUES ('spanish-demo','es'),('french-demo','fr');
+            IF (SELECT count(*) FROM public.demo_workspaces WHERE preferred_locale IN ('en','es','fr')) <> 3 THEN
+              RAISE EXCEPTION 'Supported locale inserts failed';
+            END IF;
+            BEGIN
+              INSERT INTO public.demo_workspaces(contact_name,preferred_locale) VALUES ('invalid-demo','xx');
+              RAISE EXCEPTION 'Invalid locale was accepted';
+            EXCEPTION WHEN check_violation THEN
+              NULL;
+            END;
+          END $$;
+          SQL
