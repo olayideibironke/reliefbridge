@@ -9,7 +9,10 @@ import { Icons } from "@/components/ui/Icons";
 import type { Referral, ReferralStatus } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Referral outcomes — ReliefBridge" };
+export async function generateMetadata() {
+  const locale = await getRequestLocale();
+  return { title: locale === "en" ? "Referral outcomes — ReliefBridge" : t(locale, "referralOutcomes") };
+}
 
 export default async function ReferralOutcomesReport() {
   const locale = await getRequestLocale();

@@ -21,9 +21,10 @@ import type {
 
 export const dynamic = "force-dynamic";
 
-export const metadata = {
-  title: "Open cases report — ReliefBridge",
-};
+export async function generateMetadata() {
+  const locale = await getRequestLocale();
+  return { title: locale === "en" ? "Open cases report — ReliefBridge" : t(locale, "reportOpenCases") };
+}
 
 type RawCaseRow = {
   id: string;

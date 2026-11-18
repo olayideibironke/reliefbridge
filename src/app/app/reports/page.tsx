@@ -13,9 +13,10 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { Card, CardBody } from "@/components/ui/Card";
 import { Icons } from "@/components/ui/Icons";
 
-export const metadata = {
-  title: "Reports — ReliefBridge",
-};
+export async function generateMetadata() {
+  const locale = await getRequestLocale();
+  return { title: locale === "en" ? "Reports — ReliefBridge" : t(locale, "reports") };
+}
 
 export const dynamic = "force-dynamic";
 

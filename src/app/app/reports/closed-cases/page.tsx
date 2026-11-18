@@ -19,9 +19,10 @@ import type {
 
 export const dynamic = "force-dynamic";
 
-export const metadata = {
-  title: "Closed cases report — ReliefBridge",
-};
+export async function generateMetadata() {
+  const locale = await getRequestLocale();
+  return { title: locale === "en" ? "Closed cases report — ReliefBridge" : t(locale, "reportClosedCases") };
+}
 
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;

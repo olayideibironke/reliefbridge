@@ -7,7 +7,10 @@ import { Card, CardHeader, CardBody } from "@/components/ui/Card";
 import { Icons } from "@/components/ui/Icons";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Organization activity — ReliefBridge" };
+export async function generateMetadata() {
+  const locale = await getRequestLocale();
+  return { title: locale === "en" ? "Organization activity — ReliefBridge" : t(locale, "reportOrganizationActivity") };
+}
 
 function startOfDay(d: Date) {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());

@@ -10,7 +10,10 @@ import type { NeedCategory, NeedStatus, UnmetNeed } from "@/lib/types";
 import { NEED_CATEGORIES, NEED_STATUSES, LABELS } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Unmet needs dashboard — ReliefBridge" };
+export async function generateMetadata() {
+  const locale = await getRequestLocale();
+  return { title: locale === "en" ? "Unmet needs dashboard — ReliefBridge" : t(locale, "reportUnmetNeedsDashboard") };
+}
 
 const DAY_MS = 1000 * 60 * 60 * 24;
 
