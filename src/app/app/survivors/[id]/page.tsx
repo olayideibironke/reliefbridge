@@ -1,3 +1,5 @@
+import { getRequestLocale } from "@/lib/request-locale";
+import { t, workspaceLabel } from "@/lib/i18n";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
@@ -34,6 +36,7 @@ export default async function SurvivorDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const locale = await getRequestLocale();
   const profile = await requireProfile();
   const isPlatformStaff = profile.organization_id === PLATFORM && ["manager", "staff"].includes(String(profile.role ?? "").toLowerCase());
   const supabase = await createSupabaseServerClient();
@@ -101,16 +104,16 @@ export default async function SurvivorDetailPage({
   return (
     <>
       <PageHeader
-        eyebrow="Survivor record"
+        eyebrow={t(locale, "survivorRecord")}
         title={fullName(survivor.first_name, survivor.last_name)}
         subtitle={
           [survivor.disaster_event, survivor.county, survivor.state]
             .filter(Boolean)
-            .join(" · ") || "Survivor coordinated by your organization."
+            .join(" · ") || t(locale, "survivorRecordSubtitle")
         }
         breadcrumbs={[
-          { label: "Workspace", href: "/app" },
-          { label: "Survivors", href: "/app/survivors" },
+          { label: t(locale, "workspace"), href: "/app" },
+          { label: t(locale, "survivors"), href: "/app/survivors" },
           { label: fullName(survivor.first_name, survivor.last_name) },
         ]}
         actions={!isManagedDemo && !isPlatformStaff ? (
@@ -121,14 +124,14 @@ export default async function SurvivorDetailPage({
               size="md"
             >
               <Icons.Cases className="h-4 w-4" />
-              New case
+              {t(locale, "newCase")}
             </LinkButton>
             <LinkButton
               href={`/app/referrals/new?survivor=${survivor.id}`}
               size="md"
             >
               <Icons.Referrals className="h-4 w-4" />
-              Send referral
+              {t(locale, "sendReferral")}
             </LinkButton>
           </>
         ) : undefined}
@@ -138,15 +141,15 @@ export default async function SurvivorDetailPage({
         {/* Left: details */}
         <div className="space-y-6 lg:col-span-2">
           <Card>
-            <CardHeader title="Contact & event" />
+            <CardHeader title={t(locale, "contactAndEvent")} />
             <CardBody>
               <dl className="grid grid-cols-2 gap-x-6 gap-y-4 text-[13.5px]">
-                <Field label="Phone" value={survivor.phone} />
-                <Field label="Email" value={survivor.email} />
-                <Field label="Disaster event" value={survivor.disaster_event} />
-                <Field label="Household size" value={survivor.household_size?.toString() ?? null} />
+                <Field label={t(locale, "phone")} value={survivor.phone} />
+                <Field label={t(locale, "email")} value={survivor.email} />
+                <Field label={t(locale, "disasterEvent")} value={survivor.disaster_event} />
+                <Field label={t(locale, "householdSize")} value={survivor.household_size?.toString() ?? null} />
                 <Field
-                  label="Location"
+                  label={t(locale, "location")}
                   value={
                     survivor.county
                       ? `${survivor.county}${survivor.state ? `, ${survivor.state}` : ""}`
@@ -154,28 +157,28 @@ export default async function SurvivorDetailPage({
                   }
                 />
                 <Field
-                  label="Consent"
+                  label={t(locale, "consent")}
                   value={
                     survivor.consent_given
-                      ? `Granted ${formatDate(survivor.consent_given_at)}`
-                      : "Not granted"
+                      ? `${t(locale, "consentGranted")} ${formatDate(survivor.consent_given_at, locale)}`
+                      : t(locale, "consentNotGranted")
                   }
                 />
-                <Field label="Added" value={formatDate(survivor.created_at)} />
-                <Field label="Updated" value={formatDate(survivor.updated_at)} />
+                <Field label={t(locale, "added")} value={formatDate(survivor.created_at, locale)} />
+                <Field label={t(locale, "updated")} value={formatDate(survivor.updated_at, locale)} />
               </dl>
             </CardBody>
           </Card>
 
           <Card>
             <CardHeader
-              title="Recovery cases"
+              title={t(locale, "recoveryCases")}
               actions={!isManagedDemo && !isPlatformStaff ? (
                 <Link
                   href={`/app/cases/new?survivor=${survivor.id}`}
                   className="text-[12.5px] font-semibold text-blue hover:text-navy-light hover:no-underline"
                 >
-                  + New case
+                  + {t(locale, "newCase")}
                 </Link>
               ) : undefined}
             />
@@ -183,11 +186,11 @@ export default async function SurvivorDetailPage({
               <EmptyState
                 className="m-5"
                 icon={<Icons.Cases className="h-6 w-6" />}
-                title="No cases open for this survivor"
-                description="Open a recovery case to track lifecycle, status, and notes."
+                title={t(locale, "noSurvivorCases")}
+                description={t(locale, "noSurvivorCasesHelp")}
                 action={!isManagedDemo && !isPlatformStaff ? (
                   <LinkButton href={`/app/cases/new?survivor=${survivor.id}`}>
-                    Open first case
+                    {t(locale, "openFirstCase")}
                   </LinkButton>
                 ) : undefined}
               />
@@ -195,10 +198,10 @@ export default async function SurvivorDetailPage({
               <DataTable className="rounded-none border-0">
                 <THead>
                   <Tr>
-                    <Th>Case</Th>
-                    <Th>Priority</Th>
-                    <Th>Status</Th>
-                    <Th align="right">Opened</Th>
+                    <Th>{t(locale, "case")}</Th>
+                    <Th>{t(locale, "priority")}</Th>
+                    <Th>{t(locale, "status")}</Th>
+                    <Th align="right">{t(locale, "opened")}</Th>
                   </Tr>
                 </THead>
                 <tbody>
@@ -209,17 +212,17 @@ export default async function SurvivorDetailPage({
                           href={`/app/cases/${c.id}`}
                           className="font-semibold text-navy hover:text-blue hover:no-underline"
                         >
-                          {c.primary_need ?? c.disaster_type ?? "Case"}
+                          {c.primary_need ?? c.disaster_type ?? t(locale, "case")}
                         </Link>
                       </Td>
                       <Td>
-                        <PriorityBadge priority={c.priority} />
+                        <PriorityBadge locale={locale} priority={c.priority} />
                       </Td>
                       <Td>
-                        <CaseStatusBadge status={c.status} />
+                        <CaseStatusBadge locale={locale} status={c.status} />
                       </Td>
                       <Td align="right" className="rb-numerals text-[12.5px] text-ink-3">
-                        {relativeDate(c.opened_at)}
+                        {relativeDate(c.opened_at, locale)}
                       </Td>
                     </Tr>
                   ))}
@@ -230,13 +233,13 @@ export default async function SurvivorDetailPage({
 
           <Card>
             <CardHeader
-              title="Unmet needs"
+              title={t(locale, "unmetNeeds")}
               actions={!isManagedDemo && !isPlatformStaff ? (
                 <Link
                   href={`/app/unmet-needs/new?survivor=${survivor.id}`}
                   className="text-[12.5px] font-semibold text-blue hover:text-navy-light hover:no-underline"
                 >
-                  + Add need
+                  + {t(locale, "addNeed")}
                 </Link>
               ) : undefined}
             />
@@ -244,8 +247,8 @@ export default async function SurvivorDetailPage({
               <EmptyState
                 className="m-5"
                 icon={<Icons.Needs className="h-6 w-6" />}
-                title="No needs captured"
-                description="Capture unmet needs to coordinate referrals across partner organizations."
+                title={t(locale, "noSurvivorNeeds")}
+                description={t(locale, "noSurvivorNeedsHelp")}
               />
             ) : (
               <ul className="divide-y divide-line">
@@ -256,15 +259,15 @@ export default async function SurvivorDetailPage({
                   >
                     <div className="min-w-0">
                       <div className="text-[12.5px] font-bold text-navy">
-                        {n.category}
+                        {workspaceLabel(locale, n.category)}
                       </div>
                       <div className="mt-0.5 text-[13.5px] text-ink-2">
                         {n.description}
                       </div>
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
-                      <PriorityBadge priority={n.priority} />
-                      <NeedStatusBadge status={n.status} />
+                      <PriorityBadge locale={locale} priority={n.priority} />
+                      <NeedStatusBadge locale={locale} status={n.status} />
                     </div>
                   </li>
                 ))}
@@ -274,13 +277,13 @@ export default async function SurvivorDetailPage({
 
           <Card>
             <CardHeader
-              title="Referrals"
+              title={t(locale, "referrals")}
               actions={!isManagedDemo && !isPlatformStaff ? (
                 <Link
                   href={`/app/referrals/new?survivor=${survivor.id}`}
                   className="text-[12.5px] font-semibold text-blue hover:text-navy-light hover:no-underline"
                 >
-                  + Send referral
+                  + {t(locale, "sendReferral")}
                 </Link>
               ) : undefined}
             />
@@ -288,8 +291,8 @@ export default async function SurvivorDetailPage({
               <EmptyState
                 className="m-5"
                 icon={<Icons.Referrals className="h-6 w-6" />}
-                title="No referrals yet"
-                description="Send a referral to a partner organization for housing, repair, legal aid, or other needs."
+                title={t(locale, "noSurvivorReferrals")}
+                description={t(locale, "noSurvivorReferralsHelp")}
               />
             ) : (
               <ul className="divide-y divide-line">
@@ -303,13 +306,13 @@ export default async function SurvivorDetailPage({
                         href={`/app/referrals/${r.id}`}
                         className="text-[13.5px] font-bold text-navy hover:text-blue hover:no-underline"
                       >
-                        {r.category}
+                        {workspaceLabel(locale, r.category)}
                       </Link>
                       <div className="text-[12px] text-ink-3">
-                        {relativeDate(r.created_at)}
+                        {relativeDate(r.created_at, locale)}
                       </div>
                     </div>
-                    <ReferralStatusBadge status={r.status} />
+                    <ReferralStatusBadge locale={locale} status={r.status} />
                   </li>
                 ))}
               </ul>
@@ -320,17 +323,17 @@ export default async function SurvivorDetailPage({
         {/* Right column: edit */}
         <div className="space-y-6">
           {survivorMessagingEnabled ? <Card>
-            <CardHeader title="Survivor communication" />
+            <CardHeader title={t(locale, "survivorCommunication")} />
             <CardBody>
-              {!isManagedDemo ? <SurvivorMessageComposer survivorId={survivor.id} survivorEmail={survivor.email} consentGiven={Boolean(survivor.consent_given)} /> : <div className="mb-4 rounded-sm border border-line bg-surface px-3 py-2 text-[12px] text-ink-3">Read-only demonstration. Sending is disabled, but the communication history below shows how staff correspondence is tracked.</div>}
+              {!isManagedDemo ? <SurvivorMessageComposer survivorId={survivor.id} survivorEmail={survivor.email} consentGiven={Boolean(survivor.consent_given)} /> : <div className="mb-4 rounded-sm border border-line bg-surface px-3 py-2 text-[12px] text-ink-3">{t(locale, "demoCommunicationReadOnly")}</div>}
               <div className="mt-5 border-t border-line pt-4">
-                <div className="mb-3 text-[11px] font-bold uppercase tracking-[.12em] text-ink-3">Communication history</div>
-                {communications.length ? <div className="space-y-3">{communications.map((c) => <div key={c.id} className="rounded-sm border border-line p-3"><div className="flex items-start justify-between gap-3"><div className="text-[13px] font-bold text-navy">{c.subject}</div><span className="text-[10px] font-bold uppercase tracking-wide text-ink-3">{c.status}</span></div><div className="mt-1 line-clamp-3 whitespace-pre-wrap text-[12.5px] leading-5 text-ink-2">{c.body}</div><div className="mt-2 text-[11px] text-ink-3">{relativeDate(c.sent_at ?? c.created_at)}</div></div>)}</div> : <div className="text-[12.5px] text-ink-3">No survivor communications yet.</div>}
+                <div className="mb-3 text-[11px] font-bold uppercase tracking-[.12em] text-ink-3">{t(locale, "communicationHistory")}</div>
+                {communications.length ? <div className="space-y-3">{communications.map((c) => <div key={c.id} className="rounded-sm border border-line p-3"><div className="flex items-start justify-between gap-3"><div className="text-[13px] font-bold text-navy">{c.subject}</div><span className="text-[10px] font-bold uppercase tracking-wide text-ink-3">{workspaceLabel(locale, c.status)}</span></div><div className="mt-1 line-clamp-3 whitespace-pre-wrap text-[12.5px] leading-5 text-ink-2">{c.body}</div><div className="mt-2 text-[11px] text-ink-3">{relativeDate(c.sent_at ?? c.created_at, locale)}</div></div>)}</div> : <div className="text-[12.5px] text-ink-3">{t(locale, "noSurvivorCommunications")}</div>}
               </div>
             </CardBody>
           </Card> : null}
           <Card>
-            <CardHeader title="Coordination" />
+            <CardHeader title={t(locale, "coordination")} />
             <CardBody padded={false}>
               {!isManagedDemo && !isPlatformStaff ? <SurvivorEdit
                 id={survivor.id}
@@ -340,7 +343,7 @@ export default async function SurvivorDetailPage({
                   notes: survivor.notes,
                 }}
                 managers={managerOptions}
-              /> : <div className="p-5 text-[13px] text-ink-3">Read-only demonstration. Coordination changes are disabled.</div>}
+              /> : <div className="p-5 text-[13px] text-ink-3">{t(locale, "demoCoordinationReadOnly")}</div>}
             </CardBody>
           </Card>
         </div>

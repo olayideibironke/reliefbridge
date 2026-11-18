@@ -1,19 +1,21 @@
 import Link from "next/link";
-import { cookies } from "next/headers";
+import { getRequestLocale } from "@/lib/request-locale";
 import { Icons } from "@/components/ui/Icons";
 import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
-import { LOCALE_COOKIE, parseLocale, t } from "@/lib/i18n";
+import { t } from "@/lib/i18n";
 
 export async function TopBar({
   orgName,
+  isManagedDemo = false,
   isPlatformAdmin = false,
   isPlatformStaff = false,
 }: {
   orgName: string;
+  isManagedDemo?: boolean;
   isPlatformAdmin?: boolean;
   isPlatformStaff?: boolean;
 }) {
-  const locale = parseLocale((await cookies()).get(LOCALE_COOKIE)?.value);
+  const locale = await getRequestLocale();
   const heading = isPlatformAdmin
     ? `ReliefBridge ${t(locale, "platformAdministration")}`
     : isPlatformStaff
@@ -29,7 +31,7 @@ export async function TopBar({
         </div>
         <div className="ml-auto flex-1 md:ml-6" />
         <div className="flex items-center gap-2">
-          <LanguageSwitcher />
+          {!isManagedDemo && <LanguageSwitcher />}
           <Link
             href={isPlatformAdmin ? "/app/platform/activity" : "/app/reports"}
             className="hidden h-10 items-center gap-2 rounded-sm border border-line bg-surface px-3 text-[12.5px] font-semibold text-ink-2 hover:no-underline md:inline-flex"

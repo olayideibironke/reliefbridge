@@ -41,6 +41,12 @@ export function LanguageSwitcher() {
     // An invitation ?lang= parameter initializes the login language only.
     // Explicit user selection must take precedence on the next reload.
     const url = new URL(window.location.href);
+    if (url.pathname === "/login") {
+      url.searchParams.set("lang", next);
+      url.searchParams.set("languageChoice", "1");
+      window.location.assign(url);
+      return;
+    }
     if (url.searchParams.has("lang")) {
       url.searchParams.delete("lang");
       window.history.replaceState(null, "", url.pathname + url.search + url.hash);

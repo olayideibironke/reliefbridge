@@ -1,3 +1,5 @@
+import { getRequestLocale } from "@/lib/request-locale";
+import { t, workspaceLabel } from "@/lib/i18n";
 import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { requireProfile } from "@/lib/session";
@@ -28,6 +30,7 @@ export default async function PartnersPage({
 }: {
   searchParams: Promise<{ q?: string; type?: string; state?: string }>;
 }) {
+  const locale = await getRequestLocale();
   const profile = await requireProfile();
   const sp = await searchParams;
 
@@ -65,12 +68,12 @@ export default async function PartnersPage({
   return (
     <>
       <PageHeader
-        eyebrow="Network"
-        title="Partner organizations"
+        eyebrow={t(locale, "network")}
+        title={t(locale, "partners")}
         subtitle={isManagedDemo
-          ? "Organizations available for coordinated referrals in this demonstration workspace."
-          : "Directory of every organization in the ReliefBridge network — housing, legal aid, repair, faith-based, county, and more."}
-        breadcrumbs={[{ label: "Network", href: "/app" }, { label: "Partner organizations" }]}
+          ? t(locale, "demoPartnerListSubtitle")
+          : t(locale, "partnerListSubtitle")}
+        breadcrumbs={[{ label: t(locale, "network"), href: "/app" }, { label: t(locale, "partners") }]}
       />
 
       <div className="space-y-6 px-6 py-8 md:px-10">
@@ -82,23 +85,23 @@ export default async function PartnersPage({
               method="get"
             >
               <Input
-                label="Search by name"
+                label={t(locale, "searchByName")}
                 name="q"
-                placeholder="Organization name"
+                placeholder={t(locale, "organizationName")}
                 defaultValue={q}
               />
 
-              <Select label="Type" name="type" defaultValue={type}>
-                <option value="">All types</option>
+              <Select label={t(locale, "type")} name="type" defaultValue={type}>
+                <option value="">{t(locale, "allTypes")}</option>
                 {ORG_TYPES.map((t) => (
                   <option key={t} value={t}>
-                    {t}
+                    {workspaceLabel(locale, t)}
                   </option>
                 ))}
               </Select>
 
-              <Select label="State" name="state" defaultValue={state}>
-                <option value="">All states</option>
+              <Select label={t(locale, "state")} name="state" defaultValue={state}>
+                <option value="">{t(locale, "allStates")}</option>
                 {US_STATES.map((s) => (
                   <option key={s} value={s}>
                     {s}
@@ -112,14 +115,14 @@ export default async function PartnersPage({
                   className="inline-flex h-11 items-center gap-2 rounded-sm bg-blue px-4 text-[13.5px] font-bold text-white hover:bg-navy-light"
                 >
                   <Icons.Filter className="h-4 w-4" />
-                  Filter
+                  {t(locale, "filter")}
                 </button>
 
                 <Link
                   href="/app/partners"
                   className="inline-flex h-11 items-center rounded-sm border border-line bg-white px-3 text-[13.5px] font-bold text-navy hover:border-blue hover:text-blue hover:no-underline"
                 >
-                  Reset
+                  {t(locale, "reset")}
                 </Link>
               </div>
             </form>
@@ -129,18 +132,18 @@ export default async function PartnersPage({
         {orgs.length === 0 ? (
           <EmptyState
             icon={<Icons.Partners className="h-7 w-7" />}
-            title="No organizations match"
+            title={t(locale, "noMatchingPartners")}
             description={
               q || type || state
-                ? "No partner organizations match those filters."
-                : "Once partner organizations join the ReliefBridge network they'll appear here."
+                ? t(locale, "partnersNoMatches")
+                : t(locale, "partnersEmptyHelp")
             }
           />
         ) : (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {orgs.map((org) => {
               const isMe = org.id === profile.organization_id;
-              const orgType = org.organization_type ?? "Organization";
+              const orgType = org.organization_type ?? t(locale, "organization");
 
               return (
                 <Link
@@ -154,9 +157,9 @@ export default async function PartnersPage({
                     </span>
 
                     {isMe ? (
-                      <Badge tone="navy">Your organization</Badge>
+                      <Badge tone="navy">{t(locale, "yourOrganization")}</Badge>
                     ) : (
-                      <Badge tone="blue">{orgType}</Badge>
+                      <Badge tone="blue">{workspaceLabel(locale, orgType)}</Badge>
                     )}
                   </div>
 

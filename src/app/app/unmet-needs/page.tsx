@@ -1,3 +1,5 @@
+import { getRequestLocale } from "@/lib/request-locale";
+import { t, workspaceLabel } from "@/lib/i18n";
 import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { requireProfile } from "@/lib/session";
@@ -25,6 +27,7 @@ export default async function UnmetNeedsPage({
 }: {
   searchParams: Promise<{ category?: string; status?: string }>;
 }) {
+  const locale = await getRequestLocale();
   const profile = await requireProfile();
   const isPlatformStaff = profile.organization_id === PLATFORM && ["manager", "staff"].includes(String(profile.role ?? "").toLowerCase());
   const sp = await searchParams;
@@ -80,14 +83,14 @@ export default async function UnmetNeedsPage({
   return (
     <>
       <PageHeader
-        eyebrow="Workspace"
-        title="Unmet needs"
-        subtitle="Captured survivor needs across housing, repair, legal aid, mental health, transportation, and more."
-        breadcrumbs={[{ label: "Workspace", href: "/app" }, { label: "Unmet needs" }]}
+        eyebrow={t(locale, "workspace")}
+        title={t(locale, "unmetNeeds")}
+        subtitle={t(locale, "needListSubtitle")}
+        breadcrumbs={[{ label: t(locale, "workspace"), href: "/app" }, { label: t(locale, "unmetNeeds") }]}
         actions={!isManagedDemo && !isPlatformStaff ? (
           <LinkButton href="/app/unmet-needs/new">
             <Icons.Plus className="h-4 w-4" />
-            Add need
+            {t(locale, "addNeed")}
           </LinkButton>
         ) : undefined}
       />
@@ -100,20 +103,20 @@ export default async function UnmetNeedsPage({
               action="/app/unmet-needs"
               method="get"
             >
-              <Select label="Category" name="category" defaultValue={category}>
-                <option value="">All categories</option>
+              <Select label={t(locale, "category")} name="category" defaultValue={category}>
+                <option value="">{t(locale, "allCategories")}</option>
                 {NEED_CATEGORIES.map((c) => (
                   <option key={c} value={c}>
-                    {c}
+                    {workspaceLabel(locale, c)}
                   </option>
                 ))}
               </Select>
 
-              <Select label="Status" name="status" defaultValue={status}>
-                <option value="">All statuses</option>
+              <Select label={t(locale, "status")} name="status" defaultValue={status}>
+                <option value="">{t(locale, "allStatuses")}</option>
                 {NEED_STATUSES.map((s) => (
                   <option key={s} value={s}>
-                    {LABELS.needStatus[s]}
+                    {workspaceLabel(locale, LABELS.needStatus[s])}
                   </option>
                 ))}
               </Select>
@@ -124,14 +127,14 @@ export default async function UnmetNeedsPage({
                   className="inline-flex h-11 items-center gap-2 rounded-sm bg-blue px-4 text-[13.5px] font-bold text-white hover:bg-navy-light"
                 >
                   <Icons.Filter className="h-4 w-4" />
-                  Filter
+                  {t(locale, "filter")}
                 </button>
 
                 <Link
                   href="/app/unmet-needs"
                   className="inline-flex h-11 items-center rounded-sm border border-line bg-white px-3 text-[13.5px] font-bold text-navy hover:border-blue hover:text-blue hover:no-underline"
                 >
-                  Reset
+                  {t(locale, "reset")}
                 </Link>
               </div>
             </form>
@@ -141,22 +144,22 @@ export default async function UnmetNeedsPage({
         {error ? (
           <Card>
             <CardBody>
-              <div className="text-red">Could not load unmet needs. {error.message}</div>
+              <div className="text-red">{t(locale, "needsLoadError")} {locale === "en" && error.message}</div>
             </CardBody>
           </Card>
         ) : rows.length === 0 ? (
           <EmptyState
             icon={<Icons.Needs className="h-7 w-7" />}
-            title="No unmet needs captured"
+            title={t(locale, "noNeeds")}
             description={
               category || status
-                ? "No needs match those filters. Try clearing them."
-                : "Add unmet needs against survivor records to coordinate referrals and partner outreach."
+                ? t(locale, "needsNoMatches")
+                : t(locale, "needsEmptyHelp")
             }
             action={!isManagedDemo && !isPlatformStaff ? (
               <LinkButton href="/app/unmet-needs/new">
                 <Icons.Plus className="h-4 w-4" />
-                Capture first need
+                {t(locale, "captureFirstNeed")}
               </LinkButton>
             ) : undefined}
           />
@@ -165,12 +168,12 @@ export default async function UnmetNeedsPage({
             <DataTable className="rounded-md border-0">
               <THead>
                 <Tr>
-                  <Th>Survivor</Th>
-                  <Th>Category</Th>
-                  <Th>Description</Th>
-                  <Th>Priority</Th>
-                  <Th>Status</Th>
-                  <Th align="right">Captured</Th>
+                  <Th>{t(locale, "survivor")}</Th>
+                  <Th>{t(locale, "category")}</Th>
+                  <Th>{t(locale, "description")}</Th>
+                  <Th>{t(locale, "priority")}</Th>
+                  <Th>{t(locale, "status")}</Th>
+                  <Th align="right">{t(locale, "captured")}</Th>
                 </Tr>
               </THead>
 
@@ -190,7 +193,7 @@ export default async function UnmetNeedsPage({
                           href={`/app/survivors/${r.survivor_id}`}
                           className="font-semibold text-navy hover:text-blue hover:no-underline"
                         >
-                          Linked survivor
+                          {t(locale, "linkedSurvivor")}
                         </Link>
                       ) : (
                         <span className="text-ink-3">—</span>
@@ -198,7 +201,7 @@ export default async function UnmetNeedsPage({
                     </Td>
 
                     <Td>
-                      <span className="font-semibold text-navy">{r.category}</span>
+                      <span className="font-semibold text-navy">{workspaceLabel(locale, r.category)}</span>
                     </Td>
 
                     <Td className="max-w-md">
@@ -206,15 +209,15 @@ export default async function UnmetNeedsPage({
                     </Td>
 
                     <Td>
-                      <PriorityBadge priority={r.priority ?? "medium"} />
+                      <PriorityBadge locale={locale} priority={r.priority ?? "medium"} />
                     </Td>
 
                     <Td>
-                      <NeedStatusBadge status={r.status} />
+                      <NeedStatusBadge locale={locale} status={r.status} />
                     </Td>
 
                     <Td align="right" className="rb-numerals text-[12.5px] text-ink-3">
-                      {relativeDate(r.created_at)}
+                      {relativeDate(r.created_at, locale)}
                     </Td>
                   </Tr>
                 ))}

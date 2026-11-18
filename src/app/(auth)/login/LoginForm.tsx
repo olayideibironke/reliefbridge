@@ -8,7 +8,7 @@ import { Alert } from "@/components/ui/Alert";
 import { loginAction } from "@/app/(auth)/actions";
 import { initialFormState as authInitialState } from "@/lib/forms";
 
-export function LoginForm({ next, locale }: { next: string; locale: ReliefBridgeLocale }) {
+export function LoginForm({ next, locale, explicitLocale }: { next: string; locale: ReliefBridgeLocale; explicitLocale: boolean }) {
   const [state, action] = useActionState(loginAction, authInitialState);
   useEffect(() => {
     document.cookie = `${LOCALE_COOKIE}=${locale}; Path=/; Max-Age=31536000; SameSite=Lax${window.location.protocol === "https:" ? "; Secure" : ""}`;
@@ -21,6 +21,7 @@ export function LoginForm({ next, locale }: { next: string; locale: ReliefBridge
     <form action={action} className="space-y-5">
       <input type="hidden" name="next" value={next} />
       <input type="hidden" name="locale" value={locale} />
+      {explicitLocale && <input type="hidden" name="explicitLocale" value="1" />}
 
       {state.message && !state.ok && (
         <Alert tone="error">{state.message}</Alert>
@@ -32,7 +33,7 @@ export function LoginForm({ next, locale }: { next: string; locale: ReliefBridge
         type="email"
         autoComplete="email"
         required
-        placeholder="you@your-organization.org"
+        placeholder={t(locale, "loginEmailPlaceholder")}
         error={fe.email}
       />
       <Input

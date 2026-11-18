@@ -11,6 +11,7 @@ import { Sidebar } from "@/components/app/Sidebar";
 import { TopBar } from "@/components/app/TopBar";
 import { MobileHeader } from "@/components/app/MobileHeader";
 import { SessionInactivityGuard } from "@/components/app/SessionInactivityGuard";
+import { getRequestLocale } from "@/lib/request-locale";
 import type { Profile } from "@/lib/types";
 
 type ProfileWithFullName = Profile & {
@@ -55,6 +56,7 @@ export default async function AppLayout({
   const { data: demoAccess } = await supabase.rpc("get_my_demo_access");
   const isManagedDemo =
     Array.isArray(demoAccess) && Boolean(demoAccess[0]?.is_demo);
+  const locale = await getRequestLocale();
 
   let orgName = "ReliefBridge Workspace";
   let communicationsMode = "off";
@@ -118,6 +120,7 @@ export default async function AppLayout({
       <SessionInactivityGuard />
 
       <Sidebar
+        locale={locale}
         user={{
           name,
           email,
@@ -132,8 +135,8 @@ export default async function AppLayout({
       />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <MobileHeader orgName={orgName} isManagedDemo={isManagedDemo} isPlatformAdmin={isPlatformAdmin} isPlatformStaff={isPlatformStaff} isPlatformOwner={platformRole === "owner"} communicationsMode={communicationsMode} />
-        <TopBar orgName={orgName} isPlatformAdmin={isPlatformAdmin} isPlatformStaff={isPlatformStaff} />
+        <MobileHeader locale={locale} orgName={orgName} isManagedDemo={isManagedDemo} isPlatformAdmin={isPlatformAdmin} isPlatformStaff={isPlatformStaff} isPlatformOwner={platformRole === "owner"} communicationsMode={communicationsMode} />
+        <TopBar isManagedDemo={isManagedDemo} orgName={orgName} isPlatformAdmin={isPlatformAdmin} isPlatformStaff={isPlatformStaff} />
 
         <main className="flex-1">
           {children}

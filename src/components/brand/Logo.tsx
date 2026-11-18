@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 /**
@@ -18,11 +19,13 @@ export function Logo({
   size = "md",
   variant = "dark",
   showWordmark = true,
+  tagline = "Disaster Recovery Coordination",
   className,
 }: {
   size?: "sm" | "md" | "lg";
   variant?: "dark" | "light";
   showWordmark?: boolean;
+  tagline?: ReactNode;
   className?: string;
 }) {
   const dims = {
@@ -109,7 +112,7 @@ export function Logo({
             )}
             style={{ fontSize: dims.tag }}
           >
-            Disaster Recovery Coordination
+            {tagline}
           </div>
         </div>
       )}

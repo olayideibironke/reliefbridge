@@ -1,3 +1,5 @@
+import { getRequestLocale } from "@/lib/request-locale";
+import { t, workspaceLabel, type ReliefBridgeLocale } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { requireProfile } from "@/lib/session";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -8,7 +10,10 @@ import type { NeedCategory, NeedStatus, UnmetNeed } from "@/lib/types";
 import { NEED_CATEGORIES, NEED_STATUSES, LABELS } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Unmet needs dashboard — ReliefBridge" };
+export async function generateMetadata() {
+  const locale = await getRequestLocale();
+  return { title: locale === "en" ? "Unmet needs dashboard — ReliefBridge" : t(locale, "reportUnmetNeedsDashboard") };
+}
 
 const DAY_MS = 1000 * 60 * 60 * 24;
 
@@ -34,6 +39,7 @@ function computeAgingBuckets(
 }
 
 export default async function UnmetNeedsReport() {
+  const locale = await getRequestLocale();
   const profile = await requireProfile();
   const supabase = await createSupabaseServerClient();
   const orgId = profile.organization_id ?? "00000000-0000-0000-0000-000000000000";
@@ -78,37 +84,37 @@ export default async function UnmetNeedsReport() {
   return (
     <>
       <PageHeader
-        eyebrow="Reports · Needs"
-        title="Unmet needs dashboard"
-        subtitle="Distribution and aging of open needs across categories."
+        eyebrow={t(locale, "reportReportsNeeds")}
+        title={t(locale, "reportUnmetNeedsDashboard")}
+        subtitle={t(locale, "reportDistributionAndAgingOfOpenNeedsAcrossCategoriesMessage")}
         breadcrumbs={[
-          { label: "Insights", href: "/app" },
-          { label: "Reports", href: "/app/reports" },
-          { label: "Unmet needs" },
+          { label: t(locale, "insights"), href: "/app" },
+          { label: t(locale, "reports"), href: "/app/reports" },
+          { label: t(locale, "unmetNeeds") },
         ]}
       />
 
       <div className="space-y-6 px-6 py-8 md:px-10">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Kpi label="Total captured" value={total} hint="All-time, all statuses" />
-          <Kpi label="Currently open" value={totalOpen} hint="Open or in progress" />
-          <Kpi label="Met" value={met} hint={`Fulfilment rate ${fulfilmentRate}%`} />
-          <Kpi label="Unable to meet" value={unable} hint="Network gaps to address" />
+          <Kpi label={t(locale, "reportTotalCaptured")} value={total} hint={t(locale, "reportAllTimeAllStatuses")} />
+          <Kpi label={t(locale, "reportCurrentlyOpen")} value={totalOpen} hint={t(locale, "reportOpenOrInProgress")} />
+          <Kpi label={workspaceLabel(locale, "Met")} value={met} hint={`${t(locale, "reportFulfilmentRate")} ${fulfilmentRate}%`} />
+          <Kpi label={workspaceLabel(locale, "Unable to meet")} value={unable} hint={t(locale, "reportNetworkGapsToAddress")} />
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
           <Card>
-            <CardHeader title="Open needs by category" subtitle="What survivors need most right now" />
+            <CardHeader title={t(locale, "reportOpenNeedsByCategory")} subtitle={t(locale, "reportWhatSurvivorsNeedMostRightNow")} />
             <CardBody>
               {openTotal === 0 ? (
-                <Empty />
+                <Empty locale={locale} />
               ) : (
                 <ul className="space-y-3.5">
                   {sortedCategories
                     .sort((a, b) => b.count - a.count)
                     .map((r) => (
                       <li key={r.cat}>
-                        <BarRow label={r.cat} count={r.count} pct={pctOf(r.count)} />
+                        <BarRow label={workspaceLabel(locale, r.cat)} count={r.count} pct={pctOf(r.count)} />
                       </li>
                     ))}
                 </ul>
@@ -117,16 +123,16 @@ export default async function UnmetNeedsReport() {
           </Card>
 
           <Card>
-            <CardHeader title="By status" subtitle="Lifecycle distribution" />
+            <CardHeader title={t(locale, "reportByStatus")} subtitle={t(locale, "reportLifecycleDistribution")} />
             <CardBody>
               {total === 0 ? (
-                <Empty />
+                <Empty locale={locale} />
               ) : (
                 <ul className="space-y-3.5">
                   {NEED_STATUSES.map((s) => (
                     <li key={s}>
                       <BarRow
-                        label={LABELS.needStatus[s]}
+                        label={workspaceLabel(locale, LABELS.needStatus[s])}
                         count={byStatus.get(s) ?? 0}
                         pct={pctOfTotal(byStatus.get(s) ?? 0)}
                       />
@@ -139,10 +145,10 @@ export default async function UnmetNeedsReport() {
         </div>
 
         <Card>
-          <CardHeader title="Aging of open needs" subtitle="Days since capture" />
+          <CardHeader title={t(locale, "reportAgingOfOpenNeeds")} subtitle={t(locale, "reportDaysSinceCapture")} />
           <CardBody>
             {agingTotal === 0 ? (
-              <Empty />
+              <Empty locale={locale} />
             ) : (
               <ul className="space-y-3.5">
                 {Object.entries(buckets).map(([label, count]) => (
@@ -188,6 +194,6 @@ function Kpi({
   );
 }
 
-function Empty() {
-  return <div className="text-[13px] text-ink-3">No data yet.</div>;
+function Empty({ locale }: { locale: ReliefBridgeLocale }) {
+  return <div className="text-[13px] text-ink-3">{t(locale, "reportNoDataYetMessage")}</div>;
 }

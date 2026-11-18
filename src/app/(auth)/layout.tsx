@@ -24,11 +24,11 @@ export default async function AuthLayout({ children }: { children: ReactNode }) 
             </svg>
           </span>
           <span className="font-medium tracking-tight">
-            A Westforge Holdings disaster recovery coordination platform
+            <AuthBrandCopy initialLocale={locale} copyKey="platformBanner" />
           </span>
           <span className="ml-auto hidden items-center gap-4 text-white/80 sm:flex">
             <Link href="/" className="hover:text-white hover:no-underline">
-              Back to public site
+              <AuthBrandCopy initialLocale={locale} copyKey="publicSite" />
             </Link>
           </span>
         </div>
@@ -50,7 +50,7 @@ export default async function AuthLayout({ children }: { children: ReactNode }) 
           />
           <div className="relative flex h-full flex-col px-12 py-12">
             <Link href="/" aria-label="ReliefBridge home" className="hover:no-underline">
-              <Logo size="md" variant="light" />
+              <Logo size="md" variant="light" tagline={<AuthBrandCopy initialLocale={locale} copyKey="brandTagline" />} />
             </Link>
 
             <div className="mt-auto">
@@ -90,7 +90,7 @@ export default async function AuthLayout({ children }: { children: ReactNode }) 
         <main className="flex flex-col">
           <header className="flex items-center justify-between border-b border-line px-6 py-5 lg:hidden">
             <Link href="/" aria-label="ReliefBridge home" className="hover:no-underline">
-              <Logo size="sm" />
+              <Logo size="sm" tagline={<AuthBrandCopy initialLocale={locale} copyKey="brandTagline" />} />
             </Link>
           </header>
           <div className="flex flex-1 items-center justify-center px-5 py-10 md:px-10">
@@ -98,11 +98,11 @@ export default async function AuthLayout({ children }: { children: ReactNode }) 
           </div>
           <footer className="border-t border-line bg-surface-2 px-6 py-4 text-[12px] text-ink-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <span>ReliefBridge · A Westforge Holdings product</span>
+              <span><AuthBrandCopy initialLocale={locale} copyKey="productCredit" /></span>
               <span className="flex items-center gap-4">
-                <Link href="#" className="hover:text-ink-2 hover:no-underline">Privacy</Link>
-                <Link href="#" className="hover:text-ink-2 hover:no-underline">Security</Link>
-                <Link href="#" className="hover:text-ink-2 hover:no-underline">Accessibility</Link>
+                <Link href="#" className="hover:text-ink-2 hover:no-underline"><AuthBrandCopy initialLocale={locale} copyKey="privacy" /></Link>
+                <Link href="#" className="hover:text-ink-2 hover:no-underline"><AuthBrandCopy initialLocale={locale} copyKey="security" /></Link>
+                <Link href="#" className="hover:text-ink-2 hover:no-underline"><AuthBrandCopy initialLocale={locale} copyKey="accessibility" /></Link>
               </span>
             </div>
           </footer>

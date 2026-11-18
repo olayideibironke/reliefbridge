@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { headers, cookies } from "next/headers";
-import { LOCALE_COOKIE, parseLocale } from "@/lib/i18n";
+import { LOGIN_LOCALE_OVERRIDE_COOKIE, LOCALE_COOKIE, parseLocale } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { isEmail } from "@/lib/utils";
 import { ORG_TYPES, US_STATES } from "@/lib/constants";
@@ -68,6 +68,15 @@ export async function loginAction(
           "This demonstration access period has ended. Please contact ReliefBridge for renewed access.",
       };
     }
+  }
+
+  const cookieStore = await cookies();
+  if (user && requestedLocale && formData.get("explicitLocale") === "1") {
+    cookieStore.set(LOGIN_LOCALE_OVERRIDE_COOKIE, `${user.id}:${parseLocale(requestedLocale)}`, {
+      path: "/", httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax",
+    });
+  } else {
+    cookieStore.delete(LOGIN_LOCALE_OVERRIDE_COOKIE);
   }
 
   if (requestedLocale) {

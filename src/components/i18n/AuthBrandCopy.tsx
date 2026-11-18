@@ -5,6 +5,13 @@ import { LOCALE_COOKIE, parseLocale, type ReliefBridgeLocale } from "@/lib/i18n"
 
 const copy = {
   en: {
+    platformBanner: "A Westforge Holdings disaster recovery coordination platform",
+    publicSite: "Back to public site",
+    brandTagline: "Disaster Recovery Coordination",
+    productCredit: "ReliefBridge · A Westforge Holdings product",
+    privacy: "Privacy",
+    security: "Security",
+    accessibility: "Accessibility",
     secureWorkspace: "Secure coordination workspace",
     oneSurvivor: "One survivor record.",
     oneRecovery: "One coordinated recovery.",
@@ -14,6 +21,13 @@ const copy = {
     consentAwareRecords: "Consent-aware survivor records",
   },
   es: {
+    platformBanner: "Una plataforma de Westforge Holdings para coordinar la recuperación tras desastres",
+    publicSite: "Volver al sitio público",
+    brandTagline: "Coordinación de la recuperación tras desastres",
+    productCredit: "ReliefBridge · Un producto de Westforge Holdings",
+    privacy: "Privacidad",
+    security: "Seguridad",
+    accessibility: "Accesibilidad",
     secureWorkspace: "Espacio seguro de coordinación",
     oneSurvivor: "Un registro por sobreviviente.",
     oneRecovery: "Una recuperación coordinada.",
@@ -23,6 +37,13 @@ const copy = {
     consentAwareRecords: "Registros de sobrevivientes con protección del consentimiento",
   },
   fr: {
+    platformBanner: "Une plateforme de Westforge Holdings pour coordonner le rétablissement après catastrophe",
+    publicSite: "Retour au site public",
+    brandTagline: "Coordination du rétablissement après catastrophe",
+    productCredit: "ReliefBridge · Un produit de Westforge Holdings",
+    privacy: "Confidentialité",
+    security: "Sécurité",
+    accessibility: "Accessibilité",
     secureWorkspace: "Espace de coordination sécurisé",
     oneSurvivor: "Un dossier par sinistré.",
     oneRecovery: "Un rétablissement coordonné.",

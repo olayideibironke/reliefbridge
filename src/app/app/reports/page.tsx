@@ -1,3 +1,5 @@
+import { getRequestLocale } from "@/lib/request-locale";
+import { t, workspaceLabel, type ReliefBridgeLocale } from "@/lib/i18n";
 import Link from "next/link";
 import type {
   ComponentType,
@@ -11,28 +13,29 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { Card, CardBody } from "@/components/ui/Card";
 import { Icons } from "@/components/ui/Icons";
 
-export const metadata = {
-  title: "Reports — ReliefBridge",
-};
+export async function generateMetadata() {
+  const locale = await getRequestLocale();
+  return { title: locale === "en" ? "Reports — ReliefBridge" : t(locale, "reports") };
+}
 
 export const dynamic = "force-dynamic";
 
 const REPORT_RANGES = [
   {
     value: "30",
-    label: "Last 30 days",
+    label: "last30Days",
   },
   {
     value: "90",
-    label: "Last 90 days",
+    label: "last90Days",
   },
   {
     value: "365",
-    label: "Last 12 months",
+    label: "last12Months",
   },
   {
     value: "all",
-    label: "All available records",
+    label: "allAvailableRecords",
   },
 ] as const;
 
@@ -116,13 +119,10 @@ function rangeStart(
 }
 
 function selectedRangeLabel(
-  range: ReportRange
+  range: ReportRange,
+  locale: ReliefBridgeLocale
 ): string {
-  return (
-    REPORT_RANGES.find(
-      (option) => option.value === range
-    )?.label ?? "Last 90 days"
-  );
+  return t(locale, REPORT_RANGES.find((option) => option.value === range)?.label ?? "last90Days");
 }
 
 function normalizeStatus(
@@ -246,8 +246,18 @@ function chartData(
     label: string;
     value: number;
   }>,
+  locale: ReliefBridgeLocale,
   maximumItems = 6
 ): ChartDatum[] {
+  if (locale !== "en") {
+    values = values.map((item) => ({
+      ...item,
+      label: item.label === "Not Specified"
+        ? t(locale, "reportUnspecified")
+        : workspaceLabel(locale, item.label === "Follow Up" ? "Follow-up" : item.label),
+    }));
+  }
+
   if (values.length <= maximumItems) {
     return values.map((item, index) => ({
       ...item,
@@ -271,7 +281,7 @@ function chartData(
   return [
     ...visible,
     {
-      label: "Other",
+      label: t(locale, "reportOther"),
       value: remaining,
     },
   ].map((item, index) => ({
@@ -312,7 +322,8 @@ function donutBackground(
 }
 
 function buildActivityData(
-  rows: BaseRow[]
+  rows: BaseRow[],
+  locale: ReliefBridgeLocale
 ): ActivityDatum[] {
   const months: ActivityDatum[] = [];
   const monthMap = new Map<string, number>();
@@ -335,8 +346,9 @@ function buildActivityData(
     months.push({
       key,
       label:
-        new Intl.DateTimeFormat("en-US", {
+        new Intl.DateTimeFormat(locale, {
           month: "short",
+          timeZone: "UTC",
         }).format(date),
       value: 0,
     });
@@ -428,10 +440,12 @@ function KpiCard({
 }
 
 function HorizontalBarChart({
+  locale,
   title,
   subtitle,
   data,
 }: {
+  locale: ReliefBridgeLocale;
   title: string;
   subtitle: string;
   data: ChartDatum[];
@@ -456,8 +470,7 @@ function HorizontalBarChart({
       <CardBody>
         {data.length === 0 ? (
           <div className="grid min-h-[240px] place-items-center rounded-sm border border-dashed border-line bg-surface-2 px-5 text-center text-[13px] text-ink-3">
-            No report data is available for this
-            period.
+            {t(locale, "reportNoPeriodData")}
           </div>
         ) : (
           <div className="space-y-4">
@@ -504,10 +517,12 @@ function HorizontalBarChart({
 }
 
 function DonutChart({
+  locale,
   title,
   subtitle,
   data,
 }: {
+  locale: ReliefBridgeLocale;
   title: string;
   subtitle: string;
   data: ChartDatum[];
@@ -548,7 +563,7 @@ function DonutChart({
                 </div>
 
                 <div className="mt-1 text-[10px] font-bold uppercase tracking-[0.12em] text-ink-3">
-                  Total
+                  {t(locale, "reportTotal")}
                 </div>
               </div>
             </div>
@@ -556,8 +571,7 @@ function DonutChart({
 
           {data.length === 0 ? (
             <div className="text-center text-[13px] text-ink-3 sm:text-left">
-              No report data is available for
-              this period.
+              {t(locale, "reportNoPeriodData")}
             </div>
           ) : (
             <div className="space-y-3">
@@ -605,8 +619,10 @@ function DonutChart({
 }
 
 function ActivityChart({
+  locale,
   data,
 }: {
+  locale: ReliefBridgeLocale;
   data: ActivityDatum[];
 }) {
   const maximum = Math.max(
@@ -618,12 +634,11 @@ function ActivityChart({
     <Card>
       <div className="border-b border-line px-5 py-4">
         <h2 className="text-[16px] font-bold text-navy">
-          Coordination activity
+          {t(locale, "reportCoordinationActivity")}
         </h2>
 
         <p className="mt-1 text-[12.5px] leading-5 text-ink-3">
-          Survivors, cases, referrals, and unmet
-          needs added during the last six months.
+          {t(locale, "reportCoordinationHelp")}
         </p>
       </div>
 
@@ -674,6 +689,7 @@ export default async function ReportsIndexPage({
     range?: string;
   }>;
 }) {
+  const locale = await getRequestLocale();
   const parameters = await searchParams;
 
   const selectedRange = parseRange(
@@ -855,36 +871,39 @@ export default async function ReportsIndexPage({
     groupRows(
       recoveryCases,
       (row) => row.status
-    )
+    ),
+    locale
   );
 
   const referralStatusData = chartData(
     groupRows(
       referrals,
       (row) => row.status
-    )
+    ),
+    locale
   );
 
   const needCategoryData = chartData(
     groupRows(
       unmetNeeds,
       (row) => row.category
-    )
+    ),
+    locale
   );
 
   const workloadData: ChartDatum[] = [
     {
-      label: "Open cases",
+      label: t(locale, "reportOpenCases"),
       value: openCaseCount,
       color: CHART_COLORS[0],
     },
     {
-      label: "Pending referrals",
+      label: t(locale, "pendingReferrals"),
       value: pendingReferralCount,
       color: CHART_COLORS[1],
     },
     {
-      label: "Open unmet needs",
+      label: t(locale, "openUnmetNeeds"),
       value: openNeedCount,
       color: CHART_COLORS[2],
     },
@@ -898,9 +917,7 @@ export default async function ReportsIndexPage({
   ];
 
   const activityData =
-    buildActivityData(
-      combinedActivityRows
-    );
+    buildActivityData(combinedActivityRows, locale);
 
   const recentActivityCount =
     combinedActivityRows.length;
@@ -908,86 +925,82 @@ export default async function ReportsIndexPage({
   const reports: ReportCard[] = [
     {
       href: "/app/reports/open-cases",
-      title: "Open recovery cases",
+      title: t(locale, "openRecoveryCases"),
       blurb:
-        "Active workload by priority, status, and disaster event.",
+        t(locale, "reportActiveWorkload"),
       icon: Icons.Cases,
-      band: "Operations",
+      band: locale === "en" ? "Operations" : t(locale, "operations"),
       value: openCaseCount,
       valueLabel:
         openCaseCount === 1
-          ? "open case"
-          : "open cases",
+          ? t(locale, "reportOpenCaseSingular")
+          : t(locale, "reportOpenCasePlural"),
       secondary:
-        `${recoveryCases.length.toLocaleString()} total recovery ${
-          recoveryCases.length === 1
-            ? "case"
-            : "cases"
-        }`,
+        locale === "en" && recoveryCases.length === 1
+          ? "1 total recovery case"
+          : `${recoveryCases.length.toLocaleString(locale)} ${t(locale, "reportTotalRecoveryCases")}`,
     },
     {
       href: "/app/reports/closed-cases",
-      title: "Closed cases",
+      title: t(locale, "reportClosedCases"),
       blurb:
-        "Outcomes and time-to-close across resolved recovery cases.",
+        t(locale, "reportResolvedOutcomes"),
       icon: Icons.CircleCheck,
-      band: "Outcomes",
+      band: t(locale, "reportOutcomesBand"),
       value: closedCaseCount,
       valueLabel:
         closedCaseCount === 1
-          ? "closed case"
-          : "closed cases",
+          ? t(locale, "reportClosedCaseSingular")
+          : t(locale, "reportClosedCasePlural"),
       secondary:
-        `${caseClosureRate}% closure rate`,
+        `${caseClosureRate}% ${t(locale, "reportRateLabel")}`,
     },
     {
       href:
         "/app/reports/referral-outcomes",
-      title: "Referral outcomes",
+      title: t(locale, "referralOutcomes"),
       blurb:
-        "Acceptance, response, and completed handoffs across partners.",
+        t(locale, "reportPartnerHandoffs"),
       icon: Icons.Referrals,
-      band: "Network",
+      band: locale === "en" ? "Network" : t(locale, "network"),
       value: referrals.length,
       valueLabel:
         referrals.length === 1
-          ? "tracked referral"
-          : "tracked referrals",
+          ? t(locale, "reportTrackedReferralSingular")
+          : t(locale, "reportTrackedReferralPlural"),
       secondary:
-        `${referralCompletionRate}% completed`,
+        `${referralCompletionRate}% ${t(locale, "reportCompletedLabel")}`,
     },
     {
       href: "/app/reports/unmet-needs",
-      title: "Unmet needs dashboard",
+      title: t(locale, "reportUnmetNeedsDashboard"),
       blurb:
-        "Distribution and aging of open needs across categories.",
+        t(locale, "reportDistributionAndAgingOfOpenNeedsAcrossCategoriesMessage"),
       icon: Icons.Needs,
-      band: "Needs",
+      band: t(locale, "reportNeedsBand"),
       value: openNeedCount,
       valueLabel:
         openNeedCount === 1
-          ? "open unmet need"
-          : "open unmet needs",
+          ? t(locale, "reportOpenNeedSingular")
+          : t(locale, "reportOpenNeedPlural"),
       secondary:
-        "Requires continued coordination",
+        t(locale, "reportContinuedCoordination"),
     },
     {
       href:
         "/app/reports/org-activity",
-      title: "Organization activity",
+      title: t(locale, "reportOrganizationActivity"),
       blurb:
-        "Cases, referrals, survivors, and needs activity over time.",
+        t(locale, "reportActivityOverTime"),
       icon: Icons.Reports,
-      band: "Activity",
+      band: t(locale, "reportActivityBand"),
       value: recentActivityCount,
       valueLabel:
         recentActivityCount === 1
-          ? "activity record"
-          : "activity records",
+          ? t(locale, "reportActivitySingular")
+          : t(locale, "reportActivityPlural"),
       secondary:
-        selectedRangeLabel(
-          selectedRange
-        ),
+        selectedRangeLabel(selectedRange, locale),
     },
   ];
 
@@ -997,23 +1010,23 @@ export default async function ReportsIndexPage({
   return (
     <>
       <PageHeader
-        eyebrow="Insights"
-        title="Reports"
-        subtitle="Organization analytics, visual recovery trends, and funder-ready Excel exports."
+        eyebrow={t(locale, "insights")}
+        title={t(locale, "reports")}
+        subtitle={t(locale, "reportOverviewHelp")}
         breadcrumbs={[
           {
-            label: "Insights",
+            label: t(locale, "insights"),
             href: "/app",
           },
           {
-            label: "Reports",
+            label: t(locale, "reports"),
           },
         ]}
         actions={
           !isManagedDemo ? (
           <a
             href={exportHref}
-            aria-label="Download organization report as an Excel workbook"
+            aria-label={locale === "en" ? "Download organization report as an Excel workbook" : t(locale, "downloadExcel")}
             className="group inline-flex min-h-12 w-full items-center justify-center gap-3 rounded-md border border-[#D89400] bg-gold px-5 py-3 text-[14px] font-extrabold shadow-[0_8px_20px_rgba(8,42,74,0.18)] transition hover:-translate-y-0.5 hover:bg-[#F2AD00] hover:no-underline focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-gold/30 sm:w-auto"
             style={{
               color: "#082A4A",
@@ -1022,7 +1035,7 @@ export default async function ReportsIndexPage({
             <DownloadIcon className="h-5 w-5 shrink-0 text-[#082A4A]" />
 
             <span className="whitespace-nowrap">
-              Download Excel report
+              {t(locale, "downloadExcel")}
             </span>
 
             <span className="rounded-sm bg-navy/10 px-2 py-1 text-[10px] font-black uppercase tracking-[0.1em] text-navy">
@@ -1039,19 +1052,15 @@ export default async function ReportsIndexPage({
             <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
               <div>
                 <div className="text-[12px] font-bold uppercase tracking-[0.13em] text-blue">
-                  Reporting period
+                  {t(locale, "reportPeriod")}
                 </div>
 
                 <h2 className="mt-2 text-[20px] font-bold text-navy">
-                  {selectedRangeLabel(
-                    selectedRange
-                  )}
+                  {selectedRangeLabel(selectedRange, locale)}
                 </h2>
 
                 <p className="mt-1 text-[13px] leading-5 text-ink-3">
-                  Dashboard metrics and the Excel
-                  workbook use the same selected
-                  period.
+                  {t(locale, "reportPeriodHelp")}
                 </p>
               </div>
 
@@ -1065,7 +1074,7 @@ export default async function ReportsIndexPage({
                     htmlFor="range"
                     className="mb-2 block text-[12.5px] font-bold text-navy"
                   >
-                    Date range
+                    {t(locale, "dateRange")}
                   </label>
 
                   <select
@@ -1086,7 +1095,7 @@ export default async function ReportsIndexPage({
                             option.value
                           }
                         >
-                          {option.label}
+                          {t(locale, option.label)}
                         </option>
                       )
                     )}
@@ -1098,7 +1107,7 @@ export default async function ReportsIndexPage({
                   className="inline-flex h-11 items-center justify-center gap-2 rounded-sm bg-blue px-4 text-[13.5px] font-bold text-white hover:bg-navy-light"
                 >
                   <Icons.Filter className="h-4 w-4" />
-                  Apply
+                  {t(locale, "apply")}
                 </button>
               </form>
             </div>
@@ -1107,104 +1116,101 @@ export default async function ReportsIndexPage({
 
         {loadingErrors.length > 0 && (
           <div className="rounded-md border border-red/20 bg-red/5 px-5 py-4 text-[13px] leading-6 text-red">
-            Some reporting data could not be
-            loaded:{" "}
-            {Array.from(
-              new Set(loadingErrors)
-            ).join(" ")}
+            {locale === "en" ? `Some reporting data could not be loaded: ${Array.from(new Set(loadingErrors)).join(" ")}` : t(locale, "reportLoadError")}
           </div>
         )}
 
         <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           <KpiCard
-            label="Survivors added"
+            label={t(locale, "survivorsAdded")}
             value={survivors.length}
             hint={
               selectedRange === "all"
-                ? "All survivors in your organization"
-                : `Added during the ${selectedRangeLabel(
-                    selectedRange
-                  ).toLowerCase()}`
+                ? t(locale, "reportAllSurvivors")
+                : `${t(locale, "reportDuringPeriod")} ${selectedRangeLabel(selectedRange, locale).toLowerCase()}`
             }
           />
 
           <KpiCard
-            label="Open recovery cases"
+            label={t(locale, "openRecoveryCases")}
             value={openCaseCount}
-            hint={`${closedCaseCount.toLocaleString()} closed during this reporting scope`}
+            hint={`${closedCaseCount.toLocaleString()} ${t(locale, "reportClosedThisPeriod")}`}
           />
 
           <KpiCard
-            label="Pending referrals"
+            label={t(locale, "pendingReferrals")}
             value={pendingReferralCount}
-            hint={`${completedReferralCount.toLocaleString()} completed handoffs`}
+            hint={`${completedReferralCount.toLocaleString()} ${t(locale, "reportCompletedHandoffs")}`}
           />
 
           <KpiCard
-            label="Open unmet needs"
+            label={t(locale, "openUnmetNeeds")}
             value={openNeedCount}
-            hint="Needs still requiring coordination"
+            hint={t(locale, "needsRequiringCoordinationHint")}
           />
 
           <KpiCard
-            label="Case closure rate"
+            label={t(locale, "caseClosureRate")}
             value={caseClosureRate}
             suffix="%"
-            hint="Closed or resolved recovery cases"
+            hint={t(locale, "closedResolvedCases")}
           />
 
           <KpiCard
-            label="Referral completion"
+            label={t(locale, "referralCompletion")}
             value={referralCompletionRate}
             suffix="%"
-            hint="Completed partner handoffs"
+            hint={t(locale, "completedPartnerHandoffs")}
           />
         </section>
 
         <section className="grid gap-6 xl:grid-cols-2">
           <HorizontalBarChart
-            title="Recovery cases by status"
-            subtitle="Current distribution of recovery-case statuses in the selected period."
+          locale={locale}
+            title={t(locale, "casesByStatus")}
+            subtitle={t(locale, "casesByStatusHelp")}
             data={caseStatusData}
           />
 
           <DonutChart
-            title="Open workload distribution"
-            subtitle="Cases, referrals, and unmet needs currently requiring action."
+          locale={locale}
+            title={t(locale, "openWorkload")}
+            subtitle={t(locale, "openWorkloadHelp")}
             data={workloadData}
           />
 
           <HorizontalBarChart
-            title="Referral outcomes"
-            subtitle="Partner referral volume grouped by current status."
+          locale={locale}
+            title={t(locale, "referralOutcomes")}
+            subtitle={t(locale, "referralOutcomesHelp")}
             data={referralStatusData}
           />
 
           <DonutChart
-            title="Unmet needs by category"
-            subtitle="Service categories represented in your organization’s unmet-needs records."
+          locale={locale}
+            title={t(locale, "needsByCategory")}
+            subtitle={t(locale, "needsByCategoryHelp")}
             data={needCategoryData}
           />
         </section>
 
         <ActivityChart
+          locale={locale}
           data={activityData}
         />
 
         <section>
           <div className="mb-5">
             <div className="text-[12px] font-bold uppercase tracking-[0.13em] text-blue">
-              Detailed reports
+              {t(locale, "detailedReports")}
             </div>
 
             <h2 className="mt-2 text-[24px] font-bold tracking-tight text-navy">
-              Open a focused operational report
+              {t(locale, "operationalReport")}
             </h2>
 
             <p className="mt-2 text-[14px] leading-6 text-ink-2">
-              Review case, referral, unmet-needs,
-              and organization activity in more
-              detail.
+              {t(locale, "operationalReportHelp")}
             </p>
           </div>
 
@@ -1254,7 +1260,7 @@ export default async function ReportsIndexPage({
                       </div>
 
                       <div className="mt-4 inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-blue">
-                        Open report
+                        {t(locale, "openReport")}
 
                         <Icons.ArrowRight className="h-3.5 w-3.5" />
                       </div>
