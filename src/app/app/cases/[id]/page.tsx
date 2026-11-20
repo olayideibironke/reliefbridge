@@ -101,12 +101,19 @@ export default async function CaseDetailPage({
           { label: recoveryCase.primary_need ?? t(locale, "case") },
         ]}
         actions={
-          survivor ? (
-            <LinkButton href={`/app/survivors/${survivor.id}`} variant="outline">
-              <Icons.Survivors className="h-4 w-4" />
-              {t(locale, "openSurvivor")}
-            </LinkButton>
-          ) : null
+          <>
+            {!isManagedDemo && (
+              <LinkButton href={`/app/recovery-resources?case=${recoveryCase.id}`} variant="outline">
+                {t(locale, "recoveryResources")}
+              </LinkButton>
+            )}
+            {survivor && (
+              <LinkButton href={`/app/survivors/${survivor.id}`} variant="outline">
+                <Icons.Survivors className="h-4 w-4" />
+                {t(locale, "openSurvivor")}
+              </LinkButton>
+            )}
+          </>
         }
       />
 

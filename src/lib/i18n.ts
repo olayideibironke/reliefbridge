@@ -26,6 +26,7 @@ export function parseLocale(input: unknown): ReliefBridgeLocale {
 /** Only translated UI copy belongs here. Never place private case data in a dictionary. */
 export const translations = {
   en: {
+    recoveryResources: "Recovery resources",
     loginEmailPlaceholder: "you@your-organization.org",
     reportOther: "Other",
     reportUnspecified: "Not specified",
@@ -371,6 +372,7 @@ export const translations = {
     activityLog: "Activity Log",
   },
   es: {
+    recoveryResources: "Recursos de recuperación",
     loginEmailPlaceholder: "usted@su-organizacion.org",
     reportOther: "Otros",
     reportUnspecified: "Sin especificar",
@@ -716,6 +718,7 @@ export const translations = {
     activityLog: "Registro de actividad",
   },
   fr: {
+    recoveryResources: "Ressources de rétablissement",
     loginEmailPlaceholder: "vous@votre-organisation.org",
     reportOther: "Autres",
     reportUnspecified: "Non précisé",
