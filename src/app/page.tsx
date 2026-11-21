@@ -21,7 +21,8 @@ const navigationItems = [
   { label: "Case Management", href: "/case-management" },
   { label: "Features", href: "/features" },
   { label: "Partner Organizations", href: "/partners" },
-  { label: "Pricing", href: "/pricing" },
+  { label: "Plans & Packages", href: "/pricing" },
+  { label: "Request a Quote", href: "/request-quote" },
 ];
 
 type IconProps = SVGProps<SVGSVGElement>;
