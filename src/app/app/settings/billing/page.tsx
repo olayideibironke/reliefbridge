@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { requireProfile } from "@/lib/session";
@@ -31,7 +32,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
 
   return (
     <>
-      <PageHeader eyebrow="Settings" title="Billing" subtitle="Manage your ReliefBridge Complete subscription and licensed organizational users." breadcrumbs={[{ label: "Settings", href: "/app/settings/organization" }, { label: "Billing" }]} />
+      <PageHeader eyebrow="Settings" title="Billing" subtitle="Manage your existing ReliefBridge subscription and licensed organizational users." breadcrumbs={[{ label: "Settings", href: "/app/settings/organization" }, { label: "Billing" }]} />
       <div className="px-6 py-8 md:px-10">
         <SettingsNav />
         {sp.portal_error && (
@@ -59,7 +60,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
         )}
         <div className="max-w-3xl rounded-lg border border-line bg-surface p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
-            <div><p className="text-sm font-semibold text-blue">ReliefBridge Complete</p><h2 className="mt-1 text-2xl font-bold text-navy">$749/month</h2><p className="mt-2 max-w-xl text-sm text-ink-2">Includes up to 15 licensed organizational users, implementation and onboarding. Survivor records and survivor-facing access are not billed as organizational seats.</p></div>
+            <div><p className="text-sm font-semibold text-blue">ReliefBridge Standard (formerly Complete)</p><h2 className="mt-1 text-2xl font-bold text-navy">$749/month</h2><p className="mt-2 max-w-xl text-sm text-ink-2">Includes up to 15 licensed organizational users, implementation and onboarding. Survivor records and survivor-facing access are not billed as organizational seats.</p></div>
             <span className="rounded-full bg-surface-2 px-3 py-1 text-xs font-semibold text-ink-2">{status}</span>
           </div>
           <div className="mt-6 border-t border-line pt-6">
@@ -77,6 +78,11 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
               </>
             ) : <p className="text-sm text-ink-2">An organization owner or administrator can manage billing.</p>}
           </div>
+        </div>
+        <div className="mt-6 max-w-3xl rounded-lg border border-line bg-white p-6">
+          <h2 className="text-lg font-bold text-navy">Exploring a different package?</h2>
+          <p className="mt-2 text-sm leading-6 text-ink-2">Recovery Starter, Recovery Growth, and Enterprise packages are available for organizational review. Request a written quote based on your staff and caseload. Your existing subscription will not change when you submit an inquiry.</p>
+          <Link href="/request-quote" className="mt-4 inline-flex rounded-md bg-navy px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue hover:no-underline">Request a package quote</Link>
         </div>
       </div>
     </>

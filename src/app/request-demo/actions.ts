@@ -317,7 +317,7 @@ function buildAdminEmailHtml(details: DemoRequestDetails): string {
               "
             >
               ReliefBridge · Disaster Recovery Coordination<br />
-              A Westforge Holdings platform
+              ReliefBridge Team
             </div>
           </div>
         </div>
@@ -470,7 +470,7 @@ function buildConfirmationEmailHtml(
                   "
                 >
                   <li>We review your organization and coordination priorities.</li>
-                  <li>Our team contacts you directly.</li>
+                  <li>Our team follows up by email with next steps and a demo video.</li>
                   <li>We tailor the walkthrough to your recovery workflow.</li>
                 </ol>
               </div>
@@ -514,8 +514,7 @@ function buildConfirmationEmailHtml(
                 "
               >
                 ReliefBridge Team<br />
-                Disaster Recovery Coordination<br />
-                A Westforge Holdings platform
+                Disaster Recovery Coordination
               </p>
             </div>
 
@@ -551,14 +550,13 @@ function buildConfirmationEmailText(
     "",
     "What happens next:",
     "1. We review your organization and coordination priorities.",
-    "2. Our team contacts you directly.",
+    "2. Our team follows up by email with next steps and a demo video.",
     "3. We tailor the walkthrough to your recovery workflow.",
     "",
     "You can reply to this email if you need to add information.",
     "",
     "ReliefBridge Team",
     "Disaster Recovery Coordination",
-    "A Westforge Holdings platform",
     "",
     "https://reliefbridge.net",
   ].join("\n");
@@ -581,8 +579,7 @@ async function sendDemoRequestEmails(
 
   const { resend, fromEmail, notificationEmail } = configuration;
 
-  try {
-    const [adminResult, confirmationResult] = await Promise.all([
+  const [adminResult, confirmationResult] = await Promise.allSettled([
       resend.emails.send({
         from: fromEmail,
         to: [notificationEmail],
@@ -621,36 +618,26 @@ async function sendDemoRequestEmails(
         ],
       }),
     ]);
+  const adminSent = adminResult.status === "fulfilled" && !adminResult.value.error;
+  const confirmationSent =
+    confirmationResult.status === "fulfilled" && !confirmationResult.value.error;
 
-    if (adminResult.error) {
-      console.error(
-        "ReliefBridge admin demo notification failed:",
-        adminResult.error
-      );
-    }
-
-    if (confirmationResult.error) {
-      console.error(
-        "ReliefBridge requester confirmation failed:",
-        confirmationResult.error
-      );
-    }
-
-    return {
-      adminSent: !adminResult.error,
-      confirmationSent: !confirmationResult.error,
-    };
-  } catch (error) {
+  if (!adminSent) {
     console.error(
-      "ReliefBridge demo request email delivery threw an exception:",
-      error
+      "ReliefBridge admin demo notification failed:",
+      adminResult.status === "rejected" ? adminResult.reason : adminResult.value.error
     );
-
-    return {
-      adminSent: false,
-      confirmationSent: false,
-    };
   }
+  if (!confirmationSent) {
+    console.error(
+      "ReliefBridge requester confirmation failed:",
+      confirmationResult.status === "rejected"
+        ? confirmationResult.reason
+        : confirmationResult.value.error
+    );
+  }
+
+  return { adminSent, confirmationSent };
 }
 
 export async function requestDemoAction(
@@ -718,9 +705,13 @@ export async function requestDemoAction(
     fieldErrors.work_email = "Email address is too long.";
   }
 
-  if (phone.length > 40) {
-    fieldErrors.phone =
-      "Phone number must be 40 characters or fewer.";
+  // Optional U.S. contact number: accept common separators and an optional +1.
+  // Never persist arbitrary text as a phone number.
+  if (phone) {
+    const digits = phone.replace(/[\s().-]/g, "").replace(/^\+1/, "");
+    if (!/^\d{10}$/.test(digits)) {
+      fieldErrors.phone = "Enter a valid 10-digit U.S. phone number.";
+    }
   }
 
   if (!organizationName) {
@@ -793,6 +784,10 @@ export async function requestDemoAction(
       "Select a preferred contact method.";
   }
 
+  if (preferredContact === "Phone" && !phone) {
+    fieldErrors.phone = "Enter a phone number when requesting phone contact.";
+  }
+
   if (message.length > 2000) {
     fieldErrors.message =
       "Message must be 2,000 characters or fewer.";
@@ -821,7 +816,7 @@ export async function requestDemoAction(
     message,
   };
 
-  const submission = await submitWebsiteIntake({
+  const result = await submitWebsiteIntake({
     first_name: firstName,
     last_name: lastName,
     work_email: workEmail,
@@ -834,13 +829,15 @@ export async function requestDemoAction(
     recovery_focus: recoveryFocus || null,
     preferred_contact: preferredContact,
     message: message || null,
+    status: "New",
+    source: "Website",
   });
 
-  if (submission !== "accepted") {
+  if (result !== "accepted") {
     return {
       ok: false,
-      message: submission === "limited"
-        ? "We are receiving too many requests right now. Please try again later."
+      message: result === "limited"
+        ? "We have received several recent requests. Please try again later or contact our team by email."
         : "We could not submit your request right now. Please try again in a moment.",
     };
   }
@@ -855,7 +852,7 @@ export async function requestDemoAction(
     return {
       ok: true,
       message:
-        "Your demo request has been received. A confirmation email is on its way, and a ReliefBridge representative will contact you shortly.",
+        "Your demo request has been received. A confirmation email is on its way. Our team will follow up by email with next steps and a demo video.",
     };
   }
 
@@ -863,7 +860,7 @@ export async function requestDemoAction(
     return {
       ok: true,
       message:
-        "Your demo request has been received and our team has been notified. We could not send the confirmation email, but a ReliefBridge representative will still contact you.",
+        "Your demo request has been received and our team has been notified. We could not send the confirmation email, but our team will follow up by email.",
     };
   }
 

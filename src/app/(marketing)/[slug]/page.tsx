@@ -67,15 +67,16 @@ const pages: Record<string, Page> = {
     ],
   },
   pricing: {
-    title: "ReliefBridge Pricing",
-    description: "ReliefBridge organizational pricing starts at $749 per month including 15 licensed users, with additional users at $49 per month.",
-    eyebrow: "Straightforward organizational pricing",
-    heading: "A predictable foundation for your recovery team.",
-    intro: "Start with an organizational subscription that supports your core team. Survivor access is free. Request a demonstration to review the workflow and determine fit before subscribing.",
+    title: "ReliefBridge Plans & Packages",
+    description: "Explore ReliefBridge packages for small recovery teams, growing organizations and multi-agency programs. Request a tailored quote.",
+    eyebrow: "Organizational service packages",
+    heading: "A better fit for every stage of recovery.",
+    intro: "Choose the right foundation for your staff and active caseload. Survivor-facing access is not billed as a staff seat. Receive a clear written quote before subscribing.",
     sections: [
-      { heading: "$749 per month", description: "Base organizational subscription with up to 15 licensed organizational users. The base subscription applies even when fewer than 15 seats are used.", bullets: ["Up to 15 licensed organizational users included", "Survivors are free", "No-obligation product demonstration"] },
-      { heading: "$49 per additional user per month", description: "Add organizational users beyond the included 15 as your team grows.", bullets: ["16 users: $798/month", "20 users: $994/month", "30 users: $1,484/month"] },
-      { heading: "See the platform first", description: "We can walk through your organization's recovery workflows and answer questions about licensing.", bullets: ["Personalized demonstration", "Review of relevant features", "Direct conversation with the ReliefBridge team"] },
+      { heading: "Recovery Starter", description: "Focused coordination for smaller recovery teams.", bullets: ["Designed for up to 2 staff users", "Active-case capacity confirmed in quote", "Survivor-facing access included", "Written organizational quote"] },
+      { heading: "Recovery Growth", description: "More capacity for lean teams with growing caseloads.", bullets: ["Designed for up to 3 staff users", "Active-case capacity confirmed in quote", "Survivor-facing access included", "Written organizational quote"] },
+      { heading: "ReliefBridge Standard", description: "An established foundation for larger recovery teams.", bullets: ["Up to 15 staff users included", "Active-case capacity confirmed in quote", "Survivor-facing access included", "Additional staff options"] },
+      { heading: "Enterprise & Multi-agency", description: "Tailored coordination for complex recovery networks.", bullets: ["Custom staff capacity", "Custom active-case capacity", "Multi-organization scope reviewed", "Tailored implementation quote"] },
     ],
   },
   contact: {
@@ -116,7 +117,7 @@ export default async function MarketingPage({ params }: { params: Promise<{ slug
             <Link href="/features" className="text-white hover:text-gold">Features</Link>
             <Link href="/solutions" className="text-white hover:text-gold">Solutions</Link>
             <Link href="/partners" className="text-white hover:text-gold">Partners</Link>
-            <Link href="/pricing" className="text-white hover:text-gold">Pricing</Link>
+            <Link href="/pricing" className="text-white hover:text-gold">Plans & Packages</Link>
             <Link href="/contact" className="text-white hover:text-gold">Contact</Link>
             <Link href="/login" className="text-white hover:text-gold">Sign in</Link>
           </nav>
@@ -130,27 +131,28 @@ export default async function MarketingPage({ params }: { params: Promise<{ slug
             <h1 className="max-w-4xl text-4xl font-black leading-tight tracking-tight sm:text-6xl">{page.heading}</h1>
             <p className="mt-7 max-w-3xl text-lg leading-8 text-white/80">{page.intro}</p>
             <div className="mt-9 flex flex-wrap gap-4">
-              <Link href="/request-demo" className="rounded bg-gold px-6 py-3 font-bold text-navy hover:bg-white hover:no-underline">Request a demo →</Link>
+              <Link href={slug === "pricing" ? "/request-quote" : "/request-demo"} className="rounded bg-gold px-6 py-3 font-bold text-navy hover:bg-white hover:no-underline">{slug === "pricing" ? "Request a written quote" : "Request a demo →"}</Link>
               <Link href="/features" className="rounded border border-white/40 px-6 py-3 font-semibold text-white hover:bg-white/10 hover:no-underline">Explore features</Link>
             </div>
           </div>
         </section>
         <section className="mx-auto max-w-7xl px-5 py-16 md:px-8 md:py-20">
-          <div className="grid gap-6 md:grid-cols-3">
+          <div className={slug === "pricing" ? "grid gap-6 md:grid-cols-2 xl:grid-cols-4" : "grid gap-6 md:grid-cols-3"}>
             {page.sections.map((section, index) => (
               <article key={section.heading} className="rounded-xl border border-line bg-white p-7 shadow-card">
                 <div className="mb-6 flex h-11 w-11 items-center justify-center rounded-lg bg-blue-pale text-lg font-black text-navy">{String(index + 1).padStart(2, "0")}</div>
                 <h2 className="text-2xl font-black text-navy">{section.heading}</h2>
                 <p className="mt-4 leading-7 text-ink-2">{section.description}</p>
                 <ul className="mt-6 space-y-3">{section.bullets.map(bullet => <li key={bullet} className="flex gap-3 text-sm leading-6 text-ink-2"><span className="font-bold text-blue" aria-hidden="true">✓</span><span>{bullet}</span></li>)}</ul>
+                {slug === "pricing" && <Link href={`/request-quote?plan=${encodeURIComponent(section.heading)}`} className="mt-7 inline-flex rounded-md bg-navy px-5 py-3 text-sm font-bold text-white hover:bg-blue hover:no-underline">Request a written quote</Link>}
               </article>
             ))}
           </div>
         </section>
         <section className="bg-blue-pale py-14">
           <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-6 px-5 md:flex-row md:items-center md:px-8">
-            <div><h2 className="text-3xl font-black text-navy">See ReliefBridge in action.</h2><p className="mt-3 max-w-2xl text-ink-2">Explore a demonstration tailored to your organization's recovery operations.</p></div>
-            <Link href="/request-demo" className="shrink-0 rounded bg-navy px-6 py-3 font-bold text-white hover:bg-navy-light hover:no-underline">Request a no-obligation demo →</Link>
+            <div><h2 className="text-3xl font-black text-navy">{slug === "pricing" ? "Find the right package for your organization." : "See ReliefBridge in action."}</h2><p className="mt-3 max-w-2xl text-ink-2">{slug === "pricing" ? "Share your team size and caseload for a written quote. A sales call is optional." : "Explore a demonstration tailored to your organization\'s recovery operations."}</p></div>
+            <Link href={slug === "pricing" ? "/request-quote" : "/request-demo"} className="shrink-0 rounded bg-navy px-6 py-3 font-bold text-white hover:bg-navy-light hover:no-underline">{slug === "pricing" ? "Request a written quote" : "Request a no-obligation demo →"}</Link>
           </div>
         </section>
       </main>
@@ -158,7 +160,7 @@ export default async function MarketingPage({ params }: { params: Promise<{ slug
         <div className="mx-auto max-w-7xl px-5 md:px-8">
           <div className="mb-5 text-lg font-black text-white">ReliefBridge</div>
           <nav aria-label="Footer" className="flex flex-wrap gap-x-5 gap-y-3 text-sm">
-            {slugs.map(s => <Link key={s} href={"/" + s} className="text-white/80 hover:text-white">{s.split("-").map(w => w[0].toUpperCase() + w.slice(1)).join(" ")}</Link>)}
+            {slugs.map(s => <Link key={s} href={"/" + s} className="text-white/80 hover:text-white">{s === "pricing" ? "Plans & Packages" : s.split("-").map(w => w[0].toUpperCase() + w.slice(1)).join(" ")}</Link>)}
             <Link href="/request-demo" className="text-white/80 hover:text-white">Request Demo</Link>
           </nav>
           <p className="mt-7 text-xs text-white/50">© {new Date().getFullYear()} ReliefBridge. Disaster recovery coordination.</p>
