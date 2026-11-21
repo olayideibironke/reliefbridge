@@ -96,3 +96,11 @@ GitHub Actions [run #166](https://github.com/olayideibironke/reliefbridge/action
 The production database was queried read-only using aggregate-only sales-integrity checks: zero normalized duplicate opportunity groups, zero orphaned sales activities, and zero duplicate inquiry links, with six demo requests, eleven opportunities, and seventeen activities at the time of inspection. No customer identifiers were exported.
 
 **Scope limit:** this is a synthetic-fixture function rollback, **not** a full-schema staging restore, real browser form test, or approval for production. A reviewer still needs to approve the saved original function artifact. A billable Supabase staging branch has not been authorized. Production schema, records, grants, and Vercel deployments remain unchanged. **Release decision: NO-GO.**
+
+## November 20 local quote integration
+
+A local Chromium run exercised the built Next.js quote form through a local HTTP adapter to disposable PostgreSQL. The adapter invoked the deployed intake RPC under `service_role` and the draft quote trigger wrote the expected Quote/Proposal opportunity and Quote activity. The browser checks covered repeat submissions, the shared per-email quota, an injected intake outage, the honeypot, and mobile width. Separate disposable fixtures passed sales-sync restoration, capacity checks, and legacy mail isolation.
+
+A second Chromium run submitted demo and quote requests for the same synthetic contact using the production table CHECK constraints. Both requests persisted under one Quote/Proposal opportunity with separate Demo Request and Quote activities. Resend was disabled for this run, so it verified persistence and the demo form’s email-unavailable response.
+
+The release remains blocked. The local database used repository fixtures and the HTTP adapter supplied the PostgREST boundary. Full-schema staging, a release-candidate CI run, and production approval remain pending.

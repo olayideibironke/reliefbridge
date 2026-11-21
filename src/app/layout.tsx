@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { getRequestLocale } from "@/lib/request-locale";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://reliefbridge.net"),
@@ -48,13 +49,14 @@ export const viewport: Viewport = {
   themeColor: "#112E51",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getRequestLocale();
   return (
-    <html lang="en">
+    <html lang={locale}>
       <body className="min-w-0 overflow-x-hidden bg-surface text-ink antialiased">
         {children}
       </body>

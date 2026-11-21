@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import { createDemoAction, type DemoHubState } from "./actions";
 import { Button } from "@/components/ui/Button";
+import { LOCALE_NAMES, SUPPORTED_LOCALES, type ReliefBridgeLocale } from "@/lib/i18n";
 
 const initialState: DemoHubState = { ok: false, message: null };
 
@@ -46,6 +47,7 @@ const US_LOCATIONS = {
   OK: ["Broken Arrow", "Edmond", "Norman", "Oklahoma City", "Tulsa"],
   OR: ["Bend", "Eugene", "Gresham", "Portland", "Salem"],
   PA: ["Allentown", "Erie", "Harrisburg", "Philadelphia", "Pittsburgh", "Reading", "Scranton"],
+  PR: ["San Juan", "Bayamón", "Carolina", "Caguas", "Ponce", "Mayagüez", "Arecibo", "Humacao", "Guayama", "Fajardo", "Aguadilla", "Toa Baja", "Toa Alta", "Vega Baja", "Vega Alta", "Dorado", "Manatí", "Yauco"],
   RI: ["Cranston", "Newport", "Pawtucket", "Providence", "Warwick"],
   SC: ["Charleston", "Columbia", "Greenville", "Myrtle Beach", "North Charleston", "Rock Hill"],
   SD: ["Aberdeen", "Brookings", "Pierre", "Rapid City", "Sioux Falls"],
@@ -61,7 +63,7 @@ const US_LOCATIONS = {
 } as const;
 
 const STATE_NAMES: Record<keyof typeof US_LOCATIONS, string> = {
-  AL:"Alabama", AK:"Alaska", AZ:"Arizona", AR:"Arkansas", CA:"California", CO:"Colorado", CT:"Connecticut", DE:"Delaware", DC:"District of Columbia", FL:"Florida", GA:"Georgia", HI:"Hawaii", ID:"Idaho", IL:"Illinois", IN:"Indiana", IA:"Iowa", KS:"Kansas", KY:"Kentucky", LA:"Louisiana", ME:"Maine", MD:"Maryland", MA:"Massachusetts", MI:"Michigan", MN:"Minnesota", MS:"Mississippi", MO:"Missouri", MT:"Montana", NE:"Nebraska", NV:"Nevada", NH:"New Hampshire", NJ:"New Jersey", NM:"New Mexico", NY:"New York", NC:"North Carolina", ND:"North Dakota", OH:"Ohio", OK:"Oklahoma", OR:"Oregon", PA:"Pennsylvania", RI:"Rhode Island", SC:"South Carolina", SD:"South Dakota", TN:"Tennessee", TX:"Texas", UT:"Utah", VT:"Vermont", VA:"Virginia", WA:"Washington", WV:"West Virginia", WI:"Wisconsin", WY:"Wyoming"
+  AL:"Alabama", AK:"Alaska", AZ:"Arizona", AR:"Arkansas", CA:"California", CO:"Colorado", CT:"Connecticut", DE:"Delaware", DC:"District of Columbia", FL:"Florida", GA:"Georgia", HI:"Hawaii", ID:"Idaho", IL:"Illinois", IN:"Indiana", IA:"Iowa", KS:"Kansas", KY:"Kentucky", LA:"Louisiana", ME:"Maine", MD:"Maryland", MA:"Massachusetts", MI:"Michigan", MN:"Minnesota", MS:"Mississippi", MO:"Missouri", MT:"Montana", NE:"Nebraska", NV:"Nevada", NH:"New Hampshire", NJ:"New Jersey", NM:"New Mexico", NY:"New York", NC:"North Carolina", ND:"North Dakota", OH:"Ohio", OK:"Oklahoma", OR:"Oregon", PA:"Pennsylvania", PR:"Puerto Rico", RI:"Rhode Island", SC:"South Carolina", SD:"South Dakota", TN:"Tennessee", TX:"Texas", UT:"Utah", VT:"Vermont", VA:"Virginia", WA:"Washington", WV:"West Virginia", WI:"Wisconsin", WY:"Wyoming"
 };
 const CA_LOCATIONS: Record<string, string[]> = {
   AB: ["Calgary", "Edmonton", "Lethbridge", "Red Deer", "Medicine Hat", "Grande Prairie", "Fort McMurray"],
@@ -91,6 +93,7 @@ export function CreateDemoForm() {
   const [manualCity, setManualCity] = useState("");
   const [copied, setCopied] = useState<"password" | "all" | null>(null);
   const [passwordVisible, setPasswordVisible] = useState(true);
+  const [preferredLocale, setPreferredLocale] = useState<ReliefBridgeLocale>("en");
 
   async function copyText(text: string, kind: "password" | "all") {
     try {
@@ -137,7 +140,7 @@ export function CreateDemoForm() {
         </div>
         <div className="text-[12.5px] font-semibold text-ink-2">
           <label htmlFor="demo-state">State / Province / Territory</label>
-          <select id="demo-state" required className={inputClass} value={selectedState} onChange={(e) => { setSelectedState(e.target.value); setManualState(""); setSelectedCity(""); setManualCity(""); }}>
+          <select id="demo-state" required className={inputClass} value={selectedState} onChange={(e) => { setSelectedState(e.target.value); if (countryChoice === "United States" && e.target.value === "PR") setPreferredLocale("es"); setManualState(""); setSelectedCity(""); setManualCity(""); }}>
             <option value="">Select state / province</option>
             {countryChoice === "United States" && Object.entries(STATE_NAMES).map(([code,name]) => <option key={code} value={code}>{name} ({code})</option>)}
             {countryChoice === "Canada" && Object.entries(CA_PROVINCES).map(([code,name]) => <option key={code} value={code}>{name} ({code})</option>)}
@@ -163,6 +166,12 @@ export function CreateDemoForm() {
         <label className="text-[12.5px] font-semibold text-ink-2">Contact email
           <input name="contact_email" type="email" required className={inputClass} />
         </label>
+        <label className="text-[12.5px] font-semibold text-ink-2">Demo language
+          <select name="preferred_locale" value={preferredLocale} onChange={(event) => setPreferredLocale(event.target.value as ReliefBridgeLocale)} className={inputClass} required>
+            {SUPPORTED_LOCALES.map(locale => <option key={locale} value={locale}>{LOCALE_NAMES[locale]}</option>)}
+          </select>
+          <span className="mt-1 block text-[11px] font-normal text-ink-3">Sets the invitation and sign-in language. Additional workspace translations are in progress.</span>
+        </label>
         <label className="text-[12.5px] font-semibold text-ink-2">Access duration
           <select name="duration_days" defaultValue="7" className={inputClass}>
             <option value="1">1 day</option><option value="3">3 days</option><option value="7">7 days</option><option value="14">14 days</option><option value="30">30 days</option>
@@ -186,7 +195,7 @@ export function CreateDemoForm() {
             <div><div className="text-[11px] font-bold text-ink-3">EXPIRES</div><div className="mt-1 text-[13px] font-semibold text-navy">{state.credentials.expires_at ? new Date(state.credentials.expires_at).toLocaleString() : "Not set"}</div></div>
           </div>
           <p className="mt-3 text-[12px] text-ink-3">The password is not stored in the Demo Hub. A ReliefBridge invitation is sent automatically to the client contact when delivery succeeds.</p>
-          <button type="button" onClick={() => copyText(`ReliefBridge demo access\nLogin: ${state.credentials?.login_email ?? ""}\nPassword: ${state.credentials?.password ?? ""}\nExpires: ${state.credentials?.expires_at ? new Date(state.credentials.expires_at).toLocaleString() : ""}\nSign in: https://reliefbridge.net/login`, "all")} className="mt-4 inline-flex h-9 items-center rounded-sm border border-blue/20 bg-white px-3 text-[12.5px] font-bold text-blue hover:border-blue">{copied === "all" ? "Copied!" : "Copy access details"}</button>
+          <button type="button" onClick={() => copyText(`ReliefBridge demo access\nLogin: ${state.credentials?.login_email ?? ""}\nPassword: ${state.credentials?.password ?? ""}\nExpires: ${state.credentials?.expires_at ? new Date(state.credentials.expires_at).toLocaleString() : ""}\nSign in: https://reliefbridge.net/login?lang=${state.credentials?.preferred_locale ?? "en"}`, "all")} className="mt-4 inline-flex h-9 items-center rounded-sm border border-blue/20 bg-white px-3 text-[12.5px] font-bold text-blue hover:border-blue">{copied === "all" ? "Copied!" : "Copy access details"}</button>
         </div>
       )}
       <Button type="submit" size="sm" disabled={pending}>{pending ? "Creating demo..." : "Create demo"}</Button>

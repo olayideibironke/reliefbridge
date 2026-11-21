@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { getRequestLocale } from "@/lib/request-locale";
+import { t } from "@/lib/i18n";
 
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { requireProfile } from "@/lib/session";
@@ -12,6 +14,8 @@ export const dynamic = "force-dynamic";
 export async function OrganizationDashboard() {
   const supabase = await createSupabaseServerClient();
   const profile = await requireProfile();
+  const locale = await getRequestLocale();
+  const tr = (key: Parameters<typeof t>[1]) => t(locale, key);
 
   const {
     data: { user },
@@ -46,7 +50,7 @@ export async function OrganizationDashboard() {
   let partnerCount = 0;
 
   if (orgId) {
-    let partnersQuery = supabase
+    const partnersQuery = supabase
       .from("organizations")
       .select("id", { count: "exact", head: true })
       .neq("id", orgId)
@@ -96,39 +100,39 @@ export async function OrganizationDashboard() {
 
   const metrics = [
     {
-      label: "Active survivors",
+      label: tr("activeSurvivors"),
       value: activeSurvivorCount,
       detail:
         activeSurvivorCount === 1
-          ? "1 survivor currently receiving support"
-          : `${activeSurvivorCount} survivors currently receiving support`,
+          ? `1 ${tr("survivorsReceivingSupport")}`
+          : `${activeSurvivorCount} ${tr("survivorsReceivingSupport")}`,
       icon: Icons.Survivors,
     },
     {
-      label: "Active recovery cases",
+      label: tr("activeRecoveryCases"),
       value: activeCaseCount,
       detail:
         activeCaseCount === 1
-          ? "1 recovery case currently open"
-          : `${activeCaseCount} recovery cases currently open`,
+          ? `1 ${tr("recoveryCasesOpen")}`
+          : `${activeCaseCount} ${tr("recoveryCasesOpen")}`,
       icon: Icons.Cases,
     },
     {
-      label: "Pending referrals",
+      label: tr("pendingReferrals"),
       value: pendingReferralCount,
       detail:
         pendingReferralCount === 1
-          ? "1 partner referral awaiting action"
-          : `${pendingReferralCount} partner referrals awaiting action`,
+          ? `1 ${tr("referralsAwaitingAction")}`
+          : `${pendingReferralCount} ${tr("referralsAwaitingAction")}`,
       icon: Icons.Referrals,
     },
     {
-      label: "Open unmet needs",
+      label: tr("openUnmetNeeds"),
       value: openNeedCount,
       detail:
         openNeedCount === 1
-          ? "1 unmet need requiring coordination"
-          : `${openNeedCount} unmet needs requiring coordination`,
+          ? `1 ${tr("needsRequiringCoordination")}`
+          : `${openNeedCount} ${tr("needsRequiringCoordination")}`,
       icon: Icons.Needs,
     },
   ];
@@ -136,9 +140,9 @@ export async function OrganizationDashboard() {
   return (
     <>
       <PageHeader
-        eyebrow="Command Center"
-        title={`Good day, ${firstName}.`}
-        subtitle="Monitor survivor recovery cases, partner referrals, unmet needs, and coordination activity across your ReliefBridge workspace."
+        eyebrow={tr("commandCenter")}
+        title={`${tr("goodDay")}, ${firstName}.`}
+        subtitle={tr("orgDashboardSubtitle")}
         actions={
           isManagedDemo ? undefined : (
             <>
@@ -148,12 +152,12 @@ export async function OrganizationDashboard() {
                 size="md"
               >
                 <Icons.Plus className="h-4 w-4" />
-                New survivor
+                {tr("newSurvivor")}
               </LinkButton>
 
               <LinkButton href="/app/referrals/new" size="md">
                 <Icons.Referrals className="h-4 w-4" />
-                Send referral
+                {tr("sendReferral")}
               </LinkButton>
             </>
           )
@@ -196,24 +200,21 @@ export async function OrganizationDashboard() {
             <CardBody className="space-y-5">
               <div>
                 <div className="text-[12px] font-bold uppercase tracking-[0.14em] text-blue">
-                  Operational overview
+                  {tr("operationalOverview")}
                 </div>
 
                 <h2 className="mt-2 text-[28px] font-black tracking-tight text-navy">
-                  Your recovery coordination workspace is live.
+                  {tr("workspaceLive")}
                 </h2>
 
                 <p className="mt-3 max-w-2xl text-[15.5px] leading-7 text-ink-2">
-                  Use ReliefBridge to coordinate survivor records, recovery
-                  cases, unmet needs, and partner referrals from one secure
-                  workspace. The figures above are loaded directly from your
-                  organization&apos;s current Supabase records.
+                  {tr("orgWorkspaceDescription")}
                 </p>
               </div>
 
               <div className="rounded-sm border border-line bg-surface-2 px-5 py-4">
                 <div className="text-[12px] font-bold uppercase tracking-[0.12em] text-ink-3">
-                  Signed-in account
+                  {tr("signedInAccount")}
                 </div>
 
                 <div className="mt-2 text-[15px] font-bold text-navy">
@@ -225,12 +226,12 @@ export async function OrganizationDashboard() {
                 {!isManagedDemo && (
                   <LinkButton href="/app/survivors/new">
                     <Icons.Plus className="h-4 w-4" />
-                    Add survivor
+                    {tr("addSurvivor")}
                   </LinkButton>
                 )}
 
                 <LinkButton href="/app/cases" variant="outline">
-                  View recovery cases
+                  {tr("viewRecoveryCases")}
                 </LinkButton>
               </div>
             </CardBody>
@@ -239,7 +240,7 @@ export async function OrganizationDashboard() {
           <Card>
             <CardBody className="space-y-4">
               <div className="text-[12px] font-bold uppercase tracking-[0.14em] text-blue">
-                Recovery network
+                {tr("recoveryNetwork")}
               </div>
 
               <div>
@@ -249,16 +250,16 @@ export async function OrganizationDashboard() {
 
                 <div className="mt-2 text-[14.5px] leading-6 text-ink-2">
                   {partnerCount === 1
-                    ? "Active partner organization available for coordinated referrals."
-                    : "Active partner organizations available for coordinated referrals."}
+                    ? tr("activePartnerOrganizations")
+                    : tr("activePartnerOrganizations")}
                 </div>
               </div>
 
               <div className="space-y-2 border-t border-line pt-4 text-[14px] leading-6 text-ink-2">
-                <div>Review active recovery cases.</div>
-                <div>Follow up on pending referrals.</div>
-                <div>Prioritize open unmet needs.</div>
-                <div>Keep survivor records current.</div>
+                <div>{tr("reviewActiveCases")}</div>
+                <div>{tr("followPendingReferrals")}</div>
+                <div>{tr("prioritizeOpenNeeds")}</div>
+                <div>{tr("keepRecordsCurrent")}</div>
               </div>
 
               <div className="flex flex-col gap-2">
@@ -266,14 +267,14 @@ export async function OrganizationDashboard() {
                   href="/app/partners"
                   className="inline-flex text-[14px] font-bold text-blue hover:text-navy hover:no-underline"
                 >
-                  View partner network →
+                  {tr("viewPartnerNetwork")} →
                 </Link>
 
                 <Link
                   href="/app/reports"
                   className="inline-flex text-[14px] font-bold text-blue hover:text-navy hover:no-underline"
                 >
-                  View reporting workspace →
+                  {tr("viewReportingWorkspace")} →
                 </Link>
               </div>
             </CardBody>

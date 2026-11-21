@@ -1,3 +1,5 @@
+import { getRequestLocale } from "@/lib/request-locale";
+import { t, workspaceLabel } from "@/lib/i18n";
 import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { requireProfile } from "@/lib/session";
@@ -37,6 +39,7 @@ export default async function CasesPage({
 }: {
   searchParams: Promise<{ q?: string; status?: string; priority?: string }>;
 }) {
+  const locale = await getRequestLocale();
   const profile = await requireProfile();
   const isPlatformStaff = profile.organization_id === PLATFORM && ["manager", "staff"].includes(String(profile.role ?? "").toLowerCase());
   const sp = await searchParams;
@@ -78,14 +81,14 @@ export default async function CasesPage({
   return (
     <>
       <PageHeader
-        eyebrow="Workspace"
-        title="Recovery cases"
-        subtitle="Every active and closed recovery case across your organization."
-        breadcrumbs={[{ label: "Workspace", href: "/app" }, { label: "Recovery cases" }]}
+        eyebrow={t(locale, "workspace")}
+        title={t(locale, "recoveryCases")}
+        subtitle={t(locale, "caseListSubtitle")}
+        breadcrumbs={[{ label: t(locale, "workspace"), href: "/app" }, { label: t(locale, "recoveryCases") }]}
         actions={!isManagedDemo && !isPlatformStaff ? (
           <LinkButton href="/app/cases/new">
             <Icons.Plus className="h-4 w-4" />
-            New case
+            {t(locale, "newCase")}
           </LinkButton>
         ) : undefined}
       />
@@ -99,24 +102,24 @@ export default async function CasesPage({
               method="get"
             >
               <Input
-                label="Search"
+                label={t(locale, "search")}
                 name="q"
-                placeholder="Survivor name, event, or need"
+                placeholder={t(locale, "caseSearchPlaceholder")}
                 defaultValue={q}
               />
-              <Select label="Status" name="status" defaultValue={status}>
-                <option value="">All statuses</option>
+              <Select label={t(locale, "status")} name="status" defaultValue={status}>
+                <option value="">{t(locale, "allStatuses")}</option>
                 {CASE_STATUSES.map((s) => (
                   <option key={s} value={s}>
-                    {LABELS.caseStatus[s]}
+                    {workspaceLabel(locale, LABELS.caseStatus[s])}
                   </option>
                 ))}
               </Select>
-              <Select label="Priority" name="priority" defaultValue={priority}>
-                <option value="">All priorities</option>
+              <Select label={t(locale, "priority")} name="priority" defaultValue={priority}>
+                <option value="">{t(locale, "allPriorities")}</option>
                 {PRIORITIES.map((p) => (
                   <option key={p} value={p}>
-                    {LABELS.priority[p]}
+                    {workspaceLabel(locale, LABELS.priority[p])}
                   </option>
                 ))}
               </Select>
@@ -126,13 +129,13 @@ export default async function CasesPage({
                   className="inline-flex h-11 items-center gap-2 rounded-sm bg-blue px-4 text-[13.5px] font-semibold text-white hover:bg-navy-light"
                 >
                   <Icons.Filter className="h-4 w-4" />
-                  Filter
+                  {t(locale, "filter")}
                 </button>
                 <Link
                   href="/app/cases"
                   className="inline-flex h-11 items-center rounded-sm border border-line bg-surface px-3 text-[13.5px] font-semibold text-ink-2 hover:border-blue hover:text-blue hover:no-underline"
                 >
-                  Reset
+                  {t(locale, "reset")}
                 </Link>
               </div>
             </form>
@@ -142,22 +145,22 @@ export default async function CasesPage({
         {error ? (
           <Card>
             <CardBody>
-              <div className="text-red">Could not load cases. {error.message}</div>
+              <div className="text-red">{t(locale, "casesLoadError")} {locale === "en" && error.message}</div>
             </CardBody>
           </Card>
         ) : rows.length === 0 ? (
           <EmptyState
             icon={<Icons.Cases className="h-7 w-7" />}
-            title="No recovery cases yet"
+            title={t(locale, "noCases")}
             description={
               q || status || priority
-                ? "No cases match those filters. Try clearing them."
-                : "Open a recovery case for a survivor to start tracking lifecycle, priority, and outcomes."
+                ? t(locale, "casesNoMatches")
+                : t(locale, "casesEmptyHelp")
             }
             action={!isManagedDemo && !isPlatformStaff ? (
               <LinkButton href="/app/cases/new">
                 <Icons.Plus className="h-4 w-4" />
-                Open first case
+                {t(locale, "openFirstCase")}
               </LinkButton>
             ) : undefined}
           />
@@ -166,12 +169,12 @@ export default async function CasesPage({
             <DataTable className="rounded-md border-0">
               <THead>
                 <Tr>
-                  <Th>Survivor</Th>
-                  <Th>Event</Th>
-                  <Th>Primary need</Th>
-                  <Th>Priority</Th>
-                  <Th>Status</Th>
-                  <Th align="right">Opened</Th>
+                  <Th>{t(locale, "survivor")}</Th>
+                  <Th>{t(locale, "event")}</Th>
+                  <Th>{t(locale, "primaryNeed")}</Th>
+                  <Th>{t(locale, "priority")}</Th>
+                  <Th>{t(locale, "status")}</Th>
+                  <Th align="right">{t(locale, "opened")}</Th>
                 </Tr>
               </THead>
               <tbody>
@@ -191,13 +194,13 @@ export default async function CasesPage({
                     <Td>{c.disaster_type ?? "—"}</Td>
                     <Td>{c.primary_need ?? "—"}</Td>
                     <Td>
-                      <PriorityBadge priority={c.priority} />
+                      <PriorityBadge locale={locale} priority={c.priority} />
                     </Td>
                     <Td>
-                      <CaseStatusBadge status={c.status} />
+                      <CaseStatusBadge locale={locale} status={c.status} />
                     </Td>
                     <Td align="right" className="rb-numerals text-[12.5px] text-ink-3">
-                      {relativeDate(c.opened_at)}
+                      {relativeDate(c.opened_at, locale)}
                     </Td>
                   </Tr>
                 ))}

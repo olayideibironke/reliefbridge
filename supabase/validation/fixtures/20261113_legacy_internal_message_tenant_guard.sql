@@ -1,3 +1,4 @@
+-- Historical fixture only. Excluded from the production migration sequence.
 -- STAGED ONLY. Do not apply to production without a separate approved rollout.
 -- Restore tenant isolation to the legacy single-recipient messaging RPC.
 create or replace function public.send_internal_message(

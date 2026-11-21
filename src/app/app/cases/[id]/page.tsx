@@ -1,3 +1,5 @@
+import { getRequestLocale } from "@/lib/request-locale";
+import { t, workspaceLabel } from "@/lib/i18n";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
@@ -33,6 +35,7 @@ export default async function CaseDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const locale = await getRequestLocale();
   const profile = await requireProfile();
   const isPlatformStaff = profile.organization_id === PLATFORM && ["manager", "staff"].includes(String(profile.role ?? "").toLowerCase());
   const supabase = await createSupabaseServerClient();
@@ -83,27 +86,34 @@ export default async function CaseDetailPage({
   return (
     <>
       <PageHeader
-        eyebrow="Recovery case"
-        title={recoveryCase.primary_need ?? recoveryCase.disaster_type ?? "Case"}
+        eyebrow={t(locale, "recoveryCase")}
+        title={recoveryCase.primary_need ?? recoveryCase.disaster_type ?? t(locale, "case")}
         subtitle={
           survivor
-            ? `For ${fullName(survivor.first_name, survivor.last_name)}${
+            ? `${t(locale, "forPerson")} ${fullName(survivor.first_name, survivor.last_name)}${
                 survivor.state ? ` · ${survivor.state}` : ""
               }`
-            : "Recovery case"
+            : t(locale, "recoveryCase")
         }
         breadcrumbs={[
-          { label: "Workspace", href: "/app" },
-          { label: "Recovery cases", href: "/app/cases" },
-          { label: recoveryCase.primary_need ?? "Case" },
+          { label: t(locale, "workspace"), href: "/app" },
+          { label: t(locale, "recoveryCases"), href: "/app/cases" },
+          { label: recoveryCase.primary_need ?? t(locale, "case") },
         ]}
         actions={
-          survivor ? (
-            <LinkButton href={`/app/survivors/${survivor.id}`} variant="outline">
-              <Icons.Survivors className="h-4 w-4" />
-              Open survivor
-            </LinkButton>
-          ) : null
+          <>
+            {!isManagedDemo && (
+              <LinkButton href={`/app/recovery-resources?case=${recoveryCase.id}`} variant="outline">
+                {t(locale, "recoveryResources")}
+              </LinkButton>
+            )}
+            {survivor && (
+              <LinkButton href={`/app/survivors/${survivor.id}`} variant="outline">
+                <Icons.Survivors className="h-4 w-4" />
+                {t(locale, "openSurvivor")}
+              </LinkButton>
+            )}
+          </>
         }
       />
 
@@ -111,21 +121,21 @@ export default async function CaseDetailPage({
         {/* Left column */}
         <div className="space-y-6 lg:col-span-2">
           <Card>
-            <CardHeader title="Case at a glance" />
+            <CardHeader title={t(locale, "caseSummary")} />
             <CardBody>
               <dl className="grid grid-cols-2 gap-x-6 gap-y-4 text-[13.5px]">
-                <Field label="Survivor" value={survivor ? fullName(survivor.first_name, survivor.last_name) : "—"} />
-                <Field label="Disaster type" value={recoveryCase.disaster_type} />
-                <Field label="Primary need" value={recoveryCase.primary_need} />
-                <FieldNode label="Priority">
-                  <PriorityBadge priority={recoveryCase.priority} />
+                <Field label={t(locale, "survivor")} value={survivor ? fullName(survivor.first_name, survivor.last_name) : "—"} />
+                <Field label={t(locale, "disasterType")} value={recoveryCase.disaster_type} />
+                <Field label={t(locale, "primaryNeed")} value={recoveryCase.primary_need} />
+                <FieldNode label={t(locale, "priority")}>
+                  <PriorityBadge locale={locale} priority={recoveryCase.priority} />
                 </FieldNode>
-                <FieldNode label="Status">
-                  <CaseStatusBadge status={recoveryCase.status} />
+                <FieldNode label={t(locale, "status")}>
+                  <CaseStatusBadge locale={locale} status={recoveryCase.status} />
                 </FieldNode>
-                <Field label="Opened" value={formatDate(recoveryCase.opened_at)} />
+                <Field label={t(locale, "opened")} value={formatDate(recoveryCase.opened_at, locale)} />
                 {recoveryCase.status === "closed" && (
-                  <Field label="Closed" value={formatDate(recoveryCase.closed_at)} />
+                  <Field label={t(locale, "closedDate")} value={formatDate(recoveryCase.closed_at, locale)} />
                 )}
               </dl>
               {recoveryCase.notes && (
@@ -137,12 +147,12 @@ export default async function CaseDetailPage({
           </Card>
 
           <Card>
-            <CardHeader title="Activity timeline" subtitle="Case notes, newest first" />
+            <CardHeader title={t(locale, "activityTimeline")} subtitle={t(locale, "caseNotesLatest")} />
             <CardBody className="space-y-5">
               {!isManagedDemo && !isPlatformStaff && <CaseNoteForm caseId={recoveryCase.id} />}
               {noteList.length === 0 ? (
                 <div className="rounded-sm border border-dashed border-line bg-surface-2 px-4 py-8 text-center text-[13px] text-ink-3">
-                  {isManagedDemo ? "No case notes are included in this demonstration." : "No notes yet. Add the first update above."}
+                  {isManagedDemo ? t(locale, "noDemoCaseNotes") : t(locale, "noCaseNotes")}
                 </div>
               ) : (
                 <ul className="space-y-3 border-t border-line pt-4">
@@ -151,10 +161,10 @@ export default async function CaseDetailPage({
                       <div className="flex items-center justify-between text-[12px] text-ink-3">
                         <span className="font-semibold text-navy">
                           {fullName(n.author?.first_name, n.author?.last_name) === "Unnamed"
-                            ? n.author?.email ?? "Member"
+                            ? n.author?.email ?? workspaceLabel(locale, "Member")
                             : fullName(n.author?.first_name, n.author?.last_name)}
                         </span>
-                        <span className="rb-numerals">{formatDateTime(n.created_at)}</span>
+                        <span className="rb-numerals">{formatDateTime(n.created_at, locale)}</span>
                       </div>
                       <div className="mt-2 whitespace-pre-line text-[14px] leading-6 text-ink">
                         {n.body}
@@ -170,7 +180,7 @@ export default async function CaseDetailPage({
         {/* Right column: edit */}
         <div className="space-y-6">
           <Card>
-            <CardHeader title="Update case" />
+            <CardHeader title={t(locale, "updateCase")} />
             <CardBody padded={false}>
               {!isManagedDemo && !isPlatformStaff ? <CaseEdit
                 id={recoveryCase.id}
@@ -182,18 +192,18 @@ export default async function CaseDetailPage({
                   notes: recoveryCase.notes,
                 }}
                 managers={managerOptions}
-              /> : <div className="p-5 text-[13px] text-ink-3">Read-only demonstration. Case changes are disabled.</div>}
+              /> : <div className="p-5 text-[13px] text-ink-3">{t(locale, "demoCaseReadOnly")}</div>}
             </CardBody>
           </Card>
 
           {survivor && (
             <Card>
-              <CardHeader title="Linked survivor" />
+              <CardHeader title={t(locale, "linkedSurvivor")} />
               <CardBody>
                 <div className="space-y-3 text-[13.5px]">
                   <div>
                     <div className="text-[11.5px] font-bold uppercase tracking-[0.1em] text-ink-3">
-                      Name
+                      {t(locale, "name")}
                     </div>
                     <Link
                       href={`/app/survivors/${survivor.id}`}
@@ -204,14 +214,14 @@ export default async function CaseDetailPage({
                   </div>
                   <div>
                     <div className="text-[11.5px] font-bold uppercase tracking-[0.1em] text-ink-3">
-                      Contact
+                      {t(locale, "contact")}
                     </div>
                     <div className="text-ink-2">{survivor.email ?? "—"}</div>
                     <div className="text-ink-3">{survivor.phone ?? ""}</div>
                   </div>
                   <div>
                     <div className="text-[11.5px] font-bold uppercase tracking-[0.1em] text-ink-3">
-                      Location
+                      {t(locale, "location")}
                     </div>
                     <div className="text-ink-2">
                       {[survivor.county, survivor.state].filter(Boolean).join(", ") || "—"}

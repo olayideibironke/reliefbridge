@@ -6,17 +6,17 @@ const cp = require("node:child_process");
 const root = path.resolve(__dirname, "..");
 const check = path.join(root, "scripts/check-public-intake-boundary.cjs");
 const fixtures = [
-  ["src/app/request-demo/actions.ts", (s) => s.replace("await persistPublicIntake(", "await bypassIntake(")],
-  ["src/app/request-quote/actions.ts", (s) => s.replace('import { persistPublicIntake } from "@/lib/public-intake";', 'import { bypassIntake } from "@/lib/public-intake";')],
-  ["src/lib/public-intake.ts", (s) => s.replace('import "server-only";', "")],
+  ["src/app/request-demo/actions.ts", (s) => s.replace("await submitWebsiteIntake(", "await bypassIntake(")],
+  ["src/app/request-quote/actions.ts", (s) => s.replace('import { submitWebsiteIntake } from "@/lib/website-intake";', 'import { bypassIntake } from "@/lib/website-intake";')],
+  ["src/lib/website-intake.ts", (s) => s.replace('import "server-only";', "")],
   ["src/lib/supabase-admin.ts", (s) => s.replace('import "server-only";', "")],
-  ["supabase/migrations/20261105_public_intake_insert_lockdown.sql", (s) => s.replace("revoke insert on table public.demo_requests from anon;", "-- intentionally removed by test")],
-  ["supabase/migrations/20261105_public_intake_rate_guard.sql", (s) => s.replace("new.source is distinct from 'Website'", "false")],
+  ["supabase/migrations/2026112002_enforce_server_only_website_intake.sql", (s) => s.replace("revoke insert on table public.demo_requests from public, anon, authenticated;", "-- intentionally removed by test")],
+  ["supabase/migrations/2026112001_secure_mail_and_prepare_website_intake.sql", (s) => s.replace("where source = 'Website'", "false")],
 ];
 for (const [target, mutate] of fixtures) {
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), "rb-boundary-"));
   try {
-    for (const file of ["src/app/request-demo/actions.ts", "src/app/request-quote/actions.ts", "src/lib/public-intake.ts", "src/lib/supabase-admin.ts", "supabase/migrations/20261105_public_intake_insert_lockdown.sql", "supabase/migrations/20261105_public_intake_rate_guard.sql"]) {
+    for (const file of ["src/app/request-demo/actions.ts", "src/app/request-quote/actions.ts", "src/lib/website-intake.ts", "src/lib/supabase-admin.ts", "supabase/migrations/2026112002_enforce_server_only_website_intake.sql", "supabase/migrations/2026112001_secure_mail_and_prepare_website_intake.sql"]) {
       const source = fs.readFileSync(path.join(root, file), "utf8");
       const changed = file === target ? mutate(source) : source;
       if (file === target && changed === source) throw new Error("Mutation did not change " + file);

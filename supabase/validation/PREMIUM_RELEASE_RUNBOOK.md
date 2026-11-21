@@ -18,7 +18,7 @@
 3. Capture the current `public.sync_demo_request_to_sales()` function definition and `demo_request_sales_sync` trigger definition as a reviewed, access-controlled rollback artifact. Do not overwrite this snapshot with the staged replacement.
 4. Back up staging and verify a restore procedure before applying changes.
 5. Confirm the existing `demo_requests`, `sales_opportunities`, and `sales_activities` structures and their CHECK constraints match the staged migrations.
-6. Run `supabase/validation/premium_staging_schema_preflight_readonly.sql` in staging. Inspect the role privilege matrix: before cutover browser INSERT may still be enabled, while after cutover service_role INSERT must be enabled and browser INSERT disabled. Confirm the sales-sync function is SECURITY DEFINER with an appropriate privileged owner; do not grant service_role broad sales-table access as a workaround. Review missing tables/columns, RLS flags, existing triggers and CHECK constraints against the actual migration requirements. Secure the function-definition output because it is rollback-sensitive; this query is not a substitute for the controlled original-function snapshot.
+6. Run `supabase/validation/premium_staging_schema_preflight_readonly.sql` in staging. Inspect the role privilege matrix: browser and service-role direct INSERT must be disabled, while only the service role can execute `public.submit_website_intake(jsonb)`. Confirm the sales-sync function is SECURITY DEFINER with an appropriate privileged owner; do not grant service_role broad sales-table access as a workaround. Review missing tables/columns, RLS flags, existing triggers and CHECK constraints against the actual migration requirements. Secure the function-definition output because it is rollback-sensitive; this query is not a substitute for the controlled original-function snapshot.
 
 ## Staging migration order
 
@@ -29,31 +29,15 @@ Apply in this order, in the staging environment only:
 3. `supabase/migrations/20261103_staff_capacity_guard.sql`
 4. `supabase/migrations/20261102_quote_request_sales_classification.sql`
 5. `supabase/migrations/20261103_quote_repeat_guard.sql`
-6. `supabase/migrations/20261105_public_intake_rate_guard.sql`
-7. `supabase/migrations/20261113_legacy_internal_message_tenant_guard.sql` (independent messaging authorization hardening, after synthetic tenant-isolation tests)
-8. `supabase/migrations/20261105_public_intake_insert_lockdown.sql` **only after** the server-only intake path is deployed and verified against the same staging database.
+The staging baseline must include the two intake and Internal Mail migrations already live on production. Do not replay the superseded grant, quota-trigger, or mail SQL kept under `supabase/validation/fixtures`. Those files support historical fixture tests only.
 
-Review all migrations against the current schema before execution. Do not blindly replay migrations or alter production migration history.
+## Intake release and rollback
 
-## Intake cutover safety
-
-- Confirm the staging `service_role` has effective INSERT on `public.demo_requests` after the staged lockdown migration, while `anon` and `authenticated` do not. The server-only intake path uses INSERT without RETURNING and does not require service-role SELECT. Test as the actual service role, not just the database owner.
-- Confirm the server runtime has a valid service-role credential without printing or exposing it. If absent, stop: both forms will fail after privilege lockdown.
-- Verify both form actions use `persistPublicIntake`, with explicit field mapping and no browser-side service-role key.
-- Run a synthetic demo and written quote through the deployed staging application **before** revoking public INSERT; verify both persist and the demo notifications behave correctly.
-- Apply the staged rate guard and test legitimate multiple contacts, concurrent requests, and abuse thresholds against staging data. Review the global 120/hour ceiling for false positives and denial-of-service exposure.
-- Only then apply the direct INSERT lockdown and repeat form submissions. Verify direct anonymous/authenticated Data API INSERT is rejected while authorized staff UPDATE remains functional.
-- Never deploy a code revision that depends on the new permissions before its server environment is ready. Coordinate cutover to avoid an interval where valid requests are rejected.
-- The live `demo_requests.source` CHECK constraint permits only `Website`. A hypothetical non-Website source bypass in the rate guard is therefore unreachable under the current schema. Do not rely on it for internal imports without a separately reviewed schema change. A global website quota can still be exhausted intentionally. Confirm operational mitigation and monitoring before approving production.
-
-## Intake cutover rollback (staging rehearsal required)
-
-1. Capture the current table privileges, RLS policies, triggers, and a reviewed rollback artifact **before** any migration. Keep secrets and live PII out of evidence.
-2. If a form fails after the new application code is deployed but before privilege lockdown, stop rollout and revert the application revision to the previously verified version. Do not alter production grants to debug.
-3. If a form fails **after** privilege lockdown, first confirm the service-role environment and server-side intake path. Rolling back the application alone will **not** restore public submissions because the old code uses the browser-facing database role.
-4. To revert the cutover, coordinate a reviewed restoration of the prior database grants/RLS and the prior application version as a single controlled operation. Re-enabling public INSERT reopens the direct API bypass and must be treated as a temporary security exception, not a routine rollback.
-5. For a rate-guard defect, review and rehearse disabling the `public_intake_volume_guard` trigger in staging while retaining the public INSERT lockdown and the working server-only intake path. Do not disable the quote repeat guard or sales pipeline sync.
-6. Re-run the real staging demo and quote forms, their notifications, internal sales management updates, and direct anonymous/authenticated Data API rejection after every rollback or remediation.
+- Verify both forms use the server-only `submit_website_intake` function. Check effective table and column INSERT and function EXECUTE grants for `anon`, `authenticated`, and `service_role`. The service role needs function EXECUTE and no direct table INSERT.
+- Confirm the server runtime has a valid service-role credential without exposing it.
+- Verify both forms persist synthetic requests in staging, the demo sends its expected notifications, and quote requests do not send automatic mail.
+- Test the existing shared rolling quota (three requests per email and thirty total per hour) and the ten-minute quote repeat guard, including concurrent requests.
+- If quote rollout fails, revert the application revision and rehearse restoring the captured sales-sync function and removing the staged quote repeat trigger. Retain the existing intake RPC, quota, grants, and RLS. Verify demo intake after rollback.
 
 ## Staging verification
 

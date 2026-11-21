@@ -1,3 +1,4 @@
+-- Historical fixture only. Excluded from the production migration sequence.
 -- STAGED ONLY. Do not apply until both public form actions use a reviewed
 -- server-only intake boundary, and full-schema staging tests have passed.
 --

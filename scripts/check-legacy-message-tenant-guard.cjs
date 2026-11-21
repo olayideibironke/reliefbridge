@@ -1,6 +1,6 @@
 const fs = require('node:fs');
 const assert = require('node:assert/strict');
-const sql = fs.readFileSync('supabase/migrations/20261113_legacy_internal_message_tenant_guard.sql','utf8');
+const sql = fs.readFileSync('supabase/validation/fixtures/20261113_legacy_internal_message_tenant_guard.sql','utf8');
 assert.match(sql, /create or replace function public\.send_internal_message\s*\(/i);
 assert.match(sql, /private\.is_reliefbridge_internal_user\(auth\.uid\(\)\)/i);
 assert.match(sql, /private\.is_reliefbridge_internal_user\(target_recipient\)/i);

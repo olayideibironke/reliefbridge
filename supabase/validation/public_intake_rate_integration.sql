@@ -1,6 +1,6 @@
 -- Disposable PostgreSQL only. Run after quote_pipeline_integration.sql.
 \set ON_ERROR_STOP on
-\ir ../migrations/20261105_public_intake_rate_guard.sql
+\ir fixtures/20261105_public_intake_rate_guard.sql
 
 -- Ordinary demos and quotes share the same per-email limit.
 insert into public.demo_requests(first_name,last_name,work_email,organization_name,organization_type,role_title,message)

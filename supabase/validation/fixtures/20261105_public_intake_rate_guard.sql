@@ -1,3 +1,4 @@
+-- Historical fixture only. Excluded from the production migration sequence.
 -- STAGED ONLY: apply with the server-only public intake and INSERT lockdown.
 -- Limits cover ordinary demos and quotes regardless of user-controlled message.
 -- Advisory transaction lock serializes checks, preventing concurrent over-admission.

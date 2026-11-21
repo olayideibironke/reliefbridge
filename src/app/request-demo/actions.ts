@@ -2,7 +2,7 @@
 
 import { Resend } from "resend";
 
-import { persistPublicIntake } from "@/lib/public-intake";
+import { submitWebsiteIntake } from "@/lib/website-intake";
 import { isEmail } from "@/lib/utils";
 import { US_STATES } from "@/lib/constants";
 import type { FormState } from "@/lib/forms";
@@ -816,7 +816,7 @@ export async function requestDemoAction(
     message,
   };
 
-  const result = await persistPublicIntake({
+  const result = await submitWebsiteIntake({
     first_name: firstName,
     last_name: lastName,
     work_email: workEmail,
@@ -833,10 +833,10 @@ export async function requestDemoAction(
     source: "Website",
   });
 
-  if (!result.ok) {
+  if (result !== "accepted") {
     return {
       ok: false,
-      message: result.reason === "limited"
+      message: result === "limited"
         ? "We have received several recent requests. Please try again later or contact our team by email."
         : "We could not submit your request right now. Please try again in a moment.",
     };

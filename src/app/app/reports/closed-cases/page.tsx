@@ -1,3 +1,5 @@
+import { getRequestLocale } from "@/lib/request-locale";
+import { t } from "@/lib/i18n";
 import Link from "next/link";
 
 import { createSupabaseServerClient } from "@/lib/supabase-server";
@@ -17,9 +19,10 @@ import type {
 
 export const dynamic = "force-dynamic";
 
-export const metadata = {
-  title: "Closed cases report — ReliefBridge",
-};
+export async function generateMetadata() {
+  const locale = await getRequestLocale();
+  return { title: locale === "en" ? "Closed cases report — ReliefBridge" : t(locale, "reportClosedCases") };
+}
 
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
@@ -116,6 +119,7 @@ function calculateMedian(values: number[]): number {
 }
 
 export default async function ClosedCasesReport() {
+  const locale = await getRequestLocale();
   const profile = await requireProfile();
   const supabase = await createSupabaseServerClient();
 
@@ -194,47 +198,47 @@ export default async function ClosedCasesReport() {
   return (
     <>
       <PageHeader
-        eyebrow="Reports · Outcomes"
-        title="Closed recovery cases"
-        subtitle="Outcomes and time-to-close for resolved cases."
+        eyebrow={t(locale, "reportReportsOutcomes")}
+        title={t(locale, "reportClosedRecoveryCases")}
+        subtitle={t(locale, "reportOutcomesAndTimeToCloseForResolvedCasesMessage")}
         breadcrumbs={[
-          { label: "Insights", href: "/app" },
-          { label: "Reports", href: "/app/reports" },
-          { label: "Closed cases" },
+          { label: t(locale, "insights"), href: "/app" },
+          { label: t(locale, "reports"), href: "/app/reports" },
+          { label: t(locale, "reportClosedCases") },
         ]}
       />
 
       <div className="space-y-6 px-6 py-8 md:px-10">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <KpiCard
-            label="Total closed"
+            label={t(locale, "reportTotalClosed")}
             value={total}
-            hint="Across all time"
+            hint={t(locale, "reportAcrossAllTime")}
           />
 
           <KpiCard
-            label="Closed in last 30 days"
+            label={t(locale, "reportClosedInLastDays")}
             value={closedLast30Days}
-            hint="Recent throughput"
+            hint={t(locale, "reportRecentThroughput")}
           />
 
           <KpiCard
-            label="Avg time to close"
+            label={t(locale, "reportAvgTimeToClose")}
             value={`${averageDays} d`}
-            hint="Open to closed"
+            hint={t(locale, "reportOpenToClosed")}
           />
 
           <KpiCard
-            label="Median time to close"
+            label={t(locale, "reportMedianTimeToClose")}
             value={`${medianDays} d`}
-            hint="Resilient to outliers"
+            hint={t(locale, "reportResilientToOutliers")}
           />
         </div>
 
         <Card>
           <CardHeader
-            title="Closed cases"
-            subtitle="Most recently closed first"
+            title={t(locale, "reportClosedCases")}
+            subtitle={t(locale, "reportMostRecentlyClosedFirst")}
           />
 
           {rows.length === 0 ? (
@@ -243,19 +247,19 @@ export default async function ClosedCasesReport() {
               icon={
                 <Icons.CircleCheck className="h-7 w-7" />
               }
-              title="No closed cases yet"
-              description="Once you close a recovery case, it shows up here for reporting."
+              title={t(locale, "reportNoClosedCasesYet")}
+              description={t(locale, "reportOnceYouCloseARecoveryCaseItShowsUpHereForReportingMessage")}
             />
           ) : (
             <DataTable className="rounded-none border-0">
               <THead>
                 <Tr>
-                  <Th>Survivor</Th>
-                  <Th>Event</Th>
-                  <Th>Primary need</Th>
-                  <Th>Priority</Th>
-                  <Th>Status</Th>
-                  <Th align="right">Closed</Th>
+                  <Th>{t(locale, "survivor")}</Th>
+                  <Th>{t(locale, "event")}</Th>
+                  <Th>{t(locale, "primaryNeed")}</Th>
+                  <Th>{t(locale, "priority")}</Th>
+                  <Th>{t(locale, "status")}</Th>
+                  <Th align="right">{t(locale, "closedDate")}</Th>
                 </Tr>
               </THead>
 
@@ -291,14 +295,14 @@ export default async function ClosedCasesReport() {
                     </Td>
 
                     <Td>
-                      <CaseStatusBadge status="closed" />
+                      <CaseStatusBadge locale={locale} status="closed" />
                     </Td>
 
                     <Td
                       align="right"
                       className="rb-numerals text-[12.5px] text-ink-3"
                     >
-                      {formatDate(caseRow.closed_at)}
+                      {formatDate(caseRow.closed_at, locale)}
                     </Td>
                   </Tr>
                 ))}

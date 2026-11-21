@@ -21,7 +21,7 @@ begin
 end
 $pre_cutover_privileges$;
 
-\ir ../migrations/20261105_public_intake_insert_lockdown.sql
+\ir fixtures/20261105_public_intake_insert_lockdown.sql
 
 do $effective_privileges$
 begin
@@ -62,7 +62,7 @@ $least_privilege$;
 
 -- Replaying the lockdown in a controlled staging rehearsal must remain safe
 -- and must not silently restore direct INSERT to browser-facing roles.
-\ir ../migrations/20261105_public_intake_insert_lockdown.sql
+\ir fixtures/20261105_public_intake_insert_lockdown.sql
 do $repeat_lockdown$
 begin
   if pg_catalog.has_table_privilege('anon','public.demo_requests','INSERT')

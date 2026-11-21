@@ -1,3 +1,5 @@
+import { getRequestLocale } from "@/lib/request-locale";
+import { t, workspaceLabel } from "@/lib/i18n";
 import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { requireProfile } from "@/lib/session";
@@ -22,6 +24,7 @@ export default async function SurvivorsPage({
 }: {
   searchParams: Promise<{ q?: string; status?: string; state?: string }>;
 }) {
+  const locale = await getRequestLocale();
   const profile = await requireProfile();
   const isPlatformStaff = profile.organization_id === PLATFORM && ["manager", "staff"].includes(String(profile.role ?? "").toLowerCase());
   const sp = await searchParams;
@@ -71,14 +74,14 @@ export default async function SurvivorsPage({
   return (
     <>
       <PageHeader
-        eyebrow="Workspace"
-        title="Survivors"
-        subtitle="Every survivor coordinated by your organization. Search, filter, and open any record."
-        breadcrumbs={[{ label: "Workspace", href: "/app" }, { label: "Survivors" }]}
+        eyebrow={t(locale, "workspace")}
+        title={t(locale, "survivors")}
+        subtitle={t(locale, "survivorListSubtitle")}
+        breadcrumbs={[{ label: t(locale, "workspace"), href: "/app" }, { label: t(locale, "survivors") }]}
         actions={!isManagedDemo && !isPlatformStaff ? (
           <LinkButton href="/app/survivors/new">
             <Icons.Plus className="h-4 w-4" />
-            Add survivor
+            {t(locale, "addSurvivor")}
           </LinkButton>
         ) : undefined}
       />
@@ -92,25 +95,25 @@ export default async function SurvivorsPage({
               method="get"
             >
               <Input
-                label="Search"
+                label={t(locale, "search")}
                 name="q"
-                placeholder="Search by name, email, or phone"
+                placeholder={t(locale, "survivorSearchPlaceholder")}
                 defaultValue={q}
               />
               <Select
-                label="Status"
+                label={t(locale, "status")}
                 name="status"
                 defaultValue={status}
               >
-                <option value="">All statuses</option>
+                <option value="">{t(locale, "allStatuses")}</option>
                 {SURVIVOR_STATUSES.map((s) => (
                   <option key={s} value={s}>
-                    {LABELS.survivorStatus[s]}
+                    {workspaceLabel(locale, LABELS.survivorStatus[s])}
                   </option>
                 ))}
               </Select>
-              <Select label="State" name="state" defaultValue={state}>
-                <option value="">All states</option>
+              <Select label={t(locale, "state")} name="state" defaultValue={state}>
+                <option value="">{t(locale, "allStates")}</option>
                 {US_STATES.map((s) => (
                   <option key={s} value={s}>
                     {s}
@@ -123,13 +126,13 @@ export default async function SurvivorsPage({
                   className="inline-flex h-11 items-center gap-2 rounded-sm bg-blue px-4 text-[13.5px] font-semibold text-white hover:bg-navy-light"
                 >
                   <Icons.Filter className="h-4 w-4" />
-                  Filter
+                  {t(locale, "filter")}
                 </button>
                 <Link
                   href="/app/survivors"
                   className="inline-flex h-11 items-center rounded-sm border border-line bg-surface px-3 text-[13.5px] font-semibold text-ink-2 hover:border-blue hover:text-blue hover:no-underline"
                 >
-                  Reset
+                  {t(locale, "reset")}
                 </Link>
               </div>
             </form>
@@ -139,22 +142,22 @@ export default async function SurvivorsPage({
         {error ? (
           <Card>
             <CardBody>
-              <div className="text-red">Could not load survivors. {error.message}</div>
+              <div className="text-red">{t(locale, "survivorsLoadError")} {locale === "en" && error.message}</div>
             </CardBody>
           </Card>
         ) : survivors.length === 0 ? (
           <EmptyState
             icon={<Icons.Survivors className="h-7 w-7" />}
-            title="No survivors yet"
+            title={t(locale, "noSurvivors")}
             description={
               q || status || state
-                ? "No survivors match those filters. Try clearing them."
-                : "Add the first survivor your organization is coordinating to begin tracking cases, needs, and referrals."
+                ? t(locale, "survivorsNoMatches")
+                : t(locale, "survivorsEmptyHelp")
             }
             action={!isManagedDemo && !isPlatformStaff ? (
               <LinkButton href="/app/survivors/new">
                 <Icons.Plus className="h-4 w-4" />
-                Add first survivor
+                {t(locale, "addFirstSurvivor")}
               </LinkButton>
             ) : undefined}
           />
@@ -163,12 +166,12 @@ export default async function SurvivorsPage({
             <DataTable className="rounded-md border-0">
               <THead>
                 <Tr>
-                  <Th>Survivor</Th>
-                  <Th>Disaster event</Th>
-                  <Th>Location</Th>
-                  <Th>Contact</Th>
-                  <Th>Status</Th>
-                  <Th align="right">Added</Th>
+                  <Th>{t(locale, "survivor")}</Th>
+                  <Th>{t(locale, "disasterEvent")}</Th>
+                  <Th>{t(locale, "location")}</Th>
+                  <Th>{t(locale, "contact")}</Th>
+                  <Th>{t(locale, "status")}</Th>
+                  <Th align="right">{t(locale, "added")}</Th>
                 </Tr>
               </THead>
               <tbody>
@@ -197,10 +200,10 @@ export default async function SurvivorsPage({
                       )}
                     </Td>
                     <Td>
-                      <SurvivorStatusBadge status={s.status} />
+                      <SurvivorStatusBadge locale={locale} status={s.status} />
                     </Td>
                     <Td align="right" className="rb-numerals text-[12.5px] text-ink-3">
-                      {relativeDate(s.created_at)}
+                      {relativeDate(s.created_at, locale)}
                     </Td>
                   </Tr>
                 ))}

@@ -131,14 +131,23 @@ where connamespace='public'::regnamespace
  and contype='c'
 order by table_name,conname;
 
--- Intake cutover privilege matrix: baseline only. Before lockdown, public
--- INSERT may still be enabled. Review this output against the migration plan.
+-- Compare staging to the deployed intake boundary. All three roles lack direct
+-- INSERT and only service_role can execute the intake RPC.
 select role_name,
        pg_catalog.to_regrole(role_name) is not null as role_exists,
        case when pg_catalog.to_regrole(role_name) is not null
             and to_regclass('public.demo_requests') is not null
          then pg_catalog.has_table_privilege(role_name,'public.demo_requests','INSERT')
          else null end as can_insert,
+       case when pg_catalog.to_regrole(role_name) is not null
+            and to_regclass('public.demo_requests') is not null
+         then pg_catalog.has_any_column_privilege(role_name,'public.demo_requests','INSERT')
+         else null end as can_insert_column,
+       pg_catalog.to_regprocedure('public.submit_website_intake(jsonb)') is not null as intake_rpc_exists,
+       case when pg_catalog.to_regrole(role_name) is not null
+            and pg_catalog.to_regprocedure('public.submit_website_intake(jsonb)') is not null
+         then pg_catalog.has_function_privilege(role_name,'public.submit_website_intake(jsonb)','EXECUTE')
+         else null end as can_execute_intake,
        case when pg_catalog.to_regrole(role_name) is not null
             and to_regclass('public.demo_requests') is not null
          then pg_catalog.has_table_privilege(role_name,'public.demo_requests','SELECT')

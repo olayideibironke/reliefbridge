@@ -2,7 +2,7 @@
 set -euo pipefail
 # Disposable PostgreSQL only, after quote_pipeline_integration.sql.
 # Four simultaneous submissions for one normalized email must admit at most three.
-psql -X -v ON_ERROR_STOP=1 -f supabase/migrations/20261105_public_intake_rate_guard.sql >/dev/null
+psql -X -v ON_ERROR_STOP=1 -f supabase/validation/fixtures/20261105_public_intake_rate_guard.sql >/dev/null
 dir="$(mktemp -d)"
 trap 'rm -rf "$dir"' EXIT
 email="volume-race@example.test"

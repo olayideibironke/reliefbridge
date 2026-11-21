@@ -28,7 +28,7 @@ insert into public.profiles(id,organization_id) values
  ('00000000-0000-0000-0000-000000000002','10000000-0000-0000-0000-000000000001'),
  ('00000000-0000-0000-0000-000000000003','20000000-0000-0000-0000-000000000002'),
  ('00000000-0000-0000-0000-000000000004',null);
-\ir ../migrations/20261113_legacy_internal_message_tenant_guard.sql
+\ir fixtures/20261113_legacy_internal_message_tenant_guard.sql
 grant usage on schema public,auth,private to authenticated;
 grant execute on function auth.uid() to authenticated;
 grant execute on function private.is_reliefbridge_internal_user(uuid) to authenticated;
