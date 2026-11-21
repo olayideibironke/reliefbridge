@@ -37,6 +37,7 @@ export function validateQuoteForm(form: FormData) {
 
   return {
     errors,
+    quote: { packageName: plan, staffCount: staff, activeCases: cases, notes },
     payload: {
       first_name: first, last_name: last, work_email: email,
       organization_name: organization, organization_type: "Other",

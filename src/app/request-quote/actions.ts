@@ -1,5 +1,6 @@
 "use server";
 
+import { sendQuoteRequestEmails } from "@/lib/quote-request-email";
 import { submitWebsiteIntake } from "@/lib/website-intake";
 import { validateQuoteForm } from "@/lib/quote-form-validation";
 
@@ -11,7 +12,7 @@ export async function requestQuoteAction(_previous: QuoteState, form: FormData):
     return {ok:true,message:"Thank you. Your inquiry has been received."};
   }
 
-  const {errors, payload} = validateQuoteForm(form);
+  const {errors, payload, quote} = validateQuoteForm(form);
   if (Object.keys(errors).length) {
     return {ok:false,message:"Please correct the highlighted fields.",errors};
   }
@@ -25,9 +26,16 @@ export async function requestQuoteAction(_previous: QuoteState, form: FormData):
       if (result === "limited") return {ok:false,message:"We have received several recent requests. Please try again later or contact our team by email."};
       return {ok:false,message:"We could not save your request. Please try again."};
     }
-    return {ok:true,message:"Your quote request has been saved. Our team will review your organization’s needs and follow up by email. No call is required."};
   } catch {
     console.error("Quote request persistence unavailable");
     return {ok:false,message:"We could not save your request. Please try again."};
   }
+
+  try {
+    await sendQuoteRequestEmails(payload, quote);
+  } catch {
+    console.error("ReliefBridge could not prepare quote request notifications.");
+  }
+
+  return {ok:true,message:"Your quote request has been saved. Our team will review your organization’s needs and follow up by email. No call is required."};
 }
